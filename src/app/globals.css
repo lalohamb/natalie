@@ -58,8 +58,11 @@
 
   /* Motion */
   --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-rise: rise 900ms var(--ease-editorial) both;
   --animate-fade: fade 1200ms var(--ease-editorial) both;
+  --animate-word-rise: word-rise 700ms var(--ease-editorial) both;
+  --animate-portrait-enter: portrait-enter 1100ms var(--ease-editorial) both;
 
   @keyframes rise {
     from {
@@ -78,6 +81,29 @@
     }
     to {
       opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes word-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.6em) skewY(2deg);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes portrait-enter {
+    from {
+      opacity: 0;
+      transform: translateX(1.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
     }
   }
 }
@@ -131,5 +157,28 @@
     height: 1px;
     width: 2.5rem;
     background-color: var(--color-gold);
+  }
+
+  /* Cinematic grain overlay — applied to hero portrait wrapper */
+  .grain-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Word-by-word headline reveal — each span clips from below */
+  .word-clip {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.05em;
+  }
+
+  .word-clip > span {
+    display: inline-block;
+    animation: word-rise 700ms var(--ease-editorial) both;
   }
 }

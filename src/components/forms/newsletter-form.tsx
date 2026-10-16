@@ -45,7 +45,7 @@ export function NewsletterForm({ className }: { className?: string }) {
         </div>
 
         {/* Honeypot — hidden from people and assistive tech, attractive to bots. */}
-        <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <div aria-hidden="true" hidden>
           <label htmlFor={`${id}-hp`}>Leave this field empty</label>
           <input id={`${id}-hp`} name="nfm_hp" type="text" tabIndex={-1} autoComplete="off" />
         </div>

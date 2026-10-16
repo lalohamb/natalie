@@ -18,7 +18,7 @@ export function SiteFooter() {
 
   return (
     <footer className="bg-espresso text-mist">
-      <Container className="grid gap-14 py-20 md:grid-cols-12 md:gap-8">
+      <Container className="grid gap-12 py-16 sm:gap-14 sm:py-20 md:grid-cols-12 md:gap-8">
         <div className="md:col-span-5">
           <Wordmark tone="dark" />
           <p className="mt-8 max-w-xs font-display text-2xl leading-snug text-ivory italic">
@@ -29,7 +29,12 @@ export function SiteFooter() {
         <nav aria-label="Footer" className="md:col-span-3">
           <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Explore</h2>
           <ul className="mt-6 grid grid-cols-2 gap-x-8 gap-y-1 text-[0.9375rem] md:grid-cols-1">
-            {[{ label: "Home", href: "/" }, ...nav.main, { label: "Give", href: nav.give.href }].map((item) => (
+            {[
+              { label: "Home", href: "/" },
+              ...nav.main,
+              ...nav.secondary,
+              { label: "Give", href: nav.give.href },
+            ].map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="inline-flex min-h-10 items-center hover:text-ivory">
                   {item.label}

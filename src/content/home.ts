@@ -8,11 +8,11 @@ import type { CallToAction } from "./types";
 export const homeContent = {
   hero: {
     eyebrow: "Natalie Flemons Ministries",
-    headline: ["The Midwife", "To Your", "Destiny"],
+    headline: ["Shaping Destinies.", "Advancing the", "Kingdom."],
     supporting: "Leading people from their chaos to their call.",
     primaryCta: { label: "Meet Natalie", href: "/about" },
     secondaryCta: { label: "Explore the Books", href: "/books" },
-    tertiaryCta: { label: "Invite Natalie to Speak", href: "/booking" },
+    tertiaryCta: { label: "Invite Natalie to Speak", href: "/events" },
   },
 
   introduction: {
@@ -55,7 +55,7 @@ export const homeContent = {
     eyebrow: "Speaking & Ministry",
     heading: "Invite Natalie",
     body: "Natalie is a sought-after speaker, spiritual advisor and builder of God’s Kingdom. Churches, ministries, organizations and event coordinators are invited to share the details of their gathering.",
-    cta: { label: "Submit a Booking Inquiry", href: "/booking" } satisfies CallToAction,
+    cta: { label: "Submit a Booking Inquiry", href: "/contact" } satisfies CallToAction,
   },
 
   partner: {
@@ -63,6 +63,18 @@ export const homeContent = {
     heading: "Partner With the Vision",
     body: "Thank you for sowing into Natalie Flemons Ministries. Your partnership helps carry this message forward. You are sowing into good ground — may the Lord bless and prosper you.",
     cta: { label: "Give Today", href: "/donate" } satisfies CallToAction,
+  },
+
+  featuredMessage: {
+    eyebrow: "Featured Message",
+    heading: "A word from Natalie",
+    cta: { label: "Watch on Facebook", href: "https://www.facebook.com" } satisfies CallToAction,
+  },
+
+  upcomingEvents: {
+    eyebrow: "Events",
+    heading: "Upcoming appearances",
+    cta: { label: "View full schedule", href: "/events" } satisfies CallToAction,
   },
 
   newsletter: {

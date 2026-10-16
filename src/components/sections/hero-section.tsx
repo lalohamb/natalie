@@ -4,65 +4,166 @@ import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { getBio, getHomeContent, getPortraits } from "@/lib/content";
 
+/**
+ * Cinematic hero — M3 corrected.
+ *
+ * Layout: full-bleed portrait right column, editorial type left.
+ * Portrait: single entrance (opacity + translateX), grain overlay, stationary final state.
+ * Headline: word-by-word staggered rise via `.word-clip` utility.
+ * All motion disabled under `prefers-reduced-motion`.
+ */
 export function HeroSection() {
   const { hero } = getHomeContent();
   const portrait = getPortraits().autumn;
   const bio = getBio();
   const [lineOne, lineTwo, emphasis] = hero.headline;
 
+  // Split each headline line into words for staggered animation.
+  // Base delay offsets ensure lines feel sequential, not simultaneous.
+  const wordsOne = lineOne.split(" ");
+  const wordsTwo = lineTwo.split(" ");
+  const wordsEmphasis = emphasis.split(" ");
+
+  const baseDelays = {
+    eyebrow: 0,
+    lineOne: 80,
+    lineTwo: 80 + wordsOne.length * 60,
+    emphasis: 80 + (wordsOne.length + wordsTwo.length) * 60,
+    supporting: 80 + (wordsOne.length + wordsTwo.length + wordsEmphasis.length) * 60 + 40,
+    ctas: 80 + (wordsOne.length + wordsTwo.length + wordsEmphasis.length) * 60 + 160,
+  };
+
   return (
-    <section aria-labelledby="hero-heading" className="relative overflow-hidden">
-      <Container className="grid items-center gap-14 pt-10 pb-16 sm:pt-14 lg:grid-cols-12 lg:gap-8 lg:pt-16 lg:pb-24">
-        <div className="lg:col-span-7 lg:pr-8">
-          <Eyebrow className="motion-safe:animate-rise">{hero.eyebrow}</Eyebrow>
+    <section aria-labelledby="hero-heading" className="relative overflow-hidden bg-ivory">
+      {/* ── Two-column grid: type left, portrait right ── */}
+      <div className="grid min-h-[90svh] lg:grid-cols-12 lg:min-h-[88svh]">
 
-          <h1
-            id="hero-heading"
-            className="mt-8 font-display text-display-xl font-medium text-espresso uppercase motion-safe:animate-rise [animation-delay:80ms]"
-          >
-            <span className="block">{lineOne}</span>
-            <span className="block">{lineTwo}</span>
-            <span className="block text-ember normal-case italic">{emphasis}</span>
-          </h1>
+        {/* Left — editorial type column */}
+        <div className="relative z-10 flex flex-col justify-center px-gutter py-16 lg:col-span-6 lg:py-24 xl:col-span-5">
 
-          <p className="mt-8 max-w-xl font-display text-[1.6rem] leading-snug text-balance text-stone italic motion-safe:animate-rise [animation-delay:160ms] sm:text-[1.85rem]">
-            {hero.supporting}
-          </p>
+          {/* Subtle linen wash behind text on mobile where portrait bleeds through */}
+          <div aria-hidden className="absolute inset-0 bg-ivory/95 lg:bg-transparent" />
 
-          <div className="mt-10 flex flex-col gap-4 motion-safe:animate-rise [animation-delay:240ms] sm:flex-row sm:flex-wrap sm:items-center">
-            <ButtonLink href={hero.primaryCta.href}>{hero.primaryCta.label}</ButtonLink>
-            <ButtonLink href={hero.secondaryCta.href} variant="secondary">
-              {hero.secondaryCta.label}
-            </ButtonLink>
-            <ButtonLink href={hero.tertiaryCta.href} variant="text" arrow className="self-start sm:ml-3 sm:self-auto">
-              {hero.tertiaryCta.label}
-            </ButtonLink>
+          <div className="relative">
+            <Eyebrow
+              className="motion-safe:animate-rise"
+              style={{ animationDelay: `${baseDelays.eyebrow}ms` }}
+            >
+              {hero.eyebrow}
+            </Eyebrow>
+
+            <h1
+              id="hero-heading"
+              className="mt-8 font-display text-display-xl font-medium text-espresso uppercase leading-[0.95] tracking-[-0.015em]"
+            >
+              {/* Line 1 — word-by-word */}
+              <span className="block">
+                {wordsOne.map((word, i) => (
+                  <span key={i} className="word-clip motion-safe:inline-block motion-safe:overflow-hidden motion-safe:align-bottom">
+                    <span
+                      className="motion-safe:inline-block motion-safe:[animation:word-rise_700ms_var(--ease-editorial)_both]"
+                      style={{ animationDelay: `${baseDelays.lineOne + i * 60}ms` }}
+                    >
+                      {word}
+                    </span>
+                    {i < wordsOne.length - 1 && "\u00a0"}
+                  </span>
+                ))}
+              </span>
+
+              {/* Line 2 */}
+              <span className="block">
+                {wordsTwo.map((word, i) => (
+                  <span key={i} className="word-clip motion-safe:inline-block motion-safe:overflow-hidden motion-safe:align-bottom">
+                    <span
+                      className="motion-safe:inline-block motion-safe:[animation:word-rise_700ms_var(--ease-editorial)_both]"
+                      style={{ animationDelay: `${baseDelays.lineTwo + i * 60}ms` }}
+                    >
+                      {word}
+                    </span>
+                    {i < wordsTwo.length - 1 && "\u00a0"}
+                  </span>
+                ))}
+              </span>
+
+              {/* Emphasis line — italic ember */}
+              <span className="block text-ember normal-case italic">
+                {wordsEmphasis.map((word, i) => (
+                  <span key={i} className="word-clip motion-safe:inline-block motion-safe:overflow-hidden motion-safe:align-bottom">
+                    <span
+                      className="motion-safe:inline-block motion-safe:[animation:word-rise_700ms_var(--ease-editorial)_both]"
+                      style={{ animationDelay: `${baseDelays.emphasis + i * 60}ms` }}
+                    >
+                      {word}
+                    </span>
+                    {i < wordsEmphasis.length - 1 && "\u00a0"}
+                  </span>
+                ))}
+              </span>
+            </h1>
+
+            <p
+              className="mt-8 max-w-md font-display text-[1.6rem] leading-snug text-balance text-stone italic motion-safe:animate-rise sm:text-[1.85rem]"
+              style={{ animationDelay: `${baseDelays.supporting}ms` }}
+            >
+              {hero.supporting}
+            </p>
+
+            <div
+              className="mt-10 flex flex-col gap-4 motion-safe:animate-rise sm:flex-row sm:flex-wrap sm:items-center"
+              style={{ animationDelay: `${baseDelays.ctas}ms` }}
+            >
+              <ButtonLink href={hero.primaryCta.href}>{hero.primaryCta.label}</ButtonLink>
+              <ButtonLink href={hero.secondaryCta.href} variant="secondary">
+                {hero.secondaryCta.label}
+              </ButtonLink>
+              <ButtonLink href={hero.tertiaryCta.href} variant="text" arrow className="self-start sm:ml-3 sm:self-auto">
+                {hero.tertiaryCta.label}
+              </ButtonLink>
+            </div>
           </div>
         </div>
 
-        <figure className="relative mx-auto w-full max-w-md motion-safe:animate-fade [animation-delay:120ms] lg:col-span-5 lg:max-w-none">
-          {/* Offset linen panel and gold frame give the portrait an editorial mount. */}
-          <div aria-hidden className="absolute -right-4 -bottom-4 left-8 top-8 bg-linen sm:-right-6 sm:-bottom-6" />
-          <div aria-hidden className="absolute -top-3 -left-3 h-24 w-24 border-t border-l border-gold" />
-          <div className="relative aspect-[4/5] overflow-hidden bg-linen">
+        {/* Right — cinematic portrait */}
+        <figure
+          className="relative order-first h-[55vw] min-h-[320px] overflow-hidden lg:order-last lg:col-span-6 lg:h-auto xl:col-span-7"
+          aria-label={portrait.alt}
+        >
+          {/* Portrait entrance — single shot, no repeat */}
+          <div className="grain-overlay absolute inset-0 motion-safe:[animation:portrait-enter_1100ms_var(--ease-editorial)_both]">
             <Image
               src={portrait.src}
               alt={portrait.alt}
               placeholder="blur"
               fetchPriority="high"
               loading="eager"
-              quality={85}
-              sizes="(min-width: 1280px) 520px, (min-width: 1024px) 40vw, (min-width: 448px) 448px, 100vw"
-              className="h-full w-full object-cover object-[50%_22%]"
+              quality={90}
+              fill
+              sizes="(min-width: 1280px) 58vw, (min-width: 1024px) 50vw, 100vw"
+              className="object-cover object-[50%_18%]"
             />
           </div>
-          <figcaption className="relative mt-8 flex items-baseline justify-between gap-4 pr-2 text-sm">
-            <span className="font-display text-xl text-espresso">{bio.name}</span>
-            <span className="font-sans text-eyebrow font-semibold text-gold-ink uppercase">Founder</span>
+
+          {/* Gradient vignette — left edge fades into ivory on desktop */}
+          <div
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-ivory to-transparent lg:block hidden"
+          />
+
+          {/* Gold corner frame — bottom-right */}
+          <div aria-hidden className="absolute right-4 bottom-4 h-16 w-16 border-r border-b border-gold/60 sm:right-6 sm:bottom-6 sm:h-20 sm:w-20" />
+
+          {/* Name caption — bottom left */}
+          <figcaption className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6">
+            <span className="block font-display text-lg text-ivory drop-shadow-sm">{bio.name}</span>
+            <span className="block font-sans text-eyebrow font-semibold text-gold-light uppercase tracking-[0.22em]">
+              Founder
+            </span>
           </figcaption>
         </figure>
-      </Container>
+      </div>
 
+      {/* ── Role banner ── */}
       <div className="border-y border-sand/70 bg-ivory">
         <Container>
           <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-5 font-sans text-eyebrow font-semibold text-stone uppercase sm:justify-between">

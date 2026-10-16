@@ -5,7 +5,7 @@ export const site = {
   legalName: "Natalie Flemons Ministries LLC",
   principal: "Natalie C. Flemons",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.natalieflemons.com",
-  tagline: "The Midwife To Your Destiny",
+  tagline: "Shaping Destinies. Advancing the Kingdom.",
   mission: "Leading people from their chaos to their call.",
   description:
     "Natalie C. Flemons is a spiritual midwife, prophet, intercessor, author and founder of Natalie Flemons Ministries — leading people from their chaos to their call.",
@@ -15,9 +15,16 @@ export const site = {
 
 export const mainNavigation: NavItem[] = [
   { label: "About", href: "/about" },
+  { label: "Ministry", href: "/ministry" },
   { label: "Books", href: "/books" },
+  { label: "Events", href: "/events" },
+  { label: "Media", href: "/media" },
+];
+
+/** Secondary navigation rendered in the footer (not the main header). */
+export const secondaryNavigation: NavItem[] = [
   { label: "Store", href: "/store" },
-  { label: "Booking", href: "/booking" },
+  { label: "Partnerships", href: "/partnerships" },
   { label: "Contact", href: "/contact" },
 ];
 

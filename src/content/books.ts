@@ -6,11 +6,16 @@ import type { Book } from "./types";
 
 /**
  * Books verified on the legacy site on 2026-10-10 (SITE-AUDIT.md §4).
+ * "From the Chaos to the Call" added per ministry approval (Gate 2).
  *
- * Purchase links currently point at the live Squarespace product pages, which
- * still check out. Replace them when the commerce decision is made
- * (IMPLEMENTATION-PLAN.md §5).
+ * Purchase links currently point at the live Squarespace product pages.
+ * Replace them when the commerce decision is made (IMPLEMENTATION-PLAN.md §5).
+ *
+ * ⚠️ "From the Chaos to the Call" cover image not yet available.
+ * Using repairingTheBreachCover as a temporary stand-in (coverIsMockup: true).
+ * Replace with the actual cover when supplied by the ministry.
  */
+
 const legacyStore = "https://www.natalieflemons.com";
 
 export const books: Book[] = [
@@ -18,6 +23,7 @@ export const books: Book[] = [
     slug: "repairing-the-breach",
     title: "Repairing the Breach",
     subtitle: "Restoring Purity to the Prophetic",
+    status: "published",
     priceCents: 1499,
     summary:
       "A clarion call to the authentic prophetic voices to restore the integrity of prophetic ministry in today’s world — with a code of conduct rooted in the standards set by Christ, the Chief Prophet.",
@@ -40,6 +46,7 @@ export const books: Book[] = [
     slug: "repair-the-breach-workbook",
     title: "Repair the Breach Workbook",
     subtitle: "A 3-Phase Journey to Prophetic Purity",
+    status: "published",
     priceCents: 2500,
     summary:
       "A guided companion workbook that leads you through three transformative phases — Seek, Purge & Repair — rooted in the story of Josiah in 2 Chronicles 34.",
@@ -64,6 +71,7 @@ export const books: Book[] = [
     slug: "the-midwife-to-your-destiny",
     title: "The Midwife To Your Destiny",
     subtitle: "A Guide to Living at Your Fullest Potential",
+    status: "published",
     priceCents: 1499,
     summary:
       "A life-transforming guide that summons you to live at your fullest potential by confronting and conquering the enemies of your soul.",
@@ -85,6 +93,7 @@ export const books: Book[] = [
   {
     slug: "war-in-the-wait",
     title: "War In The Wait",
+    status: "published",
     priceCents: 1499,
     summary:
       "The moment you realize you can no longer be friends with the enemy is when the war begins. A transparent journey of believing God for the miraculous.",
@@ -101,5 +110,30 @@ export const books: Book[] = [
       label: "Purchase",
     },
     featured: true,
+  },
+  {
+    slug: "from-the-chaos-to-the-call",
+    title: "From the Chaos to the Call",
+    status: "published",
+    summary:
+      "Natalie's autobiography — a personal journey from chaos to divine calling, available on Amazon.",
+    description: [
+      "From the Chaos to the Call is Natalie C. Flemons' autobiography, tracing her personal journey from life's deepest challenges to the clarity of her divine calling. Available on Amazon.",
+    ],
+    cover: {
+      // ⚠️ No cover image available in src/assets/images/. Request from ministry.
+      // Using a placeholder until the flat cover file is supplied.
+      src: repairingTheBreachCover,
+      alt: "Cover of From the Chaos to the Call by Natalie C. Flemons",
+    },
+    coverIsMockup: true,
+    purchase: {
+      kind: "external",
+      // Amazon link from legacy site /purchase-book (SITE-AUDIT.md §3).
+      // ⚠️ Verify this URL is still live before publishing this page.
+      url: "https://www.amazon.com",
+      label: "Purchase on Amazon",
+    },
+    featured: false,
   },
 ];

@@ -10,10 +10,10 @@ export function SiteHeader() {
   const site = getSite();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-sand/60 bg-ivory/92 backdrop-blur-md supports-[backdrop-filter]:bg-ivory/80">
-      <Container className="flex h-20 items-center justify-between gap-8">
+    <header className="sticky top-0 z-40 border-b border-sand/60 bg-ivory/95 backdrop-blur-sm transition-shadow duration-300 supports-[backdrop-filter]:bg-ivory/85">
+      <Container className="flex h-16 items-center justify-between gap-6 sm:h-20">
         <Wordmark />
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-6 lg:gap-10">
           <DesktopNavigation items={nav.main} />
           <ButtonLink href={nav.give.href} className="hidden min-h-11 px-6 lg:inline-flex">
             {nav.give.label}
