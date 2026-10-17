@@ -15,7 +15,7 @@ export function SiteHeader() {
       {/* Medallion — absolutely pinned to far left, overflows header height */}
       <div className="absolute left-0 top-1/2 -translate-y-1/3 z-50">
         <NfMedallion size={72} className="shrink-0 lg:hidden" />
-        <NfMedallion size={120} className="shrink-0 hidden lg:block" />
+        {/* <NfMedallion size={120} className="shrink-0 hidden lg:block" /> */}
       </div>
       <Container className="flex h-16 items-center justify-between gap-6 sm:h-20">
         <div className="flex items-center pl-[76px] lg:pl-[5px]">
