@@ -25,16 +25,29 @@ function BookCover({ book, sizes, className }: { book: Book; sizes: string; clas
       <div
         className={cn(
           "relative overflow-hidden shadow-cover transition-transform duration-500 ease-editorial group-hover/cover:-translate-y-1.5",
-          book.coverIsMockup ? "aspect-[4/3]" : "aspect-[2/3]",
+          book.coverIsMockup ? "aspect-[2/3]" : "aspect-[2/3]",
         )}
       >
-        <Image
-          src={book.cover.src}
-          alt={book.cover.alt}
-          placeholder="blur"
-          sizes={sizes}
-          className="h-full w-full object-cover"
-        />
+        {book.coverIsMockup ? (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-linen border border-sand px-4 text-center">
+            <span aria-hidden className="block h-px w-8 bg-gold/60" />
+            <p className="font-display text-base italic text-stone leading-snug text-balance">
+              {book.title}
+            </p>
+            <p className="font-sans text-[0.65rem] font-semibold text-stone uppercase tracking-[0.18em]">
+              Cover coming soon
+            </p>
+            <span aria-hidden className="block h-px w-8 bg-gold/60" />
+          </div>
+        ) : (
+          <Image
+            src={book.cover.src}
+            alt={book.cover.alt}
+            placeholder="blur"
+            sizes={sizes}
+            className="h-full w-full object-cover"
+          />
+        )}
       </div>
     </Link>
   );
@@ -131,11 +144,11 @@ export function BookCard({ book, layout = "standard", headingLevel = "h3", class
   return (
     <article
       className={cn(
-        "grid grid-cols-[minmax(0,8rem)_1fr] items-start gap-x-6 gap-y-6 sm:grid-cols-[minmax(0,11rem)_1fr] sm:gap-x-8",
+        "grid grid-cols-[minmax(0,9rem)_1fr] items-start gap-x-6 gap-y-6 sm:grid-cols-[minmax(0,13rem)_1fr] sm:gap-x-10",
         className,
       )}
     >
-      <BookCover book={book} sizes="(min-width: 640px) 176px, 128px" className="sm:row-span-2" />
+      <BookCover book={book} sizes="(min-width: 640px) 208px, 144px" className="sm:row-span-2" />
       <div>
         <Heading className="font-display text-display-sm font-medium text-balance">
           <Link href={`/books/${book.slug}`} className="hover:text-ember">

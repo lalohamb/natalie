@@ -51,10 +51,15 @@ export default function StorePage() {
                   <Reveal key={product.slug} delay={i * 0.08}>
                     <article aria-labelledby={`product-${product.slug}`}>
                       {/* Product image placeholder — no approved images available yet */}
-                      <div className="aspect-square bg-linen border border-sand flex items-center justify-center">
-                        <p className="font-sans text-eyebrow text-stone uppercase text-center px-8">
-                          Product image<br />coming soon
+                      <div className="aspect-square bg-linen border border-sand flex flex-col items-center justify-center gap-3">
+                        <span aria-hidden className="block h-px w-8 bg-gold/60" />
+                        <p className="font-display text-lg italic text-stone text-center px-8 leading-snug">
+                          {product.title}
                         </p>
+                        <p className="font-sans text-[0.65rem] font-semibold text-stone uppercase tracking-[0.18em]">
+                          Photo coming soon
+                        </p>
+                        <span aria-hidden className="block h-px w-8 bg-gold/60" />
                       </div>
 
                       <div className="mt-6">
@@ -107,7 +112,7 @@ export default function StorePage() {
       <div className="border-t border-sand bg-linen py-10">
         <Container>
           <p className="text-sm text-stone">
-            ⚠️ Product images are pending. Stock availability reflects our last audit and may have changed.
+            Product photos are pending ministry approval. Stock availability reflects our last audit and may have changed.
             Purchases are processed through our external store.
           </p>
         </Container>

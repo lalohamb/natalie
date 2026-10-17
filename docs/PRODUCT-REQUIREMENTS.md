@@ -14,7 +14,7 @@ Can:
 
 Cannot:
 - Log in or create an account
-- Submit a booking inquiry (route not yet built — shows branded 404)
+- VIEW 2027 SCHEDULE (route not yet built — shows branded 404)
 - Submit a contact form (route not yet built — shows branded 404)
 - Complete a purchase natively (no cart or checkout)
 
@@ -68,7 +68,7 @@ Failure behavior: n/a (static links).
 
 ### F-05: Booking CTA
 Business purpose: generate speaking/ministry inquiry leads.
-User flow: visitor clicks "Submit a Booking Inquiry" → `/booking` (404 today).
+User flow: visitor clicks "VIEW 2027 SCHEDULE" → `/booking` (404 today).
 Required data: `homeContent.booking` copy.
 Success condition: ❌ GAP — `/booking` route not built.
 

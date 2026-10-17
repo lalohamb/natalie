@@ -22,7 +22,7 @@ export default function PartnershipsPage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section aria-labelledby="partnerships-heading" className="bg-linen py-section">
+      <section aria-labelledby="partnerships-heading" className="border-b border-sand bg-linen py-16">
         <Container className="max-w-4xl">
           <SectionHeading
             as="h1"
@@ -50,14 +50,15 @@ export default function PartnershipsPage() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {/* Stripe */}
             <Reveal>
-              <div className="relative flex flex-col gap-6 border border-sand p-8">
-                <span aria-hidden className="absolute -top-px -left-px h-8 w-8 border-t border-l border-gold" />
+              <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
+                <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
+                <span aria-hidden className="absolute right-0 bottom-0 h-8 w-8 border-r border-b border-gold" />
                 <div>
                   <Eyebrow rule={false}>Give by card</Eyebrow>
-                  <h3 className="mt-3 font-display text-display-sm font-medium">
+                  <h3 className="mt-4 font-display text-display-sm font-medium">
                     Secure online giving
                   </h3>
-                  <p className="mt-4 text-pretty text-stone">
+                  <p className="mt-5 text-pretty text-stone">
                     Give securely by credit or debit card through Stripe. Your gift goes directly
                     to support the work of Natalie Flemons Ministries.
                   </p>
@@ -66,7 +67,7 @@ export default function PartnershipsPage() {
                     Gifts are not tax-deductible.
                   </p>
                 </div>
-                <ButtonLink href={giving.stripeUrl} className="self-start">
+                <ButtonLink href={giving.stripeUrl} className="self-start mt-auto">
                   Give by Card
                 </ButtonLink>
               </div>
@@ -74,14 +75,15 @@ export default function PartnershipsPage() {
 
             {/* Cash App */}
             <Reveal delay={0.08}>
-              <div className="relative flex flex-col gap-6 border border-sand p-8">
-                <span aria-hidden className="absolute -top-px -left-px h-8 w-8 border-t border-l border-gold" />
+              <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
+                <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
+                <span aria-hidden className="absolute right-0 bottom-0 h-8 w-8 border-r border-b border-gold" />
                 <div>
                   <Eyebrow rule={false}>Give by Cash App</Eyebrow>
-                  <h3 className="mt-3 font-display text-display-sm font-medium">
+                  <h3 className="mt-4 font-display text-display-sm font-medium">
                     Cash App
                   </h3>
-                  <p className="mt-4 text-pretty text-stone">
+                  <p className="mt-5 text-pretty text-stone">
                     Send your gift directly via Cash App to{" "}
                     <span className="font-semibold text-espresso">{giving.cashAppHandle}</span>.
                   </p>
@@ -90,7 +92,7 @@ export default function PartnershipsPage() {
                     Gifts are not tax-deductible.
                   </p>
                 </div>
-                <ButtonLink href={giving.cashAppUrl} variant="secondary" className="self-start">
+                <ButtonLink href={giving.cashAppUrl} variant="secondary" className="self-start mt-auto">
                   Open Cash App
                 </ButtonLink>
               </div>

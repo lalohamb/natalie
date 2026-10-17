@@ -57,7 +57,7 @@ Header nav: **About · Books · Store · Booking · Contact** + a **Give** butto
 
 | # | Section | Content source |
 |---|---|---|
-| A | Hero: split layout (portrait right, type left on ivory). This avoids a full-bleed text-over-photo hero, because the current portraits are busy outdoor shots. "THE MIDWIFE TO YOUR DESTINY" / "Leading people from their chaos to their call." CTAs: Meet Natalie · Explore the Books · Invite Natalie to Speak | Verified brand lines |
+| A | Hero: split layout (portrait right, type left on ivory). This avoids a full-bleed text-over-photo hero, because the current portraits are busy outdoor shots. "THE MIDWIFE TO YOUR DESTINY" / "Leading people from their chaos to their call." CTAs: Meet Natalie · Explore the Books · UPCOMING EVENTS | Verified brand lines |
 | B | Introduction: DSC00295 portrait + condensed bio + "Read her story" | About bio |
 | C | Ministry message: three typographic pillars **Prayer · Prophecy · Purpose**, drawn from bio phrasing ("ministry of prayer and prophecy", "shaping destinies"). No invented programs | Bio |
 | D | Featured publications: catalog layout with RTB as the lead title and the other three in a row | Verified product data |

@@ -165,7 +165,7 @@ export default function EventsPage() {
               ))}
             </ul>
             <ButtonLink href="/contact" variant="inverse" arrow className="mt-10 w-full sm:w-auto">
-              Submit a Booking Inquiry
+              VIEW 2027 SCHEDULE
             </ButtonLink>
           </Reveal>
         </Container>

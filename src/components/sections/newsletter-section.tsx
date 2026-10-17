@@ -11,7 +11,7 @@ export function NewsletterSection() {
     <section
       id="newsletter"
       aria-labelledby="newsletter-heading"
-      className="scroll-mt-24 border-b border-ivory/10 bg-espresso py-24 text-ivory"
+      className="scroll-mt-24 border-b border-ivory/10 bg-espresso py-10 text-ivory"
     >
       <Container>
         <Reveal className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-8">

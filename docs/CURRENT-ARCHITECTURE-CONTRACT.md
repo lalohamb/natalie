@@ -1,6 +1,6 @@
 # CURRENT ARCHITECTURE CONTRACT
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M3 complete -->
+<!-- Last updated: M3 complete + admin placeholder + G-30 -->
 
 ## Authority
 
@@ -46,6 +46,12 @@ External identity: none.
 
 ❌ GAP: No auth layer exists. If an admin/CMS capability is added in future,
 an identity model must be designed from scratch before any implementation begins.
+
+❌ GAP (G-30): `/admin` route is publicly accessible. Authentication middleware
+must be implemented before production deployment. Recommended approach:
+`middleware.ts` at project root checking a session cookie, redirecting
+`/admin/*` to `/admin/login` if unauthenticated. `/admin` currently contains
+only placeholder UI — no real credentials or data are exposed.
 
 ---
 
@@ -168,8 +174,9 @@ Application code must not depend on provider response shapes directly.
 | Stripe Payment Link | Donations | Outbound link only | N/A |
 | Cash App | Donations | Outbound link only | N/A |
 | Google Fonts (next/font) | Cormorant Garamond + Manrope | Build-time self-hosting | N/A |
-| Newsletter provider | Email subscriptions | ⚠️ UNVERIFIED — not configured | Must be normalized at `src/lib/newsletter.ts` boundary when added |
-| Contact email provider | Contact form delivery | ⚠️ UNVERIFIED — not configured | Must be normalized at `src/app/actions/contact.ts` boundary when added |
+| Stripe Checkout | Book/merch checkout | ⚠️ NOT IMPLEMENTED — planned Option B | Must be normalized at checkout boundary |
+| MailerLite | Newsletter subscriptions | ⚠️ NOT IMPLEMENTED — planned | Must be normalized at `src/lib/newsletter.ts` boundary |
+| Resend | Contact form email delivery | ⚠️ NOT IMPLEMENTED — planned | Must be normalized at `src/app/actions/contact.ts` boundary |
 
 No provider responses are consumed at runtime today.
 
@@ -213,7 +220,7 @@ Operator intervention required:
 | `/donate` | ✅ Built | Redirects to `/partnerships` |
 | `/privacy` | ✅ Built | Placeholder — text not yet supplied |
 | `/terms` | ✅ Built | Placeholder — text not yet supplied |
-| `/booking` | ✅ Redirected | 301 → `/events` |
+| `/admin` | ⚠️ Placeholder | Integration config UI — no auth yet (G-30) |
 
 ## Next.js 16 Constraints
 

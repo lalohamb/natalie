@@ -225,7 +225,7 @@ Suggested calls to action:
 
 - Meet Natalie
 - Explore the Books
-- Invite Natalie to Speak
+- UPCOMING EVENTS
 
 Use subtle entrance animations where appropriate.
 
@@ -273,7 +273,7 @@ Suggested heading:
 
 Supporting copy should accurately describe her existing public-speaking and ministry activities.
 
-CTA: "Submit a Booking Inquiry"
+CTA: "VIEW 2027 SCHEDULE"
 
 ### Section F — Partner With the Ministry
 

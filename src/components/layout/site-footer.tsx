@@ -1,7 +1,8 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
-import { getNavigation, getSite, getSocialLinks } from "@/lib/content";
+import { getNavigation, getSite, getSocialLinks, getHomeContent } from "@/lib/content";
 import { Container } from "@/components/ui/container";
+import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { SocialIcon } from "@/components/ui/social-icon";
 import { Wordmark } from "./wordmark";
 
@@ -15,49 +16,20 @@ export function SiteFooter() {
   const site = getSite();
   const nav = getNavigation();
   const socials = getSocialLinks();
+  const { newsletter } = getHomeContent();
 
   return (
-    <footer className="bg-espresso text-mist">
-      <Container className="grid gap-12 py-16 sm:gap-14 sm:py-20 md:grid-cols-12 md:gap-8">
-        <div className="md:col-span-5">
+    <footer id="newsletter" className="scroll-mt-24 bg-espresso text-mist">
+      <Container className="grid gap-8 py-10 sm:py-12 md:grid-cols-12 md:gap-8">
+        {/* Brand */}
+        <div className="md:col-span-4">
           <Wordmark tone="dark" />
-          <p className="mt-8 max-w-xs font-display text-2xl leading-snug text-ivory italic">
+          <p className="mt-4 max-w-xs font-display text-lg leading-snug text-ivory italic">
             {site.mission}
           </p>
-        </div>
-
-        <nav aria-label="Footer" className="md:col-span-3">
-          <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Explore</h2>
-          <ul className="mt-6 grid grid-cols-2 gap-x-8 gap-y-1 text-[0.9375rem] md:grid-cols-1">
-            {[
-              { label: "Home", href: "/" },
-              ...nav.main,
-              ...nav.secondary,
-              { label: "Give", href: nav.give.href },
-            ].map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="inline-flex min-h-10 items-center hover:text-ivory">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="md:col-span-4">
-          <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Connect</h2>
-          <ul className="mt-6 grid gap-1 text-[0.9375rem]">
-            <li>
-              <a href={`mailto:${site.email}`} className="inline-flex min-h-10 items-center hover:text-ivory">
-                {site.email}
-              </a>
-            </li>
-            <li>
-              <Link href="/#newsletter" className="inline-flex min-h-10 items-center hover:text-ivory">
-                Newsletter sign-up
-              </Link>
-            </li>
-          </ul>
+          <a href={`mailto:${site.email}`} className="mt-3 inline-flex text-sm text-mist hover:text-ivory">
+            {site.email}
+          </a>
           {socials.length > 0 && (
             <ul className="mt-4 flex gap-1">
               {socials.map((social) => (
@@ -66,7 +38,7 @@ export function SiteFooter() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="-ml-2.5 inline-flex size-11 items-center justify-center hover:text-ivory"
+                    className="-ml-2.5 inline-flex size-10 items-center justify-center hover:text-ivory"
                   >
                     <SocialIcon platform={social.platform} className="size-5" />
                     <span className="sr-only">{social.label} (opens in a new tab)</span>
@@ -76,17 +48,77 @@ export function SiteFooter() {
             </ul>
           )}
         </div>
+
+        {/* Nav — three logical columns */}
+        <nav aria-label="Footer" className="md:col-span-5 grid grid-cols-3 gap-6">
+          <div>
+            <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Ministry</h2>
+            <ul className="mt-4 grid gap-0 text-[0.875rem]">
+              {[
+                { label: "Home", href: "/" },
+                { label: "About", href: "/about" },
+                { label: "Ministry", href: "/ministry" },
+                { label: "Events", href: "/events" },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="inline-flex min-h-8 items-center hover:text-ivory">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Resources</h2>
+            <ul className="mt-4 grid gap-0 text-[0.875rem]">
+              {[
+                { label: "Books", href: "/books" },
+                { label: "Media", href: "/media" },
+                { label: "Store", href: "/store" },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="inline-flex min-h-8 items-center hover:text-ivory">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Connect</h2>
+            <ul className="mt-4 grid gap-0 text-[0.875rem]">
+              {[
+                { label: "Contact", href: "/contact" },
+                { label: "Partnerships", href: "/partnerships" },
+                { label: "Give", href: "/donate" },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="inline-flex min-h-8 items-center hover:text-ivory">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+
+        {/* Newsletter */}
+        <div className="md:col-span-5">
+          <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">
+            {newsletter.eyebrow}
+          </h2>
+          <p className="mt-3 text-sm text-mist">{newsletter.body}</p>
+          <NewsletterForm className="mt-5" />
+        </div>
       </Container>
 
       <div className="border-t border-ivory/10">
-        <Container className="flex flex-col gap-4 py-8 text-[0.8125rem] sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © <CopyrightYear /> {site.legalName}. All rights reserved.
-          </p>
+        <Container className="flex flex-col gap-3 py-5 text-[0.8125rem] sm:flex-row sm:items-center sm:justify-between">
+          <p>© <CopyrightYear /> {site.legalName}. All rights reserved.</p>
           <ul className="flex gap-6">
             {nav.legal.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="inline-flex min-h-10 items-center hover:text-ivory">
+                <Link href={item.href} className="inline-flex min-h-8 items-center hover:text-ivory">
                   {item.label}
                 </Link>
               </li>

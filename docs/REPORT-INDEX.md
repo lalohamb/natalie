@@ -76,6 +76,40 @@ G-11, G-12, G-14, G-17, G-19, G-20, G-21, G-22, G-23, G-24, G-25, G-26, G-27.
 
 ---
 
+## M3-I — Approved Mockup Fidelity & Visual Acceptance
+
+| Phase | Report | Commit | Implementation | Verification | PO Accepted | Closure |
+|---|---|---|---|---|---|---|
+| Visual fidelity acceptance | `reports/PHASE-M3-I-VISUAL-FIDELITY-ACCEPTANCE.md` | pending | COMPLETE | PASS | PENDING | OPEN |
+| Visual fidelity corrections | `reports/PHASE-M3-I-1-VISUAL-FIDELITY-CORRECTIONS.md` | pending | COMPLETE | PASS | PENDING | OPEN |
+| Homepage approved design reconstruction | `reports/HOMEPAGE-APPROVED-DESIGN-IMPLEMENTATION.md` | pending | COMPLETE | PASS | PENDING | OPEN |
+
+Homepage reconstruction scope: Pixel-level analysis of `public/Approved Natalie
+Flemons Ministry Website Mockup.png` (1024×1536 px, homepage only). Five layout
+corrections applied to match the mockup's split-column section structure:
+bio-preview portrait moved to right; ministry-message converted to espresso-left/
+ivory-right split; featured-message converted to two-column poster-left/text-right;
+featured-publications converted to a grid of book cards; booking-cta converted to
+forest-left/ivory-right split. Build: 25 pages, 0 errors. Tests: 88/16/0.
+
+M3-I scope: Visual acceptance audit against approved mockup. Screenshots at
+320/390/1024/1440 px — zero overflow, zero JS errors. One accessibility defect
+found and corrected (hero h1 accessible name). Test result: 88/16/0.
+
+M3-I.1 scope: Six visual corrections against the approved mockup — hero
+typography (column width + type scale), featured media (editorial poster
+treatment), biography preview (3/4 portrait, pull-quote, dual corner frames),
+featured books (wider covers, tighter grid), booking CTA (decorative background
+word, gold rules, vertical divider), partnership section (wide horizontal layout,
+botanical SVG divider). No new packages. No content changes. Test result: 88/16/0.
+
+No gaps opened or closed.
+
+Open gaps carried forward: G-02, G-03, G-04, G-05b, G-05c, G-06, G-07, G-09,
+G-11, G-12, G-14, G-17, G-19, G-20, G-21, G-22, G-23, G-24, G-25, G-26, G-28.
+
+---
+
 ## M4 — Integrations and Commerce
 
 | Phase | Report | Commit | Status | PO Accepted |

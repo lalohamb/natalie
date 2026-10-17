@@ -20,7 +20,7 @@ export const videos: CuratedVideo[] = [
   {
     id: "v-001",
     title: "When God Had to Interrupt Me",
-    description: "A personal message from Natalie C. Flemons.",
+    description: "Encouraging words, real conversations, and faith-filled teaching to strengthen your walk with God.",
     category: "ministry-message",
     facebookUrl: "https://www.facebook.com/reel/27601806466164022",
     embeddable: false,

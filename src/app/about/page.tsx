@@ -43,13 +43,13 @@ export default function AboutPage() {
               {bio.short}
             </p>
             <div className="mt-10 flex flex-wrap gap-4 motion-safe:animate-rise [animation-delay:240ms]">
-              <ButtonLink href="/events">Invite Natalie to Speak</ButtonLink>
+              <ButtonLink href="/events">UPCOMING EVENTS</ButtonLink>
               <ButtonLink href="/books" variant="secondary">Explore the Books</ButtonLink>
             </div>
           </div>
 
           <figure className="relative motion-safe:animate-fade [animation-delay:120ms] lg:col-span-5 lg:col-start-8">
-            <div aria-hidden className="absolute -top-3 -left-3 h-24 w-24 border-t border-l border-gold" />
+            <div aria-hidden className="absolute -top-3 -left-3 h-12 w-12 border-t border-l border-gold/60" />
             <div className="relative aspect-[4/5] overflow-hidden bg-linen">
               <Image
                 src={portraits.autumn.src}
@@ -62,7 +62,7 @@ export default function AboutPage() {
                 className="h-full w-full object-cover object-[50%_20%]"
               />
             </div>
-            <div aria-hidden className="absolute -right-3 -bottom-3 h-24 w-24 border-r border-b border-gold" />
+            <div aria-hidden className="absolute -right-3 -bottom-3 h-20 w-20 border-r-2 border-b-2 border-gold" />
           </figure>
         </Container>
       </section>

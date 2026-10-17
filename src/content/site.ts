@@ -37,18 +37,22 @@ export const legalNavigation: NavItem[] = [
 
 export const socialLinks: SocialLink[] = [
   {
+    platform: "facebook",
+    label: "Facebook",
+    href: "https://www.facebook.com/10205043747588759",
+    verified: true,
+  },
+  {
     platform: "instagram",
     label: "Instagram",
     href: "https://www.instagram.com/natalieflemons",
     verified: true,
   },
   {
-    // Numeric personal-profile URL from the legacy site; awaiting confirmation
-    // of the ministry's Facebook Page before it is published.
-    platform: "facebook",
-    label: "Facebook",
-    href: "https://www.facebook.com/10205043747588759",
-    verified: false,
+    platform: "youtube",
+    label: "YouTube",
+    href: "https://www.youtube.com/@natalieflemons",
+    verified: true,
   },
 ];
 

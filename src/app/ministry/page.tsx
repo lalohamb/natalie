@@ -69,12 +69,13 @@ export default function MinistryPage() {
                   <p aria-hidden className="font-sans text-eyebrow font-semibold text-gold-ink">
                     {String(index + 1).padStart(2, "0")}
                   </p>
-                  <h2 className="mt-4 font-display text-display-md font-medium uppercase">
+                  <h2 className="mt-6 font-display text-display-md font-medium uppercase">
                     {pillar.name}
                   </h2>
-                  <p className="mt-3 font-display text-display-sm italic text-stone">
+                  <p className="mt-3 font-display text-xl italic text-stone">
                     {pillar.tagline}
                   </p>
+                  <span aria-hidden className="mt-6 block h-px w-10 bg-gold/60" />
                   <p className="mt-6 text-pretty text-stone leading-relaxed">
                     {pillar.description}
                   </p>
@@ -147,7 +148,7 @@ export default function MinistryPage() {
             <SectionHeading
               id="engagement-heading"
               eyebrow="Ministry Engagement"
-              title="Invite Natalie to Speak"
+              title="UPCOMING EVENTS"
               lede="Natalie is available for conferences, workshops, church services, and ministry events. Share the details of your gathering and let's explore how this ministry can serve your community."
               tone="dark"
               align="center"

@@ -17,7 +17,7 @@ export type NavItem = {
 };
 
 export type SocialLink = {
-  platform: "instagram" | "facebook";
+  platform: "instagram" | "facebook" | "youtube";
   label: string;
   href: string;
   /** Only verified links are rendered. See docs/reports/SITE-AUDIT.md §10. */

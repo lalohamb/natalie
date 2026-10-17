@@ -216,7 +216,7 @@ Accessor: `getProducts()`, `getProduct()`
 ### User Role — Visitor "Cannot" section (corrected)
 
 Removed stale entries:
-- "Submit a booking inquiry (route not yet built — shows branded 404)" → `/booking` redirects to `/events`; `/contact` is built
+- "VIEW 2027 SCHEDULE (route not yet built — shows branded 404)" → `/booking` redirects to `/events`; `/contact` is built
 - "Submit a contact form (route not yet built — shows branded 404)" → `/contact` is built
 - "Complete a purchase natively (no cart or checkout)" → retained (accurate)
 

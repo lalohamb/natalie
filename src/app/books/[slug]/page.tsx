@@ -51,21 +51,26 @@ export default async function BookDetailPage({ params }: Props) {
           <Container className="grid items-start gap-14 lg:grid-cols-12 lg:gap-8">
             {/* Cover */}
             <div className="mx-auto w-4/5 max-w-xs lg:sticky lg:top-28 lg:col-span-4 lg:w-full lg:max-w-none motion-safe:animate-fade">
-              <div
-                className={`relative overflow-hidden shadow-cover ${
-                  book.coverIsMockup ? "aspect-[4/3]" : "aspect-[2/3]"
-                }`}
-              >
-                <Image
-                  src={book.cover.src}
-                  alt={book.cover.alt}
-                  placeholder="blur"
-                  fetchPriority="high"
-                  loading="eager"
-                  quality={85}
-                  sizes="(min-width: 1280px) 380px, (min-width: 1024px) 32vw, 80vw"
-                  className="h-full w-full object-cover"
-                />
+              <div className="relative overflow-hidden shadow-cover aspect-[2/3]">
+                {book.coverIsMockup ? (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-linen border border-sand px-4 text-center">
+                    <span aria-hidden className="block h-px w-8 bg-gold/60" />
+                    <p className="font-display text-base italic text-stone leading-snug text-balance">{book.title}</p>
+                    <p className="font-sans text-[0.65rem] font-semibold text-stone uppercase tracking-[0.18em]">Cover coming soon</p>
+                    <span aria-hidden className="block h-px w-8 bg-gold/60" />
+                  </div>
+                ) : (
+                  <Image
+                    src={book.cover.src}
+                    alt={book.cover.alt}
+                    placeholder="blur"
+                    fetchPriority="high"
+                    loading="eager"
+                    quality={85}
+                    sizes="(min-width: 1280px) 380px, (min-width: 1024px) 32vw, 80vw"
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
             </div>
 

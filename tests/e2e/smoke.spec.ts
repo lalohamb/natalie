@@ -38,7 +38,13 @@ for (const { path, expectedH1 } of PUBLIC_ROUTES) {
 
     const h1 = page.locator("h1").first();
     await expect(h1).toBeVisible();
-    await expect(h1).toHaveText(expectedH1);
+    if (path === "/") {
+      await expect(
+        page.getByRole("heading", { level: 1 })
+      ).toHaveAccessibleName("Shaping Destinies. Advancing the Kingdom.");
+    } else {
+      await expect(h1).toHaveText(expectedH1);
+    }
 
     expect(errors, `${path} should have no JS errors`).toHaveLength(0);
   });

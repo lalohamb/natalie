@@ -173,7 +173,7 @@ export default async function EventDetailPage({ params }: Props) {
             </p>
           </div>
           <ButtonLink href="/contact" variant="inverse" arrow className="shrink-0">
-            Submit a Booking Inquiry
+            VIEW 2027 SCHEDULE
           </ButtonLink>
         </Container>
       </section>

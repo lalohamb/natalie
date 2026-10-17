@@ -38,7 +38,7 @@ function VideoCard({ video }: { video: CuratedVideo }) {
   return (
     <article aria-labelledby={`video-${video.id}`} className="flex flex-col gap-4">
       {/* Player area */}
-      <div className="relative aspect-video w-full overflow-hidden bg-espresso">
+      <div className="relative aspect-video w-full overflow-hidden">
         {video.embeddable && active ? (
           <iframe
             src={embedSrc}
@@ -57,21 +57,31 @@ function VideoCard({ video }: { video: CuratedVideo }) {
                 ? (e) => { e.preventDefault(); setActive(true); }
                 : undefined
             }
-            className="group absolute inset-0 flex flex-col items-center justify-center gap-3 text-ivory"
+            className="group absolute inset-0 flex flex-col items-center justify-center gap-3"
             aria-label={
               video.embeddable
                 ? `Play: ${video.title}`
                 : `Watch "${video.title}" on Facebook (opens in a new tab)`
             }
           >
-            <span className="flex size-14 items-center justify-center rounded-full border-2 border-ivory/60 transition-colors duration-300 group-hover:border-ivory group-hover:bg-ivory/10">
-              <Play aria-hidden className="size-6 translate-x-0.5 fill-ivory" strokeWidth={0} />
-            </span>
-            {!video.embeddable && (
-              <span className="font-sans text-xs text-ivory/50 group-hover:text-ivory/70">
-                Watch on Facebook ↗
+            {/* Editorial poster background */}
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-espresso via-espresso to-forest" />
+            <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_60%,rgba(154,122,46,0.15),transparent)]" />
+            <span aria-hidden className="absolute top-3 left-3 h-6 w-6 border-t border-l border-gold/40" />
+            <span aria-hidden className="absolute right-3 bottom-3 h-6 w-6 border-r border-b border-gold/40" />
+
+            {/* Content */}
+            <div className="relative flex flex-col items-center gap-3 px-6 text-center">
+              <span aria-hidden className="block h-px w-6 bg-gold/60" />
+              <span className="flex size-12 items-center justify-center rounded-full border border-ivory/30 bg-ivory/5 transition-colors duration-300 group-hover:border-ivory/60 group-hover:bg-ivory/10">
+                <Play aria-hidden className="size-5 translate-x-0.5 fill-ivory" strokeWidth={0} />
               </span>
-            )}
+              {!video.embeddable && (
+                <span className="font-sans text-[0.65rem] font-semibold text-gold-light uppercase tracking-[0.18em]">
+                  Watch on Facebook ↗
+                </span>
+              )}
+            </div>
           </a>
         )}
       </div>
