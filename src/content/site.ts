@@ -39,7 +39,7 @@ export const socialLinks: SocialLink[] = [
   {
     platform: "facebook",
     label: "Facebook",
-    href: "https://www.facebook.com/10205043747588759",
+    href: "https://www.facebook.com/natalie.flemons",
     verified: true,
   },
   {

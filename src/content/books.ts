@@ -26,9 +26,9 @@ export const books: Book[] = [
     status: "published",
     priceCents: 1499,
     summary:
-      "A clarion call to the authentic prophetic voices to restore the integrity of prophetic ministry in today’s world — with a code of conduct rooted in the standards set by Christ, the Chief Prophet.",
+      "A clarion call to the authentic prophetic voices to restore the integrity of prophetic ministry in today's world — with a code of conduct rooted in the standards set by Christ, the Chief Prophet.",
     description: [
-      "This manual was divinely written by Natalie C. Flemons as a clarion call to whom she describes as “the authentic” prophetic voices, to restore the integrity of prophetic ministry in today’s world. It challenges those called to the prophetic ministry to confront the cultural infiltration that has diluted its power and to righteously repair. Designed for emerging, mature, or inquiring prophets, this guide offers practical tools for personal and collective reformation. Natalie establishes a code of conduct, a framework for maintaining purity, rooted in the standards set by Christ, the Chief Prophet. Although the prophets lead this charge, every believer needs the divine revelation in this guide as arsenal against the enemy. Fulfilling the mandate to empower and equip believers to stand firm in this time of reformation by discerning falsehood and upholding the truth.",
+      "This manual was divinely written by Natalie C. Flemons as a clarion call to whom she describes as \u201cthe authentic\u201d prophetic voices, to restore the integrity of prophetic ministry in today\u2019s world. It challenges those called to the prophetic ministry to confront the cultural infiltration that has diluted its power and to righteously repair. Designed for emerging, mature, or inquiring prophets, this guide offers practical tools for personal and collective reformation. Natalie establishes a code of conduct, a framework for maintaining purity, rooted in the standards set by Christ, the Chief Prophet. Although the prophets lead this charge, every believer needs the divine revelation in this guide as arsenal against the enemy. Fulfilling the mandate to empower and equip believers to stand firm in this time of reformation by discerning falsehood and upholding the truth.",
     ],
     cover: {
       src: repairingTheBreachCover,
@@ -41,6 +41,7 @@ export const books: Book[] = [
       label: "Purchase",
     },
     featured: true,
+    category: "prophetic",
   },
   {
     slug: "repair-the-breach-workbook",
@@ -51,8 +52,8 @@ export const books: Book[] = [
     summary:
       "A guided companion workbook that leads you through three transformative phases — Seek, Purge & Repair — rooted in the story of Josiah in 2 Chronicles 34.",
     description: [
-      "Repair the Breach: 3-Phase Journey to Prophetic Purity is a guided companion workbook for those who are ready to examine, purify, and rebuild their prophetic lives according to God’s pattern. Through teaching, reflection questions, practical assignments, activation prayers, and personal examination, you will be challenged to move beyond simply identifying what is broken and take responsibility for what God is calling you to repair. Rooted in the story of Josiah in 2 Chronicles 34, this workbook leads you through three transformative phases: SEEK, PURGE & REPAIR.",
-      "Designed to be used alongside Repairing the Breach: Restoring Purity to the Prophetic, this workbook is not simply something to read—it is a journey to walk through.",
+      "Repair the Breach: 3-Phase Journey to Prophetic Purity is a guided companion workbook for those who are ready to examine, purify, and rebuild their prophetic lives according to God\u2019s pattern. Through teaching, reflection questions, practical assignments, activation prayers, and personal examination, you will be challenged to move beyond simply identifying what is broken and take responsibility for what God is calling you to repair. Rooted in the story of Josiah in 2 Chronicles 34, this workbook leads you through three transformative phases: SEEK, PURGE & REPAIR.",
+      "Designed to be used alongside Repairing the Breach: Restoring Purity to the Prophetic, this workbook is not simply something to read\u2014it is a journey to walk through.",
     ],
     cover: {
       src: workbookMockup,
@@ -66,6 +67,7 @@ export const books: Book[] = [
       label: "Purchase",
     },
     featured: true,
+    category: "prophetic",
   },
   {
     slug: "the-midwife-to-your-destiny",
@@ -76,7 +78,7 @@ export const books: Book[] = [
     summary:
       "A life-transforming guide that summons you to live at your fullest potential by confronting and conquering the enemies of your soul.",
     description: [
-      "As you journey through this manual, you will experience the prophetic ministry of Natalie C. Flemons, as she speaks directly to your spirit and your soul. Those who are called to the ministry of the Midwife will be enlightened concerning their anatomy and challenged to carry their mantle with integrity. In addition, the person who is in search of destiny aka “The Destiny Seeker” will learn how to be transparent with the spiritual midwife God sent into their life and receive complete deliverance; this process occurs as they are submitted to the Lord, and partner with the Holy Spirit. The midwife is yelling out, “Stranger Danger,” to let the enemy know that you are not going to die. You are just being stretched to operate in your place of grace. This manual will graciously and with boldness summons you to live at your fullest potential by confronting and conquering the enemies of your soul. This life transforming guide is needed in every midwife’s library! And to every person who is seeking someone to help them navigate through life… You need a Midwife!",
+      "As you journey through this manual, you will experience the prophetic ministry of Natalie C. Flemons, as she speaks directly to your spirit and your soul. Those who are called to the ministry of the Midwife will be enlightened concerning their anatomy and challenged to carry their mantle with integrity. In addition, the person who is in search of destiny aka \u201cThe Destiny Seeker\u201d will learn how to be transparent with the spiritual midwife God sent into their life and receive complete deliverance; this process occurs as they are submitted to the Lord, and partner with the Holy Spirit. The midwife is yelling out, \u201cStranger Danger,\u201d to let the enemy know that you are not going to die. You are just being stretched to operate in your place of grace. This manual will graciously and with boldness summons you to live at your fullest potential by confronting and conquering the enemies of your soul. This life transforming guide is needed in every midwife\u2019s library! And to every person who is seeking someone to help them navigate through life\u2026 You need a Midwife!",
     ],
     cover: {
       src: midwifeCover,
@@ -89,6 +91,7 @@ export const books: Book[] = [
       label: "Purchase",
     },
     featured: true,
+    category: "destiny",
   },
   {
     slug: "war-in-the-wait",
@@ -98,7 +101,7 @@ export const books: Book[] = [
     summary:
       "The moment you realize you can no longer be friends with the enemy is when the war begins. A transparent journey of believing God for the miraculous.",
     description: [
-      "The moment you realize you can no longer be friends with the enemy is when the war begins. You can no longer take a casual position, but you must take a position of a warrior; getting to your promise depends on it. In this book, Natalie takes you on a transparent journey of personal emotions and encounters while believing God for the miraculous. She effectively demonstrates how to use every spiritual weapon to counteract the battles that will inevitably come your way while you are waiting on the manifestation of God’s promises. Once you have completed this book, you will have renewed hope and strength to embrace your process instead of rebuking it. The wisdom and prophetic insight of Natalie C. Flemons will cause every defeated and ungodly mentality to be dismantled and realigned with the mind of Christ.",
+      "The moment you realize you can no longer be friends with the enemy is when the war begins. You can no longer take a casual position, but you must take a position of a warrior; getting to your promise depends on it. In this book, Natalie takes you on a transparent journey of personal emotions and encounters while believing God for the miraculous. She effectively demonstrates how to use every spiritual weapon to counteract the battles that will inevitably come your way while you are waiting on the manifestation of God\u2019s promises. Once you have completed this book, you will have renewed hope and strength to embrace your process instead of rebuking it. The wisdom and prophetic insight of Natalie C. Flemons will cause every defeated and ungodly mentality to be dismantled and realigned with the mind of Christ.",
     ],
     cover: {
       src: warInTheWaitCover,
@@ -110,15 +113,16 @@ export const books: Book[] = [
       label: "Purchase",
     },
     featured: true,
+    category: "warfare",
   },
   {
     slug: "from-the-chaos-to-the-call",
     title: "From the Chaos to the Call",
     status: "published",
     summary:
-      "Natalie's autobiography — a personal journey from chaos to divine calling, available on Amazon.",
+      "Natalie\u2019s autobiography \u2014 a personal journey from chaos to divine calling, available on Amazon.",
     description: [
-      "From the Chaos to the Call is Natalie C. Flemons' autobiography, tracing her personal journey from life's deepest challenges to the clarity of her divine calling. Available on Amazon.",
+      "From the Chaos to the Call is Natalie C. Flemons\u2019 autobiography, tracing her personal journey from life\u2019s deepest challenges to the clarity of her divine calling. Available on Amazon.",
     ],
     cover: {
       // ⚠️ No cover image available in src/assets/images/. Request from ministry.
@@ -135,5 +139,6 @@ export const books: Book[] = [
       label: "Purchase on Amazon",
     },
     featured: false,
+    category: "autobiography",
   },
 ];

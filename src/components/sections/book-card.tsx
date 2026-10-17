@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/format";
 
 type BookCardProps = {
   book: Book;
-  layout?: "feature" | "standard" | "companion";
+  layout?: "feature" | "standard" | "companion" | "vertical";
   headingLevel?: "h3" | "h4";
   className?: string;
   /** Feature layout only: extra content (e.g. a companion title) under the actions. */
@@ -89,6 +89,37 @@ function Price({ cents }: { cents?: number }) {
 
 export function BookCard({ book, layout = "standard", headingLevel = "h3", className, children }: BookCardProps) {
   const Heading = headingLevel;
+
+  if (layout === "vertical") {
+    return (
+      <article className={cn("flex flex-col", className)}>
+        <BookCover
+          book={book}
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 80vw"
+          className="w-full"
+        />
+        <div className="mt-5 flex flex-1 flex-col">
+          <Heading className="font-display text-display-sm font-medium text-balance">
+            <Link href={`/books/${book.slug}`} className="hover:text-ember">
+              {book.title}
+            </Link>
+          </Heading>
+          {book.subtitle && (
+            <p className="mt-1 font-display text-base text-stone italic">{book.subtitle}</p>
+          )}
+          <p className="mt-3 text-sm text-pretty text-stone line-clamp-3">{book.summary}</p>
+          <div className="mt-auto pt-5">
+            <Link
+              href={`/books/${book.slug}`}
+              className="font-sans text-sm font-semibold uppercase tracking-[0.06em] text-espresso underline decoration-gold decoration-1 underline-offset-[6px] hover:text-ember hover:decoration-ember"
+            >
+              Learn More
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   if (layout === "feature") {
     return (

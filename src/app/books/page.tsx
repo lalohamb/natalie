@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import { Reveal } from "@/components/motion/reveal";
-import { BookCard } from "@/components/sections/book-card";
-import { NewsletterSection } from "@/components/sections/newsletter-section";
-import { Container } from "@/components/ui/container";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { BooksPageClient } from "./books-page-client";
 import { getBooks } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -16,59 +12,42 @@ export const metadata: Metadata = {
 
 export default function BooksPage() {
   const books = getBooks();
-  // Lead title: Repairing the Breach (first non-companion featured book)
-  const [lead, ...rest] = books.filter((b) => !b.companionOf);
-  const companion = lead && books.find((b) => b.companionOf === lead.slug);
 
   return (
     <>
-      {/* ── Header ── */}
-      <section className="border-b border-sand bg-linen py-16">
-        <Container>
-          <SectionHeading
-            as="h1"
-            eyebrow="Publications"
-            title="Books by Natalie C. Flemons"
-            lede="Manuals and guides written to equip believers for purity, perseverance and purpose."
-            className="motion-safe:animate-rise"
-          />
-        </Container>
+      {/* ── Page header with old-books background ── */}
+      <section className="relative overflow-hidden border-b border-sand bg-linen">
+        {/* Background: antique books photo fading in from the right */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: `url("/Antique Books in Warm Olive Light.png")`,
+            backgroundSize: "contain",
+            backgroundPosition: "right center",
+            maskImage: "linear-gradient(to right, transparent 45%, black 70%)",
+            WebkitMaskImage: "linear-gradient(to right, transparent 25%, black 70%)",
+            opacity: 0.45,
+          }}
+        />
+        <div className="relative mx-auto max-w-[var(--container-site)] px-[var(--spacing-gutter)] py-14 lg:py-16">
+          <div className="max-w-xl">
+            <p className="flex items-center gap-4 font-sans text-eyebrow font-semibold uppercase text-gold-ink">
+              <span aria-hidden className="rule-gold" />
+              Publications
+            </p>
+            <h1 className="mt-4 font-display text-display-md font-medium text-espresso motion-safe:animate-rise">
+              Books by Natalie C. Flemons
+            </h1>
+            <p className="mt-4 max-w-prose text-lede text-stone">
+              Manuals and guides written to equip believers for purity, perseverance and purpose.
+            </p>
+          </div>
+        </div>
       </section>
 
-      {/* ── Lead title + companion ── */}
-      <section aria-label="Featured publication" className="py-section">
-        <Container>
-          <Reveal>
-            <BookCard book={lead} layout="feature">
-              {companion && (
-                <BookCard
-                  book={companion}
-                  layout="companion"
-                  headingLevel="h4"
-                  className="mt-14 border-t border-sand pt-10"
-                />
-              )}
-            </BookCard>
-          </Reveal>
-        </Container>
-      </section>
-
-      {/* ── Remaining titles ── */}
-      {rest.length > 0 && (
-        <section aria-label="All publications" className="bg-linen py-section">
-          <Container>
-            <div className="grid gap-16 lg:grid-cols-2 lg:gap-12">
-              {rest.map((book, i) => (
-                <Reveal key={book.slug} delay={i * 0.08}>
-                  <BookCard book={book} />
-                </Reveal>
-              ))}
-            </div>
-          </Container>
-        </section>
-      )}
-
-      <NewsletterSection />
+      {/* ── Tabs + grid (client component) ── */}
+      <BooksPageClient books={books} />
     </>
   );
 }

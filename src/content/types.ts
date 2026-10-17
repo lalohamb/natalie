@@ -79,6 +79,8 @@ export type Book = {
   companionOf?: string;
   purchase: PurchaseOption;
   featured: boolean;
+  /** Used for tab filtering on the /books page. */
+  category?: "prophetic" | "destiny" | "warfare" | "autobiography";
 };
 
 // ---------------------------------------------------------------------------
