@@ -17,7 +17,7 @@ export function SiteHeader() {
         <MedallionResponsive />
       </div>
       <Container className="flex h-16 items-center justify-between gap-6 sm:h-20">
-        <div className="flex items-center pl-[76px] lg:pl-[13px]">
+        <div className="flex items-center pl-[76px] lg:pl-[65px]">
           <Wordmark />
         </div>
         <div className="flex items-center gap-6 lg:gap-10">
