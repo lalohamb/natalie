@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 type Tab = { id: string; label: string; paragraphs: readonly string[] };
 
 type AboutTabsProps = {
-  tabs: Tab[];
+  tabs: readonly Tab[];
 };
 
 export function AboutTabs({ tabs }: AboutTabsProps) {
