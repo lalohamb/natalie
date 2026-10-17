@@ -96,6 +96,18 @@
     }
   }
 
+  /* NF Medallion sprite entrance */
+  @keyframes nfReveal {
+    from { background-position: 0 0; }
+    to   { background-position: 0 -7360px; }
+  }
+
+  /* Subtle gold shimmer after entrance settles */
+  @keyframes nfShimmer {
+    0%, 100% { filter: brightness(1); }
+    50%       { filter: brightness(1.12) drop-shadow(0 0 8px rgb(154 122 46 / 0.45)); }
+  }
+
   @keyframes portrait-enter {
     from {
       opacity: 0;
@@ -151,6 +163,25 @@
 }
 
 @layer components {
+  /* NF Medallion — sprite entrance then shimmer */
+  .nf-medallion {
+    width: 320px;
+    height: 320px;
+    background-image: url('/NF_christian_entrance_sprite.png');
+    background-repeat: no-repeat;
+    background-size: 320px 7680px;
+    animation:
+      nfReveal 2.07s steps(23, end) both,
+      nfShimmer 4s ease-in-out 2.2s infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-medallion {
+      animation: none;
+      background-position: 0 -7360px;
+    }
+  }
+
   /* Thin gold rule used beside eyebrows and between editorial blocks */
   .rule-gold {
     display: inline-block;

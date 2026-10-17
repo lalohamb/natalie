@@ -1,6 +1,7 @@
 import { getNavigation, getSite, getSocialLinks } from "@/lib/content";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
+import { NfMedallion } from "@/components/ui/nf-medallion";
 import { DesktopNavigation } from "./desktop-navigation";
 import { MobileNavigation } from "./mobile-navigation";
 import { Wordmark } from "./wordmark";
@@ -11,8 +12,14 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-sand/60 bg-ivory/95 backdrop-blur-sm transition-shadow duration-300 supports-[backdrop-filter]:bg-ivory/85">
+      {/* Medallion — absolutely pinned to far left, overflows header height */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/3 z-50">
+        <NfMedallion size={120} className="shrink-0" />
+      </div>
       <Container className="flex h-16 items-center justify-between gap-6 sm:h-20">
-        <Wordmark />
+        <div className="flex items-center" style={{ paddingLeft: 5}}>
+          <Wordmark />
+        </div>
         <div className="flex items-center gap-6 lg:gap-10">
           <DesktopNavigation items={nav.main} />
           <ButtonLink href={nav.give.href} className="hidden min-h-11 px-6 lg:inline-flex">

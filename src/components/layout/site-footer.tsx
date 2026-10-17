@@ -22,7 +22,7 @@ export function SiteFooter() {
     <footer id="newsletter" className="scroll-mt-24 bg-espresso text-mist">
       <Container className="grid gap-8 py-10 sm:py-12 md:grid-cols-12 md:gap-8">
         {/* Brand */}
-        <div className="md:col-span-4">
+        <div className="md:col-span-3">
           <Wordmark tone="dark" />
           <p className="mt-4 max-w-xs font-display text-lg leading-snug text-ivory italic">
             {site.mission}
@@ -50,7 +50,7 @@ export function SiteFooter() {
         </div>
 
         {/* Nav — three logical columns */}
-        <nav aria-label="Footer" className="md:col-span-5 grid grid-cols-3 gap-6">
+        <nav aria-label="Footer" className="md:col-span-5 md:col-start-4 grid grid-cols-3 gap-6">
           <div>
             <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">Ministry</h2>
             <ul className="mt-4 grid gap-0 text-[0.875rem]">
@@ -103,7 +103,7 @@ export function SiteFooter() {
         </nav>
 
         {/* Newsletter */}
-        <div className="md:col-span-5">
+        <div className="md:col-span-4 md:col-start-9">
           <h2 className="font-sans text-eyebrow font-semibold text-gold-light uppercase">
             {newsletter.eyebrow}
           </h2>
