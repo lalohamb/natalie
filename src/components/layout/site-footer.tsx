@@ -20,7 +20,7 @@ export function SiteFooter() {
 
   return (
     <footer id="newsletter" className="scroll-mt-24 bg-espresso text-mist">
-      <Container className="grid gap-8 py-10 sm:py-12 md:grid-cols-12 md:gap-8">
+      <Container className="grid gap-8 py-10 sm:py-12 md:grid-cols-12 md:gap-2">
         {/* Brand */}
         <div className="md:col-span-3">
           <Wordmark tone="dark" />
@@ -113,7 +113,7 @@ export function SiteFooter() {
       </Container>
 
       <div className="border-t border-ivory/10">
-        <Container className="flex flex-col gap-3 py-5 text-[0.8125rem] sm:flex-row sm:items-center sm:justify-between">
+        <Container className="flex flex-col gap-3 py-5 text-[0.8125rem] sm:flex-row sm:items-center sm:justify-between px-0">
           <p>© <CopyrightYear /> {site.legalName}. All rights reserved.</p>
           <ul className="flex gap-6">
             {nav.legal.map((item) => (

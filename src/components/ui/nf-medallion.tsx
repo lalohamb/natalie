@@ -2,48 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 type Phase = "cross" | "rotate" | "settle";
 
 interface Particle {
-  /** Orbit semi-major axis (px) */
-  a: number;
-  /** Orbit semi-minor axis (px) */
-  b: number;
-  /** Current angle in orbit (radians) */
-  angle: number;
-  /** Angular speed (radians/frame) — randomised */
-  speed: number;
-  /** Orbit tilt from horizontal (radians) */
-  tilt: number;
-  /** Particle radius (px) */
-  r: number;
-  /** Base opacity */
-  opacity: number;
-  /** Phase offset for opacity pulse */
-  pulse: number;
+  a: number; b: number; angle: number; speed: number;
+  tilt: number; r: number; opacity: number; pulse: number;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const SIZE = 320;          // medallion px
+const SIZE           = 320;
 const PARTICLE_COUNT = 22;
-const GOLD = "212, 180, 106"; // rgb — matches --color-gold-light
-
-// Phase durations (ms)
-const CROSS_DURATION  = 2000;
+const GOLD           = "212, 180, 106";
+const CROSS_DURATION = 2000;
 const ROTATE_DURATION = 2800;
-// settle is indefinite
-
-// ─── Particle helpers ─────────────────────────────────────────────────────────
 
 function makeParticle(i: number, size: number): Particle {
-  const seed = i / PARTICLE_COUNT;
   return {
     a:       size * 0.52 + Math.random() * size * 0.14,
     b:       size * 0.28 + Math.random() * size * 0.14,
-    angle:   seed * Math.PI * 2,
+    angle:   (i / PARTICLE_COUNT) * Math.PI * 2,
     speed:   (0.004 + Math.random() * 0.006) * (Math.random() < 0.5 ? 1 : -1),
     tilt:    Math.random() * Math.PI,
     r:       1.2 + Math.random() * 2.2,
@@ -55,34 +31,27 @@ function makeParticle(i: number, size: number): Particle {
 function drawParticles(
   ctx: CanvasRenderingContext2D,
   particles: Particle[],
-  cx: number,
-  cy: number,
+  cx: number, cy: number,
   globalAlpha: number,
-  frame: number,
 ) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   for (const p of particles) {
     p.angle += p.speed;
     p.pulse += 0.018;
-
-    // Elliptical orbit with tilt
     const ex = p.a * Math.cos(p.angle);
     const ey = p.b * Math.sin(p.angle);
     const x  = cx + ex * Math.cos(p.tilt) - ey * Math.sin(p.tilt);
     const y  = cy + ex * Math.sin(p.tilt) + ey * Math.cos(p.tilt);
-
     const alpha = globalAlpha * p.opacity * (0.6 + 0.4 * Math.sin(p.pulse));
 
-    // Glow
     const grd = ctx.createRadialGradient(x, y, 0, x, y, p.r * 3.5);
-    grd.addColorStop(0,   `rgba(${GOLD}, ${alpha})`);
-    grd.addColorStop(1,   `rgba(${GOLD}, 0)`);
+    grd.addColorStop(0, `rgba(${GOLD}, ${alpha})`);
+    grd.addColorStop(1, `rgba(${GOLD}, 0)`);
     ctx.beginPath();
     ctx.arc(x, y, p.r * 3.5, 0, Math.PI * 2);
     ctx.fillStyle = grd;
     ctx.fill();
 
-    // Core dot
     ctx.beginPath();
     ctx.arc(x, y, p.r, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${GOLD}, ${Math.min(1, alpha * 1.6)})`;
@@ -90,22 +59,20 @@ function drawParticles(
   }
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export function NfMedallion({ className, size = SIZE }: { className?: string; size?: number }) {
-  const canvasRef   = useRef<HTMLCanvasElement>(null);
-  const rafRef      = useRef<number>(0);
-  const frameRef    = useRef<number>(0);
-  const particles   = useRef<Particle[]>([]);
-  const [phase, setPhase]               = useState<Phase>("cross");
-  const [particleAlpha, setParticleAlpha] = useState(0);
+  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const rafRef     = useRef<number>(0);
+  const particles  = useRef<Particle[]>([]);
+  const [phase, setPhase] = useState<Phase>("cross");
 
-  // Reduced-motion preference
   const reduced =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ── Particle canvas loop ──────────────────────────────────────────────────
+  // Always-current alpha ref — start at 1 so particles are visible immediately
+  const alphaRef = useRef(1);
+
+  // ── Canvas loop ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (reduced) return;
     particles.current = Array.from({ length: PARTICLE_COUNT }, (_, i) => makeParticle(i, size));
@@ -119,89 +86,41 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
     const cy = canvas.height / 2;
 
     function loop() {
-      frameRef.current++;
-      drawParticles(ctx!, particles.current, cx, cy, particleAlphaRef.current, frameRef.current);
+      drawParticles(ctx!, particles.current, cx, cy, alphaRef.current);
       rafRef.current = requestAnimationFrame(loop);
     }
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced]);
+  }, [reduced, size]);
 
-  // We need a ref for particleAlpha so the canvas loop always reads the latest value
-  const particleAlphaRef = useRef(0);
+  // ── Phase sequencer ────────────────────────────────────────────────────────
   useEffect(() => {
-    particleAlphaRef.current = particleAlpha;
-  }, [particleAlpha]);
+    if (reduced) { setPhase("settle"); return; }
 
-  // ── Phase sequencer ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (reduced) {
-      setPhase("settle");
-      setParticleAlpha(1);
-      return;
-    }
-
-    // cross → rotate
-    const t1 = setTimeout(() => {
-      setPhase("rotate");
-      // Fade particles in during rotation
-      setParticleAlpha(0.3);
-    }, CROSS_DURATION);
-
-    // rotate → settle
-    const t2 = setTimeout(() => {
-      setPhase("settle");
-      setParticleAlpha(1);
-    }, CROSS_DURATION + ROTATE_DURATION);
-
+    const t1 = setTimeout(() => setPhase("rotate"), CROSS_DURATION);
+    const t2 = setTimeout(() => setPhase("settle"), CROSS_DURATION + ROTATE_DURATION);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [reduced]);
 
-  // ── Derived CSS ───────────────────────────────────────────────────────────
+  // ── Medallion style per phase ──────────────────────────────────────────────
+  const base: React.CSSProperties = {
+    width:              size,
+    height:             size,
+    backgroundImage:    "url('/NF_christian_entrance_sprite.png')",
+    backgroundRepeat:   "no-repeat",
+    backgroundSize:     `${size}px ${size * 24}px`,
+    backgroundPosition: `0 -${size * 23}px`,
+    borderRadius:       "50%",
+    position:           "relative",
+    zIndex:             2,
+  };
 
-  // Medallion 3D transform per phase
-  const medallionStyle: React.CSSProperties = (() => {
-    const base: React.CSSProperties = {
-      width:  SIZE,
-      height: SIZE,
-      backgroundImage:    "url('/NF_christian_entrance_sprite.png')",
-      backgroundRepeat:   "no-repeat",
-      backgroundSize:     `${SIZE}px 7680px`,
-      backgroundPosition: "0 -7360px", // always show final frame
-      borderRadius:       "50%",
-      position:           "relative",
-      zIndex:             2,
-    };
+  const medallionStyle: React.CSSProperties = reduced ? base
+    : phase === "cross"  ? { ...base, opacity: 0, transform: "perspective(800px) rotateY(-90deg) scale(0.5)", transition: "none" }
+    : phase === "rotate" ? { ...base, opacity: 1, transform: "perspective(800px) rotateY(0deg) scale(1)", transition: `opacity 800ms ease, transform ${ROTATE_DURATION}ms cubic-bezier(0.16,1,0.3,1)` }
+    : { ...base, opacity: 1, transform: "perspective(600px) rotateY(0deg) scale(1)", animation: "nfShimmer 4s ease-in-out infinite" };
 
-    if (reduced) return base;
-
-    if (phase === "cross") {
-      return {
-        ...base,
-        opacity:   0,
-        transform: "perspective(800px) rotateY(-90deg) scale(0.5)",
-        transition: "none",
-      };
-    }
-    if (phase === "rotate") {
-      return {
-        ...base,
-        opacity:   1,
-        transform: "perspective(800px) rotateY(0deg) scale(1)",
-        transition: `opacity 800ms ease, transform ${ROTATE_DURATION}ms cubic-bezier(0.16, 1, 0.3, 1)`,
-      };
-    }
-    // settle — stationary with gold shimmer
-    return {
-      ...base,
-      opacity:   1,
-      transform: "perspective(600px) rotateY(0deg) scale(1)",
-      animation: "nfShimmer 4s ease-in-out infinite",
-    };
-  })();
-
-  // Cross arms: 4 divs that expand from center
   const crossVisible = phase === "cross" && !reduced;
 
   return (
@@ -211,82 +130,51 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
       className={`relative inline-block ${className ?? ""}`.trim()}
       style={{ width: size, height: size, fontSize: 0 }}
     >
-      {/* ── Canvas — orbiting particles ── */}
+      {/* Orbiting particles */}
       <canvas
         ref={canvasRef}
         width={size * 2}
         height={size * 2}
         style={{
-          position:  "absolute",
-          inset:     "50%",
+          position: "absolute", inset: "50%",
           transform: "translate(-50%, -50%)",
-          width:     size * 2,
-          height:    size * 2,
-          pointerEvents: "none",
-          zIndex:    1,
+          width: size * 2, height: size * 2,
+          pointerEvents: "none", zIndex: 1,
         }}
       />
 
-      {/* ── Cross-light reveal ── */}
+      {/* Christian cross light reveal */}
       {crossVisible && (
-        <div
-          aria-hidden
-          style={{
-            position:  "absolute",
-            inset:     0,
-            zIndex:    3,
-            pointerEvents: "none",
-          }}
-        >
-          {/* Vertical arm — longer above center, shorter below */}
+        <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}>
           <div style={{
-            position:        "absolute",
-            left:            "50%",
-            top:             "10%",
-            transform:       "translateX(-50%)",
-            width:           "6px",
-            height:          0,
-            background:      `linear-gradient(to bottom, transparent, rgba(${GOLD},1) 20%, rgba(${GOLD},1) 80%, transparent)`,
-            animation:       `nfCrossV ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
-            boxShadow:       `0 0 18px 8px rgba(${GOLD},0.7)`,
+            position: "absolute", left: "50%", top: "10%",
+            transform: "translateX(-50%)",
+            width: "6px", height: 0,
+            background: `linear-gradient(to bottom, transparent, rgba(${GOLD},1) 20%, rgba(${GOLD},1) 80%, transparent)`,
+            animation: `nfCrossV ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
+            boxShadow: `0 0 18px 8px rgba(${GOLD},0.7)`,
           }} />
-          {/* Horizontal arm — sits at 30% from top */}
           <div style={{
-            position:        "absolute",
-            left:            "50%",
-            top:             "30%",
-            transform:       "translate(-50%, -50%)",
-            width:           0,
-            height:          "6px",
-            background:      `linear-gradient(to right, transparent, rgba(${GOLD},1) 20%, rgba(${GOLD},1) 80%, transparent)`,
-            animation:       `nfCrossH ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
-            boxShadow:       `0 0 18px 8px rgba(${GOLD},0.7)`,
+            position: "absolute", left: "50%", top: "30%",
+            transform: "translate(-50%, -50%)",
+            width: 0, height: "6px",
+            background: `linear-gradient(to right, transparent, rgba(${GOLD},1) 20%, rgba(${GOLD},1) 80%, transparent)`,
+            animation: `nfCrossH ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
+            boxShadow: `0 0 18px 8px rgba(${GOLD},0.7)`,
           }} />
-          {/* Center burst */}
           <div style={{
-            position:        "absolute",
-            left:            "50%",
-            top:             "50%",
-            transform:       "translate(-50%, -50%)",
-            width:           0,
-            height:          0,
-            borderRadius:    "50%",
-            background:      `radial-gradient(circle, rgba(${GOLD},0.8) 0%, transparent 70%)`,
-            animation:       `nfBurst ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
+            position: "absolute", left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 0, height: 0, borderRadius: "50%",
+            background: `radial-gradient(circle, rgba(${GOLD},0.8) 0%, transparent 70%)`,
+            animation: `nfBurst ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
           }} />
         </div>
       )}
 
-      {/* ── Medallion disc ── */}
-      <div style={{
-        ...medallionStyle,
-        width:  size,
-        height: size,
-        backgroundSize: `${size}px ${size * 24}px`,
-        backgroundPosition: phase === "cross" && !reduced ? "0 0" : `0 -${size * 23}px`,
-      }} />
+      {/* Medallion disc */}
+      <div style={medallionStyle} />
 
-      {/* ── Keyframes injected once ── */}
       <style>{`
         @keyframes nfCrossV {
           0%   { height: 0; opacity: 0; }
@@ -305,10 +193,6 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
           30%  { opacity: 0.9; }
           70%  { opacity: 0.6; }
           100% { width: ${size * 1.2}px; height: ${size * 1.2}px; opacity: 0; }
-        }
-        @keyframes nfSpin {
-          0%   { transform: perspective(600px) rotateY(0deg); }
-          100% { transform: perspective(600px) rotateY(360deg); }
         }
       `}</style>
     </div>
