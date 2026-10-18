@@ -32,8 +32,8 @@ const PARTICLE_COUNT = 22;
 const GOLD = "212, 180, 106"; // rgb — matches --color-gold-light
 
 // Phase durations (ms)
-const CROSS_DURATION  = 900;
-const ROTATE_DURATION = 1400;
+const CROSS_DURATION  = 2000;
+const ROTATE_DURATION = 2800;
 // settle is indefinite
 
 // ─── Particle helpers ─────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
       return {
         ...base,
         opacity:   0,
-        transform: "perspective(600px) rotateY(-180deg) scale(0.6)",
+        transform: "perspective(800px) rotateY(-90deg) scale(0.5)",
         transition: "none",
       };
     }
@@ -188,8 +188,8 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
       return {
         ...base,
         opacity:   1,
-        transform: "perspective(600px) rotateY(0deg) scale(1)",
-        transition: `opacity 300ms ease, transform ${ROTATE_DURATION}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+        transform: "perspective(800px) rotateY(0deg) scale(1)",
+        transition: `opacity 800ms ease, transform ${ROTATE_DURATION}ms cubic-bezier(0.16, 1, 0.3, 1)`,
       };
     }
     // settle — stationary with gold shimmer
@@ -238,29 +238,29 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
             pointerEvents: "none",
           }}
         >
-          {/* Vertical arm */}
+          {/* Vertical arm — longer above center, shorter below */}
           <div style={{
             position:        "absolute",
             left:            "50%",
-            top:             "50%",
-            transform:       "translate(-50%, -50%)",
-            width:           "2px",
+            top:             "10%",
+            transform:       "translateX(-50%)",
+            width:           "6px",
             height:          0,
-            background:      `linear-gradient(to bottom, transparent, rgba(${GOLD},0.9), transparent)`,
+            background:      `linear-gradient(to bottom, transparent, rgba(${GOLD},1) 20%, rgba(${GOLD},1) 80%, transparent)`,
             animation:       `nfCrossV ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
-            boxShadow:       `0 0 12px 4px rgba(${GOLD},0.5)`,
+            boxShadow:       `0 0 18px 8px rgba(${GOLD},0.7)`,
           }} />
-          {/* Horizontal arm */}
+          {/* Horizontal arm — sits at 30% from top */}
           <div style={{
             position:        "absolute",
             left:            "50%",
-            top:             "50%",
+            top:             "30%",
             transform:       "translate(-50%, -50%)",
             width:           0,
-            height:          "2px",
-            background:      `linear-gradient(to right, transparent, rgba(${GOLD},0.9), transparent)`,
+            height:          "6px",
+            background:      `linear-gradient(to right, transparent, rgba(${GOLD},1) 20%, rgba(${GOLD},1) 80%, transparent)`,
             animation:       `nfCrossH ${CROSS_DURATION}ms cubic-bezier(0.22,1,0.36,1) both`,
-            boxShadow:       `0 0 12px 4px rgba(${GOLD},0.5)`,
+            boxShadow:       `0 0 18px 8px rgba(${GOLD},0.7)`,
           }} />
           {/* Center burst */}
           <div style={{
@@ -289,19 +289,22 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
       {/* ── Keyframes injected once ── */}
       <style>{`
         @keyframes nfCrossV {
-          from { height: 0; opacity: 0; }
-          40%  { opacity: 1; }
-          to   { height: ${size}px; opacity: 0; }
+          0%   { height: 0; opacity: 0; }
+          20%  { opacity: 1; }
+          75%  { opacity: 0.8; }
+          100% { height: ${size * 0.9}px; opacity: 0; }
         }
         @keyframes nfCrossH {
-          from { width: 0; opacity: 0; }
-          40%  { opacity: 1; }
-          to   { width: ${size}px; opacity: 0; }
+          0%   { width: 0; opacity: 0; }
+          20%  { opacity: 1; }
+          75%  { opacity: 0.8; }
+          100% { width: ${size * 0.75}px; opacity: 0; }
         }
         @keyframes nfBurst {
-          from { width: 0; height: 0; opacity: 0; }
-          50%  { opacity: 1; }
-          to   { width: ${size * 0.8}px; height: ${size * 0.8}px; opacity: 0; }
+          0%   { width: 0; height: 0; opacity: 0; }
+          30%  { opacity: 0.9; }
+          70%  { opacity: 0.6; }
+          100% { width: ${size * 1.2}px; height: ${size * 1.2}px; opacity: 0; }
         }
         @keyframes nfSpin {
           0%   { transform: perspective(600px) rotateY(0deg); }
