@@ -2,11 +2,11 @@ import { bio, portraits } from "@/content/bio";
 import { books } from "@/content/books";
 import { events } from "@/content/events";
 import { homeContent } from "@/content/home";
-import { videos } from "@/content/media";
 import { ministryIdentity } from "@/content/ministry-identity";
+import { partnershipContent } from "@/content/partnership";
 import { products } from "@/content/products";
 import { giving, giveCta, legalNavigation, mainNavigation, secondaryNavigation, site, socialLinks } from "@/content/site";
-import type { Book, CuratedVideo, MinistryEvent, MinistryIdentity, Product } from "@/content/types";
+import type { Book, MinistryEvent, MinistryIdentity, Product } from "@/content/types";
 
 /*
  * Content accessors. Components import from here rather than from
@@ -28,6 +28,7 @@ export const getMinistryIdentity = (): MinistryIdentity => ministryIdentity;
 
 // Content
 export const getHomeContent = () => homeContent;
+export const getPartnershipContent = () => partnershipContent;
 
 // Books
 export const getBooks = (): Book[] => books;
@@ -51,10 +52,7 @@ export const getEventsByMonth = (year: number, month: number): MinistryEvent[] =
 export const getEvent = (slug: string): MinistryEvent | undefined =>
   getEvents().find((e) => e.slug === slug);
 
-// Media
-export const getVideos = (): CuratedVideo[] => videos.filter((v) => v.published);
-export const getFeaturedVideo = (): CuratedVideo | undefined =>
-  getVideos().find((v) => v.featured);
+// Media — videos are admin-managed at runtime; see `lib/video-content.ts`.
 
 // Products
 export const getProducts = (): Product[] => products.filter((p) => p.published);

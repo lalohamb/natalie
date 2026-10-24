@@ -122,6 +122,36 @@ export type MinistryEvent = {
 };
 
 // ---------------------------------------------------------------------------
+// Google Calendar (public events calendar on /events)
+// ---------------------------------------------------------------------------
+
+/** A public-safe projection of a Google Calendar event — no attendees or private fields. */
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  /** Plain text (HTML stripped). */
+  description?: string;
+  location?: string;
+  allDay: boolean;
+  /** All-day: "YYYY-MM-DD". Timed: ISO 8601 instant. */
+  start: string;
+  /** All-day: exclusive "YYYY-MM-DD". Timed: ISO 8601 instant. */
+  end: string;
+};
+
+export type PublicCalendar = {
+  /** IANA time zone of the calendar; events are displayed in this zone. */
+  timeZone: string;
+  events: CalendarEvent[];
+  /** First month with loaded events, "YYYY-MM". */
+  rangeStart: string;
+  /** Last month with loaded events, "YYYY-MM". */
+  rangeEnd: string;
+  /** The current month in the calendar's time zone when the data was fetched, "YYYY-MM". */
+  currentMonth: string;
+};
+
+// ---------------------------------------------------------------------------
 // Media
 // ---------------------------------------------------------------------------
 
@@ -142,9 +172,18 @@ export type CuratedVideo = {
    * Reels use facebook.com/reel/[id]/. Reels cannot be reliably embedded;
    * set embeddable: false for Reels and render a link card instead.
    */
-  facebookUrl: string;
+  facebookUrl?: string;
   /** Whether this URL supports iframe embedding (false for Reels). */
   embeddable: boolean;
+  /**
+   * URL of a self-hosted video file — either bundled in /public (e.g. "/Believe.mp4")
+   * or uploaded through /admin (e.g. "/media-files/believe.mp4"). Takes priority over facebookUrl.
+   */
+  localSrc?: string;
+  /** Optional poster image URL shown before a self-hosted video plays. */
+  posterSrc?: string;
+  /** 11-character YouTube video id. Used when there's no localSrc. */
+  youtubeId?: string;
   thumbnailImage?: ImageAsset;
   /** One video may be featured on the homepage FeaturedMessage section. */
   featured: boolean;

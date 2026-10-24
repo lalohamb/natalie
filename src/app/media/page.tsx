@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getVideos } from "@/lib/content";
+import { getVideos } from "@/lib/video-content";
 import { MediaPageClient } from "./media-page-client";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: { url: "/media" },
 };
 
-export default function MediaPage() {
-  const videos = getVideos();
+export default async function MediaPage() {
+  const videos = await getVideos();
   return <MediaPageClient videos={videos} />;
 }

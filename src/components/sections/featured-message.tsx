@@ -2,16 +2,18 @@
 
 import { Play } from "lucide-react";
 import { useState } from "react";
+import { VideoPlayer } from "@/components/media/video-player";
+import { YouTubePlayer } from "@/components/media/youtube-player";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import type { CuratedVideo } from "@/content/types";
 
-function EmbedPlayer({ video }: { video: CuratedVideo }) {
+function EmbedPlayer({ video, facebookUrl }: { video: CuratedVideo; facebookUrl: string }) {
   const [active, setActive] = useState(false);
   const embedSrc = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-    video.facebookUrl,
+    facebookUrl,
   )}&show_text=false&width=734&appId`;
 
   return (
@@ -84,11 +86,24 @@ function EditorialPoster({
   );
 }
 
-function LinkCard({ video }: { video: CuratedVideo }) {
+function LinkCard({ video, facebookUrl }: { video: CuratedVideo; facebookUrl: string }) {
   return (
     <div className="relative aspect-video w-full overflow-hidden">
-      <EditorialPoster video={video} href={video.facebookUrl} />
+      <EditorialPoster video={video} href={facebookUrl} />
     </div>
+  );
+}
+
+function FeaturedPlayer({ video }: { video: CuratedVideo }) {
+  if (video.localSrc) {
+    return <VideoPlayer src={video.localSrc} poster={video.posterSrc} title={video.title} />;
+  }
+  if (video.youtubeId) return <YouTubePlayer videoId={video.youtubeId} title={video.title} />;
+  if (!video.facebookUrl) return null;
+  return video.embeddable ? (
+    <EmbedPlayer video={video} facebookUrl={video.facebookUrl} />
+  ) : (
+    <LinkCard video={video} facebookUrl={video.facebookUrl} />
   );
 }
 
@@ -101,7 +116,7 @@ export function FeaturedMessage({ video, eyebrow, heading }: FeaturedMessageProp
         <Reveal className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Left — media poster */}
           <div className="w-full">
-            {video.embeddable ? <EmbedPlayer video={video} /> : <LinkCard video={video} />}
+            <FeaturedPlayer video={video} />
           </div>
 
           {/* Right — text + CTA */}
@@ -117,10 +132,12 @@ export function FeaturedMessage({ video, eyebrow, heading }: FeaturedMessageProp
               <p className="mt-5 text-pretty text-stone">{video.description}</p>
             )}
             <div className="mt-8 flex flex-wrap gap-4">
-              <ButtonLink href={video.facebookUrl}>
-                Watch on Facebook
-              </ButtonLink>
-              <ButtonLink href="/media" variant="secondary">
+              {video.facebookUrl && !video.localSrc && !video.youtubeId && (
+                <ButtonLink href={video.facebookUrl}>
+                  Watch on Facebook
+                </ButtonLink>
+              )}
+              <ButtonLink href="/media" variant={video.localSrc || video.youtubeId ? "primary" : "secondary"}>
                 All Messages
               </ButtonLink>
             </div>

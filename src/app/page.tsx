@@ -7,8 +7,9 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { MinistryMessage } from "@/components/sections/ministry-message";
 import { UpcomingEvents } from "@/components/sections/upcoming-events";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getFeaturedVideo, getHomeContent, getSite } from "@/lib/content";
+import { getHomeContent, getSite } from "@/lib/content";
 import { homeStructuredData } from "@/lib/structured-data";
+import { getFeaturedVideo } from "@/lib/video-content";
 
 const site = getSite();
 
@@ -23,8 +24,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
-  const featuredVideo = getFeaturedVideo();
+export default async function HomePage() {
+  const featuredVideo = await getFeaturedVideo();
   const { featuredMessage } = getHomeContent();
 
   return (

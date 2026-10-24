@@ -38,20 +38,24 @@ External provider owns:
 
 ## Identity Model
 
-There is no user authentication in this application. No login, no sessions,
-no JWT, no Supabase auth, no Clerk, no NextAuth.
+Public site: no user accounts, no login.
 
-Internal identity: none (public-only site).
-External identity: none.
+Admin (`/admin/*`): single shared password (`ADMIN_PASSWORD`) exchanged at
+`/admin/login` for an HMAC-signed, HTTP-only session cookie
+(`nfm_admin`, 8 h, SameSite=Lax so it survives the Google sign-in redirect). Signing key: `ADMIN_SESSION_SECRET`, falling back to
+`ADMIN_PASSWORD`. If `ADMIN_PASSWORD` is unset, admin sign-in is disabled.
+- `src/proxy.ts` redirects signed-out `/admin/*` requests to `/admin/login` (convenience only).
+- Every admin page, Server Action (`src/app/admin/actions.ts`) and Route Handler
+  (`/api/admin/files`) re-verifies the session itself (`src/lib/admin-auth.ts`).
+- Login failures are throttled in memory per IP (5 per 15 min, single instance).
 
-❌ GAP: No auth layer exists. If an admin/CMS capability is added in future,
-an identity model must be designed from scratch before any implementation begins.
+Google account (calendar integration): OAuth 2.0 authorization-code flow with
+PKCE, offline access, scopes `openid email calendar.readonly`
+(`/api/admin/google/connect` → Google → `/api/admin/google/callback`). Only an
+authenticated admin can start or complete it. "Sign out of Google" revokes the
+grant at Google and deletes the stored connection.
 
-❌ GAP (G-30): `/admin` route is publicly accessible. Authentication middleware
-must be implemented before production deployment. Recommended approach:
-`middleware.ts` at project root checking a session cookie, redirecting
-`/admin/*` to `/admin/login` if unauthenticated. `/admin` currently contains
-only placeholder UI — no real credentials or data are exposed.
+G-30 (public `/admin`) is resolved by the above.
 
 ---
 
@@ -68,19 +72,29 @@ only placeholder UI — no real credentials or data are exposed.
 | Ministry pillars (EQUIP / RESTORE / ACTIVATE) | `src/content/ministry-identity.ts` (via `getMinistryIdentity()`) |
 | Books | `src/content/books.ts` |
 | Events | `src/content/events.ts` |
-| Media / videos | `src/content/media.ts` |
+| Media / videos | Media store `MEDIA_STORAGE_DIR/videos.json` (admin-managed); seeded from `src/content/media.ts` until first admin save. Each video has one source: uploaded/bundled file (`localSrc`), YouTube (`youtubeId`, validated via YouTube oEmbed on save, click-to-load `youtube-nocookie.com` embed) or Facebook (`facebookUrl`) |
+| Events calendar (`/events`) | Google Calendar chosen at `/admin/calendar`; connection in `MEDIA_STORAGE_DIR/google-calendar.json` (refresh token AES-GCM-encrypted, mode 0600). Falls back to `src/content/events.ts` schedule when not connected |
+| Uploaded media files | `MEDIA_STORAGE_DIR/files/`, served by `/media-files/[file]` with Range support |
 | Store products | `src/content/products.ts` |
 | Homepage copy (hero headline: "Shaping Destinies. Advancing the Kingdom.") | `src/content/home.ts` |
 | Content types | `src/content/types.ts` |
 
-No database. No CMS. No external data fetching at runtime.
-All content is static, compiled into the build.
+No database. No external data fetching at runtime.
+All content except videos is static, compiled into the build. Videos are read
+through `src/lib/video-content.ts` (`"use cache"`, tag `videos`), which admin
+actions expire with `updateTag`. Google Calendar events are fetched server-side
+by `getPublicCalendar()` in `src/lib/google-calendar.ts` (`"use cache"`, tag
+`google-calendar`, revalidated every 5 minutes); private/confidential and
+cancelled events are dropped and only title, time, location and plain-text
+description reach the browser. `MEDIA_STORAGE_DIR` (default `./storage`,
+gitignored) must be a persistent, writable disk in production — ephemeral or
+read-only hosting (e.g. Vercel serverless) would lose uploads and edits.
 
 ---
 
 ## Persistence Rules
 
-Nothing is persisted by this application at runtime.
+Only the admin media store is persisted at runtime (see Data Ownership).
 
 - Newsletter subscriptions: not persisted. `NEWSLETTER_PROVIDER` is unset;
   the action returns `"not-configured"` and tells the user honestly.
@@ -113,8 +127,10 @@ Purpose: single import point for all content; CMS-swap boundary.
 All pages and components import content through these accessors only.
 Direct imports from `src/content/*` in pages or components are not permitted.
 Accessors added in M1–M2: `getEvents`, `getUpcomingEvents`, `getEventsByYear`,
-  `getEventsByMonth`, `getEvent`, `getVideos`, `getFeaturedVideo`, `getProducts`,
-  `getProduct`, `getMinistryIdentity`.
+  `getEventsByMonth`, `getEvent`, `getProducts`, `getProduct`, `getMinistryIdentity`.
+Exception: `getVideos` / `getFeaturedVideo` live in `src/lib/video-content.ts`
+  (server-only, async) because they read the runtime media store and
+  `lib/content.ts` is also imported by Client Components.
 
 ---
 

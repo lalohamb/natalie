@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Play } from "lucide-react";
+import { VideoPlayer } from "@/components/media/video-player";
+import { YouTubePlayer } from "@/components/media/youtube-player";
 import { Reveal } from "@/components/motion/reveal";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -31,15 +33,19 @@ const CATEGORY_LABELS: Record<VideoCategory | "all", string> = {
 function VideoCard({ video }: { video: CuratedVideo }) {
   const [active, setActive] = useState(false);
 
-  const embedSrc = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-    video.facebookUrl,
-  )}&show_text=false&width=560&appId`;
+  const embedSrc = video.facebookUrl
+    ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(video.facebookUrl)}&show_text=false&width=560&appId`
+    : null;
 
   return (
     <article aria-labelledby={`video-${video.id}`} className="flex flex-col gap-4">
       {/* Player area */}
       <div className="relative aspect-video w-full overflow-hidden">
-        {video.embeddable && active ? (
+        {video.localSrc ? (
+          <VideoPlayer src={video.localSrc} poster={video.posterSrc} title={video.title} />
+        ) : video.youtubeId ? (
+          <YouTubePlayer videoId={video.youtubeId} title={video.title} />
+        ) : video.embeddable && active && embedSrc ? (
           <iframe
             src={embedSrc}
             title={video.title}
@@ -49,7 +55,7 @@ function VideoCard({ video }: { video: CuratedVideo }) {
           />
         ) : (
           <a
-            href={video.facebookUrl}
+            href={video.facebookUrl ?? "#"}
             target={video.embeddable ? undefined : "_blank"}
             rel={video.embeddable ? undefined : "noopener noreferrer"}
             onClick={

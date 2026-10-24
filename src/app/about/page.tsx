@@ -23,7 +23,7 @@ export default function AboutPage() {
   const tabs = [
     { id: "journey",    label: "Ministry",    paragraphs: bio.sections.ministryJourney },
     { id: "leadership", label: "Leadership",  paragraphs: bio.sections.leadership },
-    { id: "marketplace",label: "Marketplace", paragraphs: bio.sections.marketplace },
+    { id: "marketplace",label: "Professional", paragraphs: bio.sections.marketplace },
     { id: "testimony",  label: "Testimony",   paragraphs: [...bio.sections.personalTestimony, ...bio.sections.closing] },
     { id: "story",      label: "My Story",    paragraphs: ["Natalie\u2019s autobiography traces her personal journey from life\u2019s deepest challenges to the clarity of her divine calling. The complete narrative is available in her book \u2014 From the Chaos to the Call."] },
   ] as const;

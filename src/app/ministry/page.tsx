@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import guidanceImg from "/public/Guidance, Growth, and Purpose.png";
 import { Reveal } from "@/components/motion/reveal";
 import { BookingCTA } from "@/components/sections/booking-cta";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
@@ -24,33 +26,57 @@ export default function MinistryPage() {
   return (
     <>
       {/* ── Section 1: Ministry Introduction ── */}
-      <section aria-labelledby="ministry-heading" className="bg-espresso py-section text-ivory">
-        <Container className="grid gap-12 lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-7 motion-safe:animate-rise">
-            <p className="font-sans text-eyebrow font-semibold text-gold-light uppercase tracking-[0.22em]">
+      <section aria-labelledby="ministry-heading" className="relative overflow-hidden bg-espresso text-ivory">
+        <Container className="grid lg:grid-cols-2 lg:items-stretch px-0 lg:px-0">
+
+          {/* Left — text */}
+          <div className="relative z-10 flex flex-col justify-center px-gutter py-16 lg:py-24">
+            <p className="font-sans text-eyebrow font-semibold text-gold-light uppercase tracking-[0.22em] motion-safe:animate-rise">
               The Ministry
             </p>
             <h1
               id="ministry-heading"
-              className="mt-8 font-display text-display-xl font-medium uppercase [animation-delay:80ms]"
+              className="mt-6 font-display text-display-xl font-medium uppercase leading-[0.95] motion-safe:animate-rise [animation-delay:80ms]"
             >
               Equipping. Restoring. Activating.
             </h1>
-            <p className="mt-8 max-w-xl text-lede text-pretty text-mist [animation-delay:160ms]">
+            <p className="mt-6 max-w-xl text-lede text-pretty text-mist motion-safe:animate-rise [animation-delay:160ms]">
               {identity.statement}
             </p>
-          </div>
-          <div className="flex items-end lg:col-span-4 lg:col-start-9 motion-safe:animate-rise [animation-delay:200ms]">
-            <p className="font-display text-2xl text-ivory italic leading-snug">
+            <p className="mt-8 font-display text-xl text-ivory/70 italic motion-safe:animate-rise [animation-delay:200ms]">
               &ldquo;Three Core Values. One Kingdom Mission.&rdquo;
             </p>
+          </div>
+
+          {/* Right — image */}
+          <div className="relative aspect-[4/3] overflow-hidden lg:aspect-auto lg:min-h-[600px]">
+            <Image
+              src={guidanceImg}
+              alt="Guidance, Growth, and Purpose"
+              fill
+              fetchPriority="high"
+              loading="eager"
+              quality={85}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover object-center"
+            />
+            <div aria-hidden className="absolute inset-y-0 left-0 w-24 hidden bg-gradient-to-r from-espresso to-transparent lg:block" />
           </div>
         </Container>
       </section>
 
       {/* ── Section 2: Three Core Values ── */}
-      <section aria-labelledby="pillars-heading" className="py-section">
-        <Container>
+      <section aria-labelledby="pillars-heading" className="relative overflow-hidden py-section">
+        <Image
+          src={guidanceImg}
+          alt=""
+          aria-hidden
+          fill
+          quality={80}
+          sizes="100vw"
+          className="object-cover object-center opacity-25"
+        />
+        <Container className="relative">
           <Reveal>
             <SectionHeading
               id="pillars-heading"
@@ -162,7 +188,7 @@ export default function MinistryPage() {
       </section>
 
       <BookingCTA />
-      <NewsletterSection />
+      {/* <NewsletterSection /> */}
     </>
   );
 }

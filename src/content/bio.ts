@@ -1,4 +1,4 @@
-import autumnPortrait from "@/assets/images/natalie-portrait-autumn.jpg";
+import autumnPortrait from "@/assets/images/natalie-portrait-main.jpg";
 import gardenPortrait from "@/assets/images/natalie-portrait-garden.jpg";
 import type { ImageAsset } from "./types";
 

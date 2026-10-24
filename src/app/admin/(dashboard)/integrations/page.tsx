@@ -1,11 +1,12 @@
+import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/admin-auth";
+import { AdminPageHeader } from "../../_components/admin-ui";
+
 /**
- * /admin — Integration configuration placeholder.
- *
- * 🔒 TODO: Protect this route with authentication before production.
- * See CURRENT-ARCHITECTURE-CONTRACT.md — Identity Model gap (G-03).
- * Recommended: implement middleware-based auth (e.g. Clerk, NextAuth, or
- * a simple secret-token check) that redirects unauthenticated requests to /login.
+ * /admin/integrations — integration configuration overview (read-only).
  */
+
+export const metadata: Metadata = { title: "Integrations" };
 
 type IntegrationStatus = "connected" | "not-configured" | "coming-soon";
 
@@ -46,10 +47,9 @@ const integrations: Integration[] = [
   {
     id: "media",
     name: "Media / Video",
-    description: "Facebook video embeds for the Featured Message and Media page.",
-    status: "not-configured",
-    configKeys: ["FACEBOOK_VIDEO_URL", "FACEBOOK_APP_ID"],
-    docsUrl: "https://developers.facebook.com/docs/plugins/embedded-video-player",
+    description: "Video library managed from this dashboard: uploaded files, YouTube links and Facebook videos. Uploads are stored in MEDIA_STORAGE_DIR.",
+    status: "connected",
+    configKeys: ["ADMIN_PASSWORD", "MEDIA_STORAGE_DIR", "MEDIA_MAX_UPLOAD_MB"],
   },
   {
     id: "facebook",
@@ -105,89 +105,69 @@ const statusColor: Record<IntegrationStatus, string> = {
   "coming-soon": "bg-stone-800 text-stone-400 border-stone-700/40",
 };
 
-export default function AdminPage() {
+export default async function IntegrationsPage() {
+  await requireAdmin();
+
   return (
-    <div className="min-h-screen bg-espresso text-mist">
-      {/* Header */}
-      <div className="border-b border-ivory/10 px-8 py-6">
-        <div className="mx-auto max-w-5xl flex items-center justify-between">
-          <div>
-            <p className="font-sans text-xs font-semibold text-gold-light uppercase tracking-[0.2em]">
-              Natalie Flemons Ministries
-            </p>
-            <h1 className="mt-1 font-display text-2xl font-medium text-ivory">
-              Admin — Integrations
-            </h1>
-          </div>
-          <span className="rounded border border-amber-700/50 bg-amber-900/30 px-3 py-1 font-sans text-xs font-semibold text-amber-300 uppercase tracking-wide">
-            ⚠ No auth — dev only
-          </span>
-        </div>
-      </div>
+    <>
+      <AdminPageHeader
+        title="Integrations"
+        description="Third-party services and the environment variables that configure them."
+      />
 
-      {/* Warning banner */}
-      <div className="border-b border-amber-700/30 bg-amber-900/20 px-8 py-3">
-        <p className="mx-auto max-w-5xl font-sans text-xs text-amber-300">
-          <strong>This page is publicly accessible.</strong> Do not enter real credentials here. Implement authentication before deploying to production. See <code className="font-mono">CURRENT-ARCHITECTURE-CONTRACT.md</code>.
-        </p>
-      </div>
-
-      {/* Integration grid */}
-      <div className="mx-auto max-w-5xl px-8 py-10">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {integrations.map((integration) => (
-            <div
-              key={integration.id}
-              className="flex flex-col rounded border border-ivory/10 bg-ivory/5 p-5"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="font-sans text-sm font-semibold text-ivory">
-                  {integration.name}
-                </h2>
-                <span
-                  className={`shrink-0 rounded border px-2 py-0.5 font-sans text-[0.65rem] font-semibold uppercase tracking-wide ${statusColor[integration.status]}`}
-                >
-                  {statusLabel[integration.status]}
-                </span>
-              </div>
-
-              <p className="mt-2 text-xs text-mist leading-relaxed">
-                {integration.description}
-              </p>
-
-              {integration.configKeys && (
-                <div className="mt-4 flex flex-col gap-1">
-                  {integration.configKeys.map((key) => (
-                    <code
-                      key={key}
-                      className="rounded bg-ivory/5 px-2 py-1 font-mono text-[0.65rem] text-stone"
-                    >
-                      {key}
-                    </code>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-auto pt-4">
-                {integration.docsUrl && (
-                  <a
-                    href={integration.docsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-sans text-xs font-semibold text-gold-light underline underline-offset-4 hover:text-ivory"
-                  >
-                    View docs ↗
-                  </a>
-                )}
-              </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {integrations.map((integration) => (
+          <div
+            key={integration.id}
+            className="flex flex-col rounded border border-ivory/10 bg-ivory/5 p-5"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="font-sans text-sm font-semibold text-ivory">
+                {integration.name}
+              </h2>
+              <span
+                className={`shrink-0 rounded border px-2 py-0.5 font-sans text-[0.65rem] font-semibold uppercase tracking-wide ${statusColor[integration.status]}`}
+              >
+                {statusLabel[integration.status]}
+              </span>
             </div>
-          ))}
-        </div>
 
-        <p className="mt-10 text-center font-sans text-xs text-stone">
-          Configure integrations by setting environment variables in <code className="font-mono">.env.local</code>
-        </p>
+            <p className="mt-2 text-xs text-mist leading-relaxed">
+              {integration.description}
+            </p>
+
+            {integration.configKeys && (
+              <div className="mt-4 flex flex-col gap-1">
+                {integration.configKeys.map((key) => (
+                  <code
+                    key={key}
+                    className="rounded bg-ivory/5 px-2 py-1 font-mono text-[0.65rem] text-mist"
+                  >
+                    {key}
+                  </code>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-auto pt-4">
+              {integration.docsUrl && (
+                <a
+                  href={integration.docsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-sans text-xs font-semibold text-gold-light underline underline-offset-4 hover:text-ivory"
+                >
+                  View docs ↗
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+
+      <p className="mt-10 text-center font-sans text-xs text-mist">
+        Configure integrations by setting environment variables in <code className="font-mono">.env.local</code>
+      </p>
+    </>
   );
 }

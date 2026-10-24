@@ -1,21 +1,5 @@
 import type { CuratedVideo } from "./types";
 
-/**
- * Curated video content for the /media page and homepage FeaturedMessage.
- *
- * ⚠️  The supplied URL https://www.facebook.com/reel/27601806466164022 is a
- * Facebook Reel. Reels use a different URL structure from standard Facebook
- * videos and cannot be reliably embedded via iframe. It is stored here with
- * embeddable: false and will render as a "Watch on Facebook" link card.
- *
- * To enable the full user-initiated embed experience, supply a standard
- * Facebook video URL in the form:
- *   https://www.facebook.com/[page]/videos/[video-id]/
- * and set embeddable: true on that entry.
- *
- * Only one video may have featured: true (used by the homepage FeaturedMessage).
- * published: false entries are never rendered publicly.
- */
 export const videos: CuratedVideo[] = [
   {
     id: "v-001",
@@ -27,6 +11,66 @@ export const videos: CuratedVideo[] = [
     featured: true,
     published: true,
     displayOrder: 1,
+    createdAt: "2027-01-01T00:00:00",
+  },
+  {
+    id: "v-002",
+    title: "Believe",
+    description: "",
+    category: "ministry-message",
+    localSrc: "/Believe.mp4",
+    embeddable: true,
+    featured: false,
+    published: true,
+    displayOrder: 2,
+    createdAt: "2027-01-01T00:00:00",
+  },
+  {
+    id: "v-003",
+    title: "Seek",
+    description: "",
+    category: "ministry-message",
+    localSrc: "/FINAL_1_SEEK.mp4",
+    embeddable: true,
+    featured: false,
+    published: true,
+    displayOrder: 3,
+    createdAt: "2027-01-01T00:00:00",
+  },
+  {
+    id: "v-004",
+    title: "Purge",
+    description: "",
+    category: "ministry-message",
+    localSrc: "/FINAL_2_PURGE.mp4",
+    embeddable: true,
+    featured: false,
+    published: true,
+    displayOrder: 4,
+    createdAt: "2027-01-01T00:00:00",
+  },
+  {
+    id: "v-005",
+    title: "Repair",
+    description: "",
+    category: "ministry-message",
+    localSrc: "/FINAL_3_REPAIR.mp4",
+    embeddable: true,
+    featured: false,
+    published: true,
+    displayOrder: 5,
+    createdAt: "2027-01-01T00:00:00",
+  },
+  {
+    id: "v-006",
+    title: "Pray in the Spirit",
+    description: "",
+    category: "ministry-message",
+    localSrc: "/Pray in the Spirit.mp4",
+    embeddable: true,
+    featured: false,
+    published: true,
+    displayOrder: 6,
     createdAt: "2027-01-01T00:00:00",
   },
 ];

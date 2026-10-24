@@ -1,0 +1,358 @@
+"use server";
+
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { refresh, updateTag } from "next/cache";
+import { z } from "zod";
+import type { CuratedVideo } from "@/content/types";
+import {
+  checkAdminPassword,
+  clearLoginFailures,
+  endAdminSession,
+  isAdminConfigured,
+  isLoginThrottled,
+  recordLoginFailure,
+  requireAdmin,
+  startAdminSession,
+} from "@/lib/admin-auth";
+import {
+  UPLOAD_URL_PREFIX,
+  VIDEO_CATEGORIES,
+  deleteUploadedFile,
+  listFiles,
+  newVideoId,
+  readVideos,
+  updateVideos,
+  videosUsingUrl,
+} from "@/lib/media-store";
+import { VIDEOS_CACHE_TAG } from "@/lib/video-content";
+import { parseYouTubeId, youTubeWatchUrl } from "@/lib/youtube";
+import {
+  CALENDAR_CACHE_TAG,
+  GoogleReauthRequired,
+  listCalendars,
+  setCalendar,
+  signOut as signOutOfGoogle,
+} from "@/lib/google-calendar";
+
+export type FormState = {
+  status: "idle" | "error" | "success";
+  message?: string;
+  fieldErrors?: Partial<Record<string, string>>;
+};
+
+// ---------------------------------------------------------------------------
+// Session
+// ---------------------------------------------------------------------------
+
+export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
+  if (!isAdminConfigured()) {
+    return {
+      status: "error",
+      message: "Admin access isn't configured. Set ADMIN_PASSWORD in the server environment.",
+    };
+  }
+
+  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (isLoginThrottled(ip)) {
+    return { status: "error", message: "Too many attempts. Please wait 15 minutes and try again." };
+  }
+
+  if (!checkAdminPassword(String(formData.get("password") ?? ""))) {
+    recordLoginFailure(ip);
+    return { status: "error", message: "Incorrect password." };
+  }
+
+  clearLoginFailures(ip);
+  await startAdminSession();
+  redirect("/admin");
+}
+
+export async function logout() {
+  await endAdminSession();
+  redirect("/admin/login");
+}
+
+// ---------------------------------------------------------------------------
+// Videos
+// ---------------------------------------------------------------------------
+
+const videoFormSchema = z
+  .object({
+    title: z.string().trim().min(1, "Please enter a title.").max(160),
+    description: z.string().trim().max(2000),
+    category: z.enum(VIDEO_CATEGORIES, { error: "Please choose a category." }),
+    sourceType: z.enum(["file", "facebook", "youtube"]),
+    localSrc: z.string().trim().optional(),
+    facebookUrl: z.string().trim().optional(),
+    youtubeUrl: z.string().trim().optional(),
+    embeddable: z.boolean(),
+    posterSrc: z.string().trim().optional(),
+    published: z.boolean(),
+    featured: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.sourceType === "file" && !data.localSrc) {
+      ctx.addIssue({ code: "custom", path: ["localSrc"], message: "Please choose a video file." });
+    }
+    if (data.sourceType === "facebook") {
+      const ok = !!data.facebookUrl && /^https:\/\/(www\.|m\.)?(facebook\.com|fb\.watch)\//.test(data.facebookUrl);
+      if (!ok) {
+        ctx.addIssue({ code: "custom", path: ["facebookUrl"], message: "Please enter a facebook.com video URL." });
+      }
+    }
+    if (data.sourceType === "youtube" && !parseYouTubeId(data.youtubeUrl ?? "")) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["youtubeUrl"],
+        message: "Please enter a link to a single YouTube video (playlists and channels aren't supported).",
+      });
+    }
+  });
+
+function parseVideoForm(formData: FormData) {
+  const text = (key: string) => {
+    const value = formData.get(key);
+    return typeof value === "string" && value.trim() ? value : undefined;
+  };
+  return videoFormSchema.safeParse({
+    title: String(formData.get("title") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    category: formData.get("category"),
+    sourceType: formData.get("sourceType"),
+    localSrc: text("localSrc"),
+    facebookUrl: text("facebookUrl"),
+    youtubeUrl: text("youtubeUrl"),
+    embeddable: formData.get("embeddable") === "on",
+    posterSrc: text("posterSrc"),
+    published: formData.get("published") === "on",
+    featured: formData.get("featured") === "on",
+  });
+}
+
+function fieldErrorsOf(error: z.ZodError): FormState {
+  const fieldErrors: Partial<Record<string, string>> = {};
+  for (const issue of error.issues) {
+    const key = String(issue.path[0]);
+    if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+  }
+  return { status: "error", message: "Please correct the errors below.", fieldErrors };
+}
+
+/** Only allow sources that exist in the media library, so a typo can't publish a broken player. */
+async function assertLibraryUrls(data: { localSrc?: string; posterSrc?: string }): Promise<FormState | null> {
+  const files = await listFiles();
+  const has = (url: string, kind: "video" | "image") => files.some((f) => f.url === url && f.kind === kind);
+  if (data.localSrc && !has(data.localSrc, "video")) {
+    return { status: "error", message: "Please correct the errors below.", fieldErrors: { localSrc: "That video file is no longer in the library." } };
+  }
+  if (data.posterSrc && !has(data.posterSrc, "image")) {
+    return { status: "error", message: "Please correct the errors below.", fieldErrors: { posterSrc: "That image is no longer in the library." } };
+  }
+  return null;
+}
+
+function applyForm(target: CuratedVideo, data: z.infer<typeof videoFormSchema>) {
+  target.title = data.title;
+  target.description = data.description;
+  target.category = data.category;
+  target.published = data.published;
+  target.featured = data.featured;
+  // Exactly one source is kept; the others are cleared.
+  target.localSrc = data.sourceType === "file" ? data.localSrc : undefined;
+  target.posterSrc = data.sourceType === "file" ? data.posterSrc : undefined;
+  target.youtubeId = data.sourceType === "youtube" ? parseYouTubeId(data.youtubeUrl!)! : undefined;
+  target.facebookUrl = data.sourceType === "facebook" ? data.facebookUrl : undefined;
+  target.embeddable = data.sourceType === "facebook" ? data.embeddable : true;
+}
+
+type YouTubeCheck =
+  | { status: "ok"; title: string; author?: string }
+  | { status: "error"; message: string }
+  /** YouTube couldn't be reached — don't block saving on a network hiccup. */
+  | { status: "unknown" };
+
+/**
+ * Confirms a YouTube video exists, is public or unlisted, and allows
+ * embedding, using YouTube's keyless oEmbed endpoint.
+ */
+async function checkYouTube(videoId: string): Promise<YouTubeCheck> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(youTubeWatchUrl(videoId))}`,
+      { cache: "no-store", signal: AbortSignal.timeout(5000) },
+    );
+    if (res.ok) {
+      const data = (await res.json()) as { title?: string; author_name?: string };
+      return { status: "ok", title: data.title ?? "", author: data.author_name };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return { status: "error", message: "This video's owner has turned off embedding, so it can't play on this site." };
+    }
+    if (res.status === 400 || res.status === 404) {
+      return { status: "error", message: "That video couldn't be found. It may be private or deleted." };
+    }
+    return { status: "unknown" };
+  } catch {
+    return { status: "unknown" };
+  }
+}
+
+/** Looks up a YouTube link for the video form (title auto-fill + early validation). */
+export async function lookupYouTube(url: string): Promise<YouTubeCheck & { videoId?: string }> {
+  await requireAdmin();
+  const videoId = parseYouTubeId(url);
+  if (!videoId) return { status: "error", message: "That doesn't look like a link to a single YouTube video." };
+  return { ...(await checkYouTube(videoId)), videoId };
+}
+
+/** Expires the public video cache and re-renders the current admin page. */
+function videosChanged() {
+  updateTag(VIDEOS_CACHE_TAG);
+  refresh();
+}
+
+/** Only one video may be featured on the homepage. */
+function enforceSingleFeatured(videos: CuratedVideo[], featuredId: string) {
+  for (const v of videos) if (v.id !== featuredId) v.featured = false;
+}
+
+export async function saveVideo(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+
+  const parsed = parseVideoForm(formData);
+  if (!parsed.success) return fieldErrorsOf(parsed.error);
+  const data = parsed.data;
+  if (data.sourceType === "file") {
+    const invalid = await assertLibraryUrls(data);
+    if (invalid) return invalid;
+  }
+  if (data.sourceType === "youtube") {
+    const check = await checkYouTube(parseYouTubeId(data.youtubeUrl!)!);
+    if (check.status === "error") {
+      return { status: "error", message: "Please correct the errors below.", fieldErrors: { youtubeUrl: check.message } };
+    }
+  }
+
+  const found = await updateVideos((videos) => {
+    let video: CuratedVideo | undefined;
+    if (id) {
+      video = videos.find((v) => v.id === id);
+      if (!video) return false;
+    } else {
+      video = {
+        id: newVideoId(),
+        title: "",
+        description: "",
+        category: data.category,
+        embeddable: true,
+        featured: false,
+        published: false,
+        displayOrder: Math.max(0, ...videos.map((v) => v.displayOrder)) + 1,
+        createdAt: new Date().toISOString(),
+      };
+      videos.push(video);
+    }
+    applyForm(video, data);
+    if (video.featured) enforceSingleFeatured(videos, video.id);
+    return true;
+  });
+
+  if (!found) return { status: "error", message: "This video no longer exists." };
+  updateTag(VIDEOS_CACHE_TAG);
+  redirect("/admin/videos");
+}
+
+export async function deleteVideo(id: string) {
+  await requireAdmin();
+  await updateVideos((videos) => {
+    const index = videos.findIndex((v) => v.id === id);
+    if (index >= 0) videos.splice(index, 1);
+  });
+  videosChanged();
+}
+
+export async function setVideoPublished(id: string, published: boolean) {
+  await requireAdmin();
+  await updateVideos((videos) => {
+    const video = videos.find((v) => v.id === id);
+    if (video) video.published = published;
+  });
+  videosChanged();
+}
+
+export async function setVideoFeatured(id: string, featured: boolean) {
+  await requireAdmin();
+  await updateVideos((videos) => {
+    const video = videos.find((v) => v.id === id);
+    if (!video) return;
+    video.featured = featured;
+    if (featured) enforceSingleFeatured(videos, id);
+  });
+  videosChanged();
+}
+
+export async function moveVideo(id: string, direction: "up" | "down") {
+  await requireAdmin();
+  await updateVideos((videos) => {
+    videos.sort((a, b) => a.displayOrder - b.displayOrder);
+    const i = videos.findIndex((v) => v.id === id);
+    const j = direction === "up" ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= videos.length) return;
+    [videos[i].displayOrder, videos[j].displayOrder] = [videos[j].displayOrder, videos[i].displayOrder];
+  });
+  videosChanged();
+}
+
+// ---------------------------------------------------------------------------
+// Files
+// ---------------------------------------------------------------------------
+
+export async function deleteFile(name: string): Promise<{ ok: boolean; message: string }> {
+  await requireAdmin();
+  const url = `${UPLOAD_URL_PREFIX}${name}`;
+  const usedBy = videosUsingUrl(await readVideos(), url);
+  if (usedBy.length > 0) {
+    return {
+      ok: false,
+      message: `In use by: ${usedBy.map((v) => `“${v.title}”`).join(", ")}. Change or delete those videos first.`,
+    };
+  }
+  const deleted = await deleteUploadedFile(name);
+  if (deleted) refresh();
+  return deleted ? { ok: true, message: `Deleted ${name}.` } : { ok: false, message: "File not found." };
+}
+
+// ---------------------------------------------------------------------------
+// Google Calendar
+// ---------------------------------------------------------------------------
+
+export async function selectCalendar(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const calendarId = String(formData.get("calendarId") ?? "");
+
+  let calendars;
+  try {
+    calendars = await listCalendars();
+  } catch (err) {
+    if (err instanceof GoogleReauthRequired) return { status: "error", message: err.message };
+    console.error("[admin] listing Google calendars failed", err);
+    return { status: "error", message: "Couldn't reach Google Calendar. Please try again." };
+  }
+
+  // Only accept calendars the connected account can actually read.
+  const calendar = calendars.find((c) => c.id === calendarId);
+  if (!calendar) return { status: "error", message: "Please choose one of your calendars." };
+
+  await setCalendar(calendar.id, calendar.name);
+  updateTag(CALENDAR_CACHE_TAG);
+  refresh();
+  return { status: "success", message: `The Events page now shows “${calendar.name}”.` };
+}
+
+export async function signOutGoogle() {
+  await requireAdmin();
+  await signOutOfGoogle();
+  updateTag(CALENDAR_CACHE_TAG);
+  refresh();
+}

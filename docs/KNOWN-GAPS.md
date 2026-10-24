@@ -25,7 +25,7 @@ in a tracked phase before the site goes to production.
 | G-09 | Entire codebase | No analytics or error tracking | MEDIUM | OPEN | Add before launch (Vercel Analytics, Sentry, or equivalent) |
 | G-10 | Entire codebase | No `sitemap.ts` or `robots.ts` | MEDIUM | ✅ RESOLVED M1-E | `src/app/sitemap.ts` and `src/app/robots.ts` added |
 | G-11 | Entire codebase | No OG image generation (`opengraph-image.tsx`) | LOW | OPEN | Add per IMPLEMENTATION-PLAN.md §7; target M1-F |
-| G-12 | Entire codebase | No auth or admin layer | LOW (now) / HIGH (if CMS added) | OPEN | Design identity model before any admin work begins |
+| G-12 | Entire codebase | No auth or admin layer | — | RESOLVED | Shared-password admin session — see CURRENT-ARCHITECTURE-CONTRACT.md Identity Model |
 | G-13 | `docs/` | Governance documents absent before M0 audit | MEDIUM | ✅ RESOLVED M0 | All seven documents committed |
 | G-14 | `src/content/books.ts` | Squarespace purchase URLs will break at DNS cutover | HIGH | OPEN | Resolve commerce decision (Option A/B/C) before cutover; target M2 |
 | G-15 | Navigation | Booking CTA linked to `/booking` (404) | HIGH | ✅ RESOLVED M1-A | `/booking` → `/events` redirect added; Invite Natalie CTAs point to `/contact` |

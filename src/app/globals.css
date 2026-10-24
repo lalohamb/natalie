@@ -212,4 +212,56 @@
     display: inline-block;
     animation: word-rise 700ms var(--ease-editorial) both;
   }
+
+  /* Video player sliders — gold fill up to --nfm-range-fill on a translucent track */
+  .nfm-range {
+    appearance: none;
+    height: 1.25rem;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .nfm-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: linear-gradient(
+      to right,
+      var(--color-gold-light) var(--nfm-range-fill, 0%),
+      rgb(250 246 239 / 0.3) var(--nfm-range-fill, 0%)
+    );
+  }
+
+  .nfm-range::-moz-range-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: rgb(250 246 239 / 0.3);
+  }
+
+  .nfm-range::-moz-range-progress {
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--color-gold-light);
+  }
+
+  .nfm-range::-webkit-slider-thumb {
+    appearance: none;
+    margin-top: -5px;
+    height: 14px;
+    width: 14px;
+    border-radius: 9999px;
+    background: var(--color-ivory);
+  }
+
+  .nfm-range::-moz-range-thumb {
+    height: 14px;
+    width: 14px;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--color-ivory);
+  }
+
+  .nfm-range:focus-visible {
+    outline: 2px solid var(--color-gold-light);
+    outline-offset: 2px;
+  }
 }
