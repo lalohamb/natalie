@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import bibleImg from "/public/Open Bible Overlooking Golden Cityscape.png";
+
 import { MonthCalendar } from "@/components/calendar/month-calendar";
 import { Reveal } from "@/components/motion/reveal";
 import { EventCard } from "@/components/sections/event-card";
@@ -47,7 +47,7 @@ export default async function EventsPage() {
         {/* Image */}
         <div className="relative aspect-[16/7] w-full overflow-hidden">
           <Image
-            src={bibleImg}
+            src="/Open Bible Overlooking Golden Cityscape.png"
             alt="Open Bible Overlooking Golden Cityscape"
             fill
             fetchPriority="high"

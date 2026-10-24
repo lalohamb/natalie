@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import guidanceImg from "/public/Guidance, Growth, and Purpose.png";
 import { Reveal } from "@/components/motion/reveal";
 import { BookingCTA } from "@/components/sections/booking-cta";
-import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -17,6 +15,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/ministry" },
   openGraph: { url: "/ministry" },
 };
+
+const GUIDANCE_IMG = "/Guidance, Growth, and Purpose.png";
 
 export default function MinistryPage() {
   const identity = getMinistryIdentity();
@@ -51,7 +51,7 @@ export default function MinistryPage() {
           {/* Right — image */}
           <div className="relative aspect-[4/3] overflow-hidden lg:aspect-auto lg:min-h-[600px]">
             <Image
-              src={guidanceImg}
+              src={GUIDANCE_IMG}
               alt="Guidance, Growth, and Purpose"
               fill
               fetchPriority="high"
@@ -68,13 +68,13 @@ export default function MinistryPage() {
       {/* ── Section 2: Three Core Values ── */}
       <section aria-labelledby="pillars-heading" className="relative overflow-hidden py-section">
         <Image
-          src={guidanceImg}
+          src={GUIDANCE_IMG}
           alt=""
           aria-hidden
           fill
           quality={80}
           sizes="100vw"
-          className="object-cover object-center opacity-25"
+          className="object-cover object-center opacity-10"
         />
         <Container className="relative">
           <Reveal>
@@ -188,7 +188,6 @@ export default function MinistryPage() {
       </section>
 
       <BookingCTA />
-      {/* <NewsletterSection /> */}
     </>
   );
 }
