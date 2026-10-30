@@ -66,8 +66,17 @@ export default function MinistryPage() {
       </section>
 
       {/* ── Section 2: Three Core Values ── */}
-      <section aria-labelledby="pillars-heading" className="py-section">
-        <Container>
+      <section aria-labelledby="pillars-heading" className="relative overflow-hidden py-section">
+        <Image
+          src="/guidance-growth-purpose.png"
+          alt=""
+          aria-hidden
+          fill
+          quality={80}
+          sizes="100vw"
+          className="object-cover object-center opacity-20"
+        />
+        <Container className="relative">
           <Reveal>
             <SectionHeading
               id="pillars-heading"
