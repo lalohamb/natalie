@@ -74,7 +74,7 @@ export default function MinistryPage() {
           fill
           quality={80}
           sizes="100vw"
-          className="object-cover object-center opacity-10"
+          className="object-cover object-center opacity-20"
         />
         <Container className="relative">
           <Reveal>

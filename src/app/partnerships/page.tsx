@@ -157,7 +157,7 @@ export default function PartnershipsPage() {
             </h2>
           </Reveal>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Stripe */}
             <Reveal>
               <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
@@ -171,10 +171,6 @@ export default function PartnershipsPage() {
                   <p className="mt-5 text-pretty text-stone">
                     Give securely by credit or debit card through Stripe. Your gift goes directly
                     to support the work of Natalie Flemons Ministries.
-                  </p>
-                  <p className="mt-3 text-sm text-stone italic">
-                    Natalie Flemons Ministries LLC is not a registered nonprofit.
-                    Gifts are not tax-deductible.
                   </p>
                 </div>
                 <ButtonLink href={giving.stripeUrl} className="self-start mt-auto">
@@ -197,17 +193,36 @@ export default function PartnershipsPage() {
                     Send your gift directly via Cash App to{" "}
                     <span className="font-semibold text-espresso">{giving.cashAppHandle}</span>.
                   </p>
-                  <p className="mt-3 text-sm text-stone italic">
-                    Natalie Flemons Ministries LLC is not a registered nonprofit.
-                    Gifts are not tax-deductible.
-                  </p>
                 </div>
                 <ButtonLink href={giving.cashAppUrl} variant="secondary" className="self-start mt-auto">
                   Open Cash App
                 </ButtonLink>
               </div>
             </Reveal>
+            {/* Zelle */}
+            <Reveal delay={0.16}>
+              <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
+                <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
+                <span aria-hidden className="absolute right-0 bottom-0 h-8 w-8 border-r border-b border-gold" />
+                <div>
+                  <Eyebrow rule={false}>Give by Zelle</Eyebrow>
+                  <h3 className="mt-4 font-display text-display-sm font-medium">
+                    Zelle
+                  </h3>
+                  <p className="mt-5 text-pretty text-stone">
+                    Send your gift directly via Zelle to{" "}
+                    <span className="font-semibold text-espresso">{giving.zelleEmail}</span>.
+                  </p>
+                </div>
+                <ButtonLink href={`https://enroll.zellepay.com/qr-codes?data=${encodeURIComponent(giving.zelleEmail)}`} variant="secondary" className="self-start mt-auto">
+                  Open Zelle
+                </ButtonLink>
+              </div>
+            </Reveal>
           </div>
+          <p className="mt-8 text-center text-sm text-stone italic">
+            Natalie Flemons Ministries LLC is not a registered nonprofit. Gifts are not tax-deductible.
+          </p>
         </Container>
       </section>
 

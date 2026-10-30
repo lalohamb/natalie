@@ -61,4 +61,5 @@ export const giving = {
   stripeUrl: "https://donate.stripe.com/9AQaGHcs250e2R2aEE",
   cashAppHandle: "$NatalieFlemons",
   cashAppUrl: "https://cash.app/$NatalieFlemons",
+  zelleEmail: "info@natalieflemons.com",
 } as const;
