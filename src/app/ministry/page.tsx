@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: { url: "/ministry" },
 };
 
-const GUIDANCE_IMG = "/Guidance, Growth, and Purpose.png";
+const GUIDANCE_IMG = "/ministry-hero.jpg";
 
 export default function MinistryPage() {
   const identity = getMinistryIdentity();
@@ -66,17 +66,8 @@ export default function MinistryPage() {
       </section>
 
       {/* ── Section 2: Three Core Values ── */}
-      <section aria-labelledby="pillars-heading" className="relative overflow-hidden py-section">
-        <Image
-          src={GUIDANCE_IMG}
-          alt=""
-          aria-hidden
-          fill
-          quality={80}
-          sizes="100vw"
-          className="object-cover object-center opacity-20"
-        />
-        <Container className="relative">
+      <section aria-labelledby="pillars-heading" className="py-section">
+        <Container>
           <Reveal>
             <SectionHeading
               id="pillars-heading"

@@ -45,7 +45,7 @@ export default async function EventsPage() {
       {/* ── Header ── */}
       <section aria-labelledby="events-heading" className="border-b border-sand">
         {/* Image */}
-        <div className="relative aspect-[16/7] w-full overflow-hidden">
+        <div className="relative h-48 w-full overflow-hidden sm:h-64">
           <Image
             src="/Open Bible Overlooking Golden Cityscape.png"
             alt="Open Bible Overlooking Golden Cityscape"
