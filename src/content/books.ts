@@ -2,6 +2,7 @@ import workbookMockup from "@/assets/images/cover-repair-the-breach-workbook-moc
 import repairingTheBreachCover from "@/assets/images/cover-repairing-the-breach.jpg";
 import midwifeCover from "@/assets/images/cover-the-midwife-to-your-destiny.jpg";
 import warInTheWaitCover from "@/assets/images/cover-war-in-the-wait.png";
+import fromthechaostothecall from "@/assets/images/cover-from-the-chaos-to-the-call.jpg";
 import type { Book } from "./types";
 
 /**
@@ -127,18 +128,15 @@ export const books: Book[] = [
     cover: {
       // ⚠️ No cover image available in src/assets/images/. Request from ministry.
       // Using a placeholder until the flat cover file is supplied.
-      src: repairingTheBreachCover,
+      src: fromthechaostothecall,
       alt: "Cover of From the Chaos to the Call by Natalie C. Flemons",
     },
-    coverIsMockup: true,
     purchase: {
       kind: "external",
-      // Amazon link from legacy site /purchase-book (SITE-AUDIT.md §3).
-      // ⚠️ Verify this URL is still live before publishing this page.
       url: "https://www.amazon.com",
       label: "Purchase on Amazon",
     },
-    featured: false,
+    featured: true,
     category: "autobiography",
   },
 ];
