@@ -2,7 +2,7 @@ import type { CallToAction, NavItem, SocialLink } from "./types";
 
 export const site = {
   name: "Natalie Flemons Ministries",
-  legalName: "Natalie Flemons Ministries LLC",
+  legalName: "Natalie Flemons Ministries",
   principal: "Natalie C. Flemons",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.natalieflemons.com",
   tagline: "Shaping Destinies. Advancing the Kingdom.",
