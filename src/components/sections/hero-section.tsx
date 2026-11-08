@@ -162,10 +162,12 @@ export function HeroSection() {
 
           {/* Name caption — bottom left */}
           <figcaption className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6">
-            <span className="block font-display text-lg text-ivory drop-shadow-sm">{bio.name}</span>
-            <span className="block font-sans text-eyebrow font-semibold text-gold-light uppercase tracking-[0.22em]">
-              Founder
-            </span>
+            <div className="rounded-sm px-1 py-1 bg-espresso/70 backdrop-blur-md">
+              <span className="block font-display text-4xl font-bold text-ivory [text-shadow:0_4px_16px_rgba(0,0,0,0.8)]">{bio.name}</span>
+              <span className="block font-sans text-lg font-extrabold text-gold-light uppercase tracking-[0.22em] mt-1 [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
+                Founder
+              </span>
+            </div>
           </figcaption>
         </figure>
       </div>
