@@ -1,19 +1,16 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { cacheTag } from "next/cache";
 import type { CuratedVideo } from "@/content/types";
 import { readVideos } from "@/lib/media-store";
 
 export const VIDEOS_CACHE_TAG = "videos";
 
-const getCachedVideos = unstable_cache(
-  async () => (await readVideos()).filter((v) => v.published),
-  [VIDEOS_CACHE_TAG],
-  { tags: [VIDEOS_CACHE_TAG] },
-);
-
 export async function getVideos(): Promise<CuratedVideo[]> {
-  return getCachedVideos();
+  "use cache";
+  cacheTag(VIDEOS_CACHE_TAG);
+  const videos = await readVideos();
+  return videos.filter((v) => v.published);
 }
 
 export async function getFeaturedVideo(): Promise<CuratedVideo | undefined> {
