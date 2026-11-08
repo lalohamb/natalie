@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { refresh, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import type { CuratedVideo } from "@/content/types";
 import {
@@ -208,8 +208,8 @@ export async function lookupYouTube(url: string): Promise<YouTubeCheck & { video
 
 /** Expires the public video cache and re-renders the current admin page. */
 function videosChanged() {
-  updateTag(VIDEOS_CACHE_TAG);
-  refresh();
+  revalidateTag(VIDEOS_CACHE_TAG);
+  revalidatePath("/");
 }
 
 /** Only one video may be featured on the homepage. */
@@ -259,7 +259,8 @@ export async function saveVideo(id: string | null, _prev: FormState, formData: F
   });
 
   if (!found) return { status: "error", message: "This video no longer exists." };
-  updateTag(VIDEOS_CACHE_TAG);
+  revalidateTag(VIDEOS_CACHE_TAG);
+  revalidatePath("/");
   redirect("/admin/videos");
 }
 
@@ -345,14 +346,14 @@ export async function selectCalendar(_prev: FormState, formData: FormData): Prom
   if (!calendar) return { status: "error", message: "Please choose one of your calendars." };
 
   await setCalendar(calendar.id, calendar.name);
-  updateTag(CALENDAR_CACHE_TAG);
-  refresh();
+  revalidateTag(CALENDAR_CACHE_TAG);
+  revalidatePath("/");
   return { status: "success", message: `The Events page now shows “${calendar.name}”.` };
 }
 
 export async function signOutGoogle() {
   await requireAdmin();
   await signOutOfGoogle();
-  updateTag(CALENDAR_CACHE_TAG);
-  refresh();
+  revalidateTag(CALENDAR_CACHE_TAG);
+  revalidatePath("/");
 }

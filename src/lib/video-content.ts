@@ -1,22 +1,19 @@
 import "server-only";
 
-import { cacheTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import type { CuratedVideo } from "@/content/types";
 import { readVideos } from "@/lib/media-store";
 
-/*
- * Video accessors. Videos are managed from /admin at runtime, so — unlike the
- * static accessors in `lib/content.ts` — these read the media store and are
- * cached under the `videos` tag, which admin actions expire on every change.
- */
-
 export const VIDEOS_CACHE_TAG = "videos";
 
+const getCachedVideos = unstable_cache(
+  async () => (await readVideos()).filter((v) => v.published),
+  [VIDEOS_CACHE_TAG],
+  { tags: [VIDEOS_CACHE_TAG] },
+);
+
 export async function getVideos(): Promise<CuratedVideo[]> {
-  "use cache";
-  cacheTag(VIDEOS_CACHE_TAG);
-  const videos = await readVideos();
-  return videos.filter((v) => v.published);
+  return getCachedVideos();
 }
 
 export async function getFeaturedVideo(): Promise<CuratedVideo | undefined> {
