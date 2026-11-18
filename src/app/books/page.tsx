@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { BooksPageClient } from "./books-page-client";
-import { getBooks } from "@/lib/content";
+import { getPublishedBooks } from "@/lib/book-content";
 
 export const metadata: Metadata = {
   title: "Books",
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   openGraph: { url: "/books" },
 };
 
-export default function BooksPage() {
-  const books = getBooks();
+export default async function BooksPage() {
+  const books = await getPublishedBooks();
 
   return (
     <>

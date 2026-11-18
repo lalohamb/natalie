@@ -1,6 +1,6 @@
 # CURRENT ARCHITECTURE CONTRACT
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M3 complete + admin placeholder + G-30 -->
+<!-- Last updated: M4-H governance synchronization (2026-11-17) — Stripe Checkout, MailerLite, admin book store, iCal calendar -->
 
 ## Authority
 
@@ -21,18 +21,27 @@ Historical reports do not override this contract.
 
 Application owns:
 - All page routing (Next.js 16 App Router)
-- All content (typed TS modules in `src/content/`)
+- Static content (typed TS modules in `src/content/`)
+- Admin-managed runtime content: books, videos, uploaded files, donation
+  link override, Google Calendar connection (`MEDIA_STORAGE_DIR`)
 - All UI components
-- Newsletter form state and server action
-- Structured data generation
-- SEO metadata
+- Newsletter and contact form state and server actions
+- Creation of Stripe Checkout Sessions for books (`/api/checkout`)
+- Structured data generation and SEO metadata
 
 External provider owns:
-- Book purchase transactions (legacy Squarespace product pages)
-- Merchandise purchase transactions (legacy Squarespace)
-- Donation processing (Stripe Payment Link — donate.stripe.com/9AQaGHcs250e2R2aEE)
-- Cash App payments ($NatalieFlemons)
-- Font delivery (Google Fonts via next/font — self-hosted at build time; no runtime dependency)
+- Book payment, receipts and order records (Stripe Checkout / Stripe Dashboard)
+- Donation processing (Stripe Payment Link; default
+  donate.stripe.com/9AQaGHcs250e2R2aEE, admin-overridable)
+- Cash App payments ($NatalieFlemons); Zelle transfers (info@natalieflemons.com)
+- Merchandise catalog, checkout and fulfilment (Printify storefront
+  `thereformcollective.printify.me` — ⚠️ ownership unconfirmed, G-41)
+- Newsletter subscriber records (MailerLite)
+- Events schedule (Google Calendar)
+- Font delivery (Google Fonts via next/font — self-hosted at build time)
+
+Legacy Squarespace is no longer an intended purchase destination. Squarespace
+URLs remaining in the `src/content/books.ts` seed are a defect (G-34).
 
 ---
 
@@ -66,43 +75,57 @@ G-30 (public `/admin`) is resolved by the above.
 | Site metadata | `src/content/site.ts` |
 | Navigation (main + secondary + legal + give) | `src/content/site.ts` |
 | Social links | `src/content/site.ts` (`verified` flag controls rendering) |
-| Giving channels | `src/content/site.ts` |
+| Giving channels | `src/content/site.ts`; the Stripe donation URL can be overridden at `/admin/donations` (`MEDIA_STORAGE_DIR/stripe-settings.json`). Read through `getGiving()` in `src/lib/giving.ts` |
 | Bio / portraits | `src/content/bio.ts` |
-| Ministry identity (pillars + statement) | `src/content/ministry-identity.ts` |
-| Ministry pillars (EQUIP / RESTORE / ACTIVATE) | `src/content/ministry-identity.ts` (via `getMinistryIdentity()`) |
-| Books | `src/content/books.ts` |
-| Events | `src/content/events.ts` |
-| Media / videos | Media store `MEDIA_STORAGE_DIR/videos.json` (admin-managed); seeded from `src/content/media.ts` until first admin save. Each video has one source: uploaded/bundled file (`localSrc`), YouTube (`youtubeId`, validated via YouTube oEmbed on save, click-to-load `youtube-nocookie.com` embed) or Facebook (`facebookUrl`) |
-| Events calendar (`/events`) | Google Calendar chosen at `/admin/calendar`; connection in `MEDIA_STORAGE_DIR/google-calendar.json` (refresh token AES-GCM-encrypted, mode 0600). Falls back to `src/content/events.ts` schedule when not connected |
-| Uploaded media files | `MEDIA_STORAGE_DIR/files/`, served by `/media-files/[file]` with Range support |
-| Store products | `src/content/products.ts` |
+| Ministry identity + pillars (EQUIP / RESTORE / ACTIVATE) | `src/content/ministry-identity.ts` (via `getMinistryIdentity()`) |
+| Books | Book store `MEDIA_STORAGE_DIR/books.json` (admin-managed at `/admin/books`, type `AdminBook`); **seeded from `src/content/books.ts` until the first admin save**. Read through `src/lib/book-content.ts` |
+| Book prices charged | Stripe Price referenced by `purchase.priceId`. `priceCents` is display-only |
+| Media / videos | Media store `MEDIA_STORAGE_DIR/videos.json` (admin-managed); seeded from `src/content/media.ts` until first admin save. One source per video: uploaded/bundled file (`localSrc`), YouTube (`youtubeId`) or Facebook (`facebookUrl`) |
+| Events calendar (`/events`) | Google Calendar. OAuth connection chosen at `/admin/calendar` (`MEDIA_STORAGE_DIR/google-calendar.json`, refresh token AES-GCM-encrypted, mode 0600); otherwise the public iCal feed in `GOOGLE_CALENDAR_ICAL_URL`. No calendar → "schedule is being finalised" state |
+| Static events (`src/content/events.ts`) | Empty. Still read by the homepage `UpcomingEvents` section and `/events/[slug]` only — **not** by `/events` (G-40) |
+| Uploaded files (media, book covers) | `MEDIA_STORAGE_DIR/files/`, served by `/media-files/[file]` with Range support |
+| Store products | `src/content/products.ts` (links out to Printify) |
 | Homepage copy (hero headline: "Shaping Destinies. Advancing the Kingdom.") | `src/content/home.ts` |
-| Content types | `src/content/types.ts` |
+| Content types | `src/content/types.ts`, `src/content/book-constants.ts` |
 
-No database. No external data fetching at runtime.
-All content except videos is static, compiled into the build. Videos are read
-through `src/lib/video-content.ts` (`"use cache"`, tag `videos`), which admin
-actions expire with `updateTag`. Google Calendar events are fetched server-side
-by `getPublicCalendar()` in `src/lib/google-calendar.ts` (`"use cache"`, tag
-`google-calendar`, revalidated every 5 minutes); private/confidential and
-cancelled events are dropped and only title, time, location and plain-text
-description reach the browser. `MEDIA_STORAGE_DIR` (default `./storage`,
-gitignored) must be a persistent, writable disk in production — ephemeral or
-read-only hosting (e.g. Vercel serverless) would lose uploads and edits.
+No database. Runtime state is JSON files under `MEDIA_STORAGE_DIR`, written
+atomically (`writeFileAtomic`) behind an in-process write queue — **single
+instance only**.
+
+Caching (`"use cache"`):
+- Books — `getAdminBooks()`, tag `books`; admin book actions call `updateTag`.
+- Videos — `src/lib/video-content.ts`, tag `videos`; admin actions call `updateTag`.
+- Calendar — `getPublicCalendar()` / `getICalCalendar()`, tag
+  `google-calendar`, revalidated every 5 minutes. Private/confidential and
+  cancelled events are dropped; only title, time, location and plain-text
+  description reach the browser.
+- Donation link — `getPaymentLinkUrl()`, **no tag and no invalidation on
+  save** (G-44).
+
+`MEDIA_STORAGE_DIR` (default `./storage`, gitignored) must be a persistent,
+writable disk in production — ephemeral or read-only hosting (e.g. Vercel
+serverless) would lose books, videos, uploads and settings (G-35).
 
 ---
 
 ## Persistence Rules
 
-Only the admin media store is persisted at runtime (see Data Ownership).
+Persisted by the application at runtime (all under `MEDIA_STORAGE_DIR`):
+`books.json`, `videos.json`, `stripe-settings.json`, `google-calendar.json`,
+`files/*`.
 
-- Newsletter subscriptions: not persisted. `NEWSLETTER_PROVIDER` is unset;
-  the action returns `"not-configured"` and tells the user honestly.
-- Contact form submissions: not persisted. `CONTACT_EMAIL_PROVIDER` is unset;
-  the action returns an honest "unavailable" message directing visitors to
-  info@natalieflemons.com. No submission is silently dropped.
-- Orders: not handled by this application (external Squarespace).
-- Donations: not handled by this application (external Stripe Payment Link).
+Not persisted by the application:
+- Newsletter subscriptions — sent to MailerLite when
+  `NEWSLETTER_PROVIDER=mailerlite`; MailerLite owns the record. When the
+  provider is unset the action returns `"not-configured"` and says so.
+- Contact form submissions — not delivered and not stored.
+  `CONTACT_EMAIL_PROVIDER` has no adapter; the action returns an honest
+  "unavailable" message directing visitors to info@natalieflemons.com (G-24).
+- Book orders — Stripe owns them. The application stores no order record and
+  has no webhook (G-33). `/admin/book-sales` and `/admin/donations` read from
+  the Stripe API on each request (`cache: "no-store"`).
+- Donations — external (Stripe Payment Link, Cash App, Zelle).
+- Merchandise orders — external (Printify).
 
 ---
 
@@ -110,27 +133,46 @@ Only the admin media store is persisted at runtime (see Data Ownership).
 
 ### Newsletter Server Action (`src/app/actions/newsletter.ts`)
 Purpose: validate email, call `subscribeToNewsletter()`, return typed state.
-Boundary: `src/lib/newsletter.ts` — currently returns `"not-configured"` always.
-No external HTTP call is made today.
-Honeypot: `nfm_hp` field — tripped returns neutral `{ status: "success", message: "Thank you." }`
-  (intentional bot deception; no real subscription occurs).
+Boundary: `src/lib/newsletter.ts` — normalizes MailerLite to
+`"subscribed" | "already-subscribed" | "not-configured" | "error"`.
+Makes an outbound HTTPS call to MailerLite when configured.
+Success state carries `celebrate: true` only for `"subscribed"`.
+Honeypot: `nfm_hp` — tripped returns neutral `{ status: "success", message: "Thank you." }`
+  (intentional bot deception; no subscription occurs).
 
 ### Contact Server Action (`src/app/actions/contact.ts`)
 Purpose: validate contact form, deliver via email provider, return typed state.
-Boundary: `CONTACT_EMAIL_PROVIDER` env var — currently unset; returns honest
-  "unavailable" message directing to info@natalieflemons.com.
-Honeypot: `nfm_hp` field — tripped returns neutral success.
+Boundary: `CONTACT_EMAIL_PROVIDER` — no adapter implemented; unset returns the
+  honest "unavailable" message; any other value returns a generic error.
+Honeypot: `nfm_hp` — tripped returns neutral success.
 Schema: name, email, organization (optional), subject (enum), message, nfm_hp.
 
-### Content Accessors (`src/lib/content.ts`)
-Purpose: single import point for all content; CMS-swap boundary.
-All pages and components import content through these accessors only.
-Direct imports from `src/content/*` in pages or components are not permitted.
-Accessors added in M1–M2: `getEvents`, `getUpcomingEvents`, `getEventsByYear`,
-  `getEventsByMonth`, `getEvent`, `getProducts`, `getProduct`, `getMinistryIdentity`.
-Exception: `getVideos` / `getFeaturedVideo` live in `src/lib/video-content.ts`
-  (server-only, async) because they read the runtime media store and
-  `lib/content.ts` is also imported by Client Components.
+### Checkout Route Handler (`src/app/api/checkout/route.ts`)
+Purpose: create a Stripe Checkout Session for one book and redirect to Stripe.
+Input: `GET ?priceId=`. Public, unauthenticated.
+Current state does **not** meet the Pricing Rules below (G-31, G-32, G-33).
+
+### Stripe / MailerLite admin clients (`src/lib/stripe.ts`, `src/lib/mailerlite.ts`)
+`server-only`; called only from admin pages and admin actions.
+
+### Admin Server Actions (`src/app/admin/actions.ts`)
+Videos, files, calendar, books (`saveBook`, `deleteBook`, `setBookPublished`),
+newsletter (`deleteSubscriber`), donations (`saveStripePaymentLink`). Every
+action calls `requireAdmin()` first.
+
+### Content Accessors
+- `src/lib/content.ts` — static content; safe to import from Client Components.
+  Single import point for site, navigation, bio, ministry identity, home,
+  partnership, static events, products.
+- `src/lib/book-content.ts` — books (server-only, async):
+  `getPublishedBooks`/`getBooks`, `getAdminBooks`, `getAdminBook`/`getBook`.
+- `src/lib/video-content.ts` — videos (server-only, async).
+- `src/lib/giving.ts` — `getGiving()` (async, reads the admin override).
+
+Pages and components import content through these accessors only. Direct
+imports from `src/content/*` are not permitted.
+Known violations: `/admin/book-sales` imports `@/content/books`;
+`/admin/donations` imports `@/content/site` (G-43).
 
 ---
 
@@ -139,9 +181,13 @@ Exception: `getVideos` / `getFeaturedVideo` live in `src/lib/video-content.ts`
 UNKNOWN must remain UNKNOWN.
 
 - Social links: `verified: false` → filtered out at `getSocialLinks()` → not rendered.
-- Newsletter: `"not-configured"` is returned honestly; the form never pretends success.
-- Book purchase: `kind: "none"` renders no purchase button.
-- Book `coverIsMockup` flag: changes aspect ratio rendering only.
+- Newsletter: `"not-configured"` and `"error"` are reported honestly; the form
+  never pretends success (the honeypot response is the one deliberate exception).
+- Book purchase: `kind: "none"`, or an `external` option with an empty URL,
+  renders no purchase button. Purchase UI on the detail page is shown only for
+  `status: "published"`.
+- Book price: `priceCents` unset → no price shown (never `$0.00`).
+- Book cover: no `coverUrl`, or `coverIsMockup: true` → "Cover coming soon" placeholder.
 
 No silent coercion of unknown to `0`, `false`, `true`, or a default is present.
 This invariant must be preserved in all future changes.
@@ -150,32 +196,47 @@ This invariant must be preserved in all future changes.
 
 ## Pricing Rules
 
-- Book prices are stored as integer cents in `src/content/books.ts`
-  (`priceCents?: number` — optional, omitted when not sold on site).
-- Prices are display-only. No server-side price calculation exists.
-- No checkout, cart, or payment processing exists in this application.
-- Prices are not validated against any external source.
+- The amount charged for a book is defined by the Stripe Price
+  (`purchase.priceId`). The application never sends an amount to Stripe.
+- `priceCents` (integer cents, optional) is display-only and entered by hand;
+  it is not validated against Stripe (G-50).
+- No cart. One book, quantity 1, per Checkout Session.
+- Merchandise prices in `products.ts` are display-only; Printify is authoritative.
 
-❌ GAP: If Stripe Checkout is added (IMPLEMENTATION-PLAN.md Option B),
-price authority must move to server-side Stripe price IDs. The client must
-never send a price — only a SKU. This must be enforced at the architecture
-level before any commerce implementation begins.
+Invariant (required, **not yet met** — G-31): the client must identify what it
+is buying by catalog key (book `slug`), and the server must resolve the Stripe
+`priceId` from the book store and refuse anything that is not a published
+`stripe-checkout` book. Today the client sends the `priceId` itself and the
+server forwards it unchecked. This must be fixed before launch.
 
 ---
 
 ## Security Rules
 
-Authentication: none (public site).
-Authorization: none.
-Secrets: `NEXT_PUBLIC_SITE_URL` (public, safe). `NEWSLETTER_PROVIDER` and
-  `CONTACT_EMAIL_PROVIDER` (server-only, currently unused).
-  No secret keys present in the codebase.
-Server-only operations: `src/lib/newsletter.ts` is marked `"server-only"`.
-  The subscribe server action runs only on the server. This import must be preserved.
-Spam protection: honeypot field (`nfm_hp`) on newsletter and contact forms.
+Public site: no authentication. Admin: see Identity Model — every admin page,
+Server Action and admin Route Handler re-verifies the session.
 
-❌ GAP (G-03): No rate limiting on server actions.
-❌ GAP (G-04): No CAPTCHA (Turnstile planned in IMPLEMENTATION-PLAN.md §4 but not implemented).
+Secrets (server-only, never `NEXT_PUBLIC_`): `ADMIN_PASSWORD`,
+`ADMIN_SESSION_SECRET`, `STRIPE_SECRET_KEY`, `MAILERLITE_API_KEY`,
+`GOOGLE_CLIENT_SECRET`. No secret values are committed; `.env*` is gitignored
+except `.env.example`. Stripe product/price IDs in content are identifiers,
+not secrets.
+
+Server-only modules: `newsletter.ts`, `mailerlite.ts`, `stripe.ts`,
+`stripe-settings.ts`, `book-store.ts`, `book-content.ts`, `storage.ts`,
+`google-calendar.ts`, `ical.ts` all import `"server-only"`. These imports must
+be preserved. `src/lib/giving.ts` has no explicit marker but depends on a
+server-only module.
+
+Outbound fetch restriction: the iCal feed URL must be on `calendar.google.com`.
+
+Spam protection: honeypot field (`nfm_hp`) on newsletter and contact forms.
+Admin login is throttled per IP (5 / 15 min, in memory).
+
+❌ GAP (G-03): No rate limiting on public server actions or `/api/checkout`.
+❌ GAP (G-04): No CAPTCHA.
+❌ GAP (G-31): `/api/checkout` accepts an arbitrary `priceId` over GET.
+❌ GAP (G-44): Admin-saved donation link is validated only as `https://`.
 
 ---
 
@@ -183,60 +244,87 @@ Spam protection: honeypot field (`nfm_hp`) on newsletter and contact forms.
 
 Provider responses must be normalized at the integration boundary.
 Application code must not depend on provider response shapes directly.
+Details and verification status: `API-CONTRACTS.md`.
 
-| Provider | Purpose | Integration type | Normalization |
+| Provider | Purpose | Integration type | Boundary |
 |---|---|---|---|
-| Squarespace (legacy) | Book and merch purchase destination | Outbound link only | N/A |
-| Stripe Payment Link | Donations | Outbound link only | N/A |
-| Cash App | Donations | Outbound link only | N/A |
-| Google Fonts (next/font) | Cormorant Garamond + Manrope | Build-time self-hosting | N/A |
-| Stripe Checkout | Book/merch checkout | ⚠️ NOT IMPLEMENTED — planned Option B | Must be normalized at checkout boundary |
-| MailerLite | Newsletter subscriptions | ⚠️ NOT IMPLEMENTED — planned | Must be normalized at `src/lib/newsletter.ts` boundary |
-| Resend | Contact form email delivery | ⚠️ NOT IMPLEMENTED — planned | Must be normalized at `src/app/actions/contact.ts` boundary |
+| Stripe API | Book checkout; admin donation and book-sales views | Server-side HTTPS (`fetch`, no SDK) | `src/app/api/checkout/route.ts`, `src/lib/stripe.ts` |
+| Stripe Payment Link | Donations | Outbound link | `src/lib/giving.ts` |
+| Cash App / Zelle | Donations | Outbound link / displayed address | N/A |
+| MailerLite | Newsletter subscribe; admin subscriber list/delete | Server-side HTTPS | `src/lib/newsletter.ts`, `src/lib/mailerlite.ts` |
+| Google Calendar | `/events` schedule | OAuth API or public iCal feed | `src/lib/google-calendar.ts`, `src/lib/ical.ts` |
+| YouTube | Video validation (oEmbed), thumbnails, click-to-load embed | Server-side HTTPS + embed | `src/lib/youtube.ts` |
+| Printify | Merchandise | Outbound link + remote images | N/A |
+| Google Fonts (next/font) | Typography | Build-time self-hosting | N/A |
+| Resend | Contact form delivery | ⚠️ NOT IMPLEMENTED (G-24) | Must be normalized at `src/app/actions/contact.ts` |
+| Squarespace (legacy) | — | Retired; residual seed URLs are a defect (G-34) | N/A |
 
-No provider responses are consumed at runtime today.
+None of the live integrations has a captured fixture or contract test (G-28).
 
 ---
 
 ## Failure Rules
 
 Fail open (graceful degradation):
-- Newsletter unavailable → honest "not available" message; never fake success.
+- Newsletter unavailable/erroring → honest message; never fake success.
 - Contact unavailable → honest message directing to email; never fake success.
-- Facebook link unverified → not rendered (`verified: false` filter).
-- `getFeaturedBooks()` returns empty → `FeaturedPublications` returns `null`.
-- `getFeaturedVideo()` returns undefined → `FeaturedMessage` not rendered.
-- `getUpcomingEvents(3)` returns empty → `UpcomingEvents` returns `null`.
+- Social link unverified → not rendered.
+- No featured books → `FeaturedPublications` returns `null`.
+- `getFeaturedVideo()` undefined → `FeaturedMessage` not rendered.
+- `getUpcomingEvents(3)` empty → `UpcomingEvents` shows its generic invitation state.
+- Calendar unavailable (not configured, fetch/parse failure) → `/events`
+  shows "The upcoming schedule is being finalised."
+- Stripe / MailerLite API failure in admin → error alert on the admin page;
+  the page still renders.
+- No admin donation-link override → default link from `site.ts`.
 
 Fail closed:
-- None currently applicable (no payment processing, no auth).
+- Admin: unset `ADMIN_PASSWORD` disables sign-in; invalid/missing session →
+  redirect to `/admin/login`.
+- Checkout: missing `priceId` → 400; `STRIPE_SECRET_KEY` unset → 503; Stripe
+  rejects the request → 502. No session is created.
+- iCal feed on a non-Google host → refused.
+- `books.json` that fails schema validation → read throws (book pages error
+  rather than render partial data).
 
 Operator intervention required:
-- Newsletter provider must be configured before sign-up works.
-- Contact email provider must be configured before form delivery works.
-- Events schedule must be supplied before Events page shows content.
+- `MEDIA_STORAGE_DIR` on persistent disk; env vars for Stripe, MailerLite,
+  Google Calendar and admin set in the host.
+- Contact email provider must be implemented and configured before the form
+  delivers.
 
 ---
 
-## Route Inventory (M1–M3)
+## Route Inventory
 
 | Route | Status | Notes |
 |---|---|---|
-| `/` | ✅ Built | Homepage — 10 sections |
-| `/about` | ✅ Built | 2026 biography — 6 sections |
+| `/` | ✅ Built | Homepage |
+| `/about` | ✅ Built | 2026 biography |
 | `/ministry` | ✅ Built | EQUIP/RESTORE/ACTIVATE + supporting disciplines |
-| `/books` | ✅ Built | 5-title catalog |
-| `/books/[slug]` | ✅ Built | 5 static slugs |
-| `/events` | ✅ Built | 2027 schedule framework; empty state |
-| `/events/[slug]` | ✅ Built | `__placeholder__` sentinel when empty |
-| `/media` | ✅ Built | Category filter; link card for Reel |
-| `/store` | ✅ Built | Presentation only; no checkout |
-| `/partnerships` | ✅ Built | Stripe + Cash App giving |
-| `/contact` | ✅ Built | Server action; honest unavailable state |
+| `/books` | ✅ Built | Published books from the book store; category tabs |
+| `/books/[slug]` | ✅ Built | Purchase via Stripe Checkout or external link |
+| `/api/checkout` | ⚠️ Built — not launch-ready | G-31, G-32, G-33 |
+| `/events` | ✅ Built | Google Calendar month view; no `<h1>` in the empty state (G-40) |
+| `/events/[slug]` | ⚠️ Orphaned | Static events only; `__placeholder__` sentinel (G-23, G-40) |
+| `/media` | ✅ Built | Admin-managed videos; category filter |
+| `/media-files/[file]` | ✅ Built | Uploaded files |
+| `/store` | ✅ Built | Presentation only; links to Printify (G-41, G-47) |
+| `/partnerships` | ✅ Built | Stripe link + Cash App + Zelle |
+| `/contact` | ⚠️ Built — does not deliver | G-24 |
 | `/donate` | ✅ Built | Redirects to `/partnerships` |
-| `/privacy` | ✅ Built | Placeholder — text not yet supplied |
-| `/terms` | ✅ Built | Placeholder — text not yet supplied |
-| `/admin` | ⚠️ Placeholder | Integration config UI — no auth yet (G-30) |
+| `/privacy`, `/terms` | ⚠️ Placeholder | G-25, G-26 |
+| `/admin/login` | ✅ Built | Shared-password sign-in |
+| `/admin` | ✅ Built | Overview |
+| `/admin/videos`, `/admin/videos/new`, `/admin/videos/[id]` | ✅ Built | Video library |
+| `/admin/files` | ✅ Built | Uploads |
+| `/admin/books`, `/admin/books/new`, `/admin/books/[slug]` | ✅ Built | Book catalog management |
+| `/admin/calendar` | ✅ Built | Google Calendar connection |
+| `/admin/newsletter` | ✅ Built | MailerLite stats, groups, subscribers, delete |
+| `/admin/donations` | ✅ Built | Stripe balance, recent payments, donation-link override |
+| `/admin/book-sales` | ⚠️ Built — incomplete | Reads static seed, not the book store (G-43) |
+| `/admin/integrations` | ⚠️ Built — statuses unreliable | G-45 |
+| `/api/admin/files`, `/api/admin/google/connect`, `/api/admin/google/callback` | ✅ Built | Admin session required |
 
 ## Next.js 16 Constraints
 
@@ -245,6 +333,11 @@ Operator intervention required:
   `notFound()` at runtime. `dynamicParams` export is forbidden.
 - `partialPrefetching: true` is active.
 - `CopyrightYear` uses `cacheLife("days")` — must remain a server component.
+- `/events` reads the current month through a cached helper and renders the
+  calendar inside `<Suspense>`; `MinistryMessage` (client component) receives
+  its content as props from the page rather than calling accessors itself.
+- `turbopackSourceMaps: false` in `next.config.ts` is an undocumented
+  workaround flag (G-48).
 
 ## Motion / Animation Rules
 
@@ -254,12 +347,19 @@ Operator intervention required:
 - `[data-reveal]` elements are forced visible in the noscript fallback and
   under `prefers-reduced-motion: reduce` via globals.css.
 - `Reveal` component renders a `m.div` — must remain a client component.
+- `SubscriptionBlessing` (`src/components/animations/subscription-blessing.tsx`)
+  plays only when the newsletter action returns `celebrate: true`, i.e. the
+  provider confirmed a new subscription. "Already subscribed" and the honeypot
+  response stay plain text. It uses `useReducedMotion()` to show the finished
+  scene with no movement (safe here: it never renders on the server).
 - `CoreValues` is a client component (uses `useInView`). All other section
   components are RSC unless they require interactivity.
 
 ## Historical Data
 
-No immutable snapshots or audit records exist. No database.
+No immutable snapshots or audit records exist. No database. Order and
+donation history lives in Stripe; subscriber history lives in MailerLite.
+There is no audit log of admin changes to books, videos or settings.
 
 ---
 

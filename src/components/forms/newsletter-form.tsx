@@ -4,6 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useId } from "react";
 import { subscribe, type NewsletterState } from "@/app/actions/newsletter";
+import { SubscriptionBlessing } from "@/components/animations/subscription-blessing";
 import { cn } from "@/lib/cn";
 
 const initialState: NewsletterState = { status: "idle" };
@@ -17,10 +18,17 @@ export function NewsletterForm({ className }: { className?: string }) {
   const fieldError = state.status === "error" ? state.fieldError : undefined;
 
   if (state.status === "success") {
+    // Only a subscription the provider actually accepted is celebrated. Other
+    // neutral successes (already on the list, honeypot) get a plain message.
+    if (state.celebrate) {
+      return <SubscriptionBlessing message={state.message} className={className} />;
+    }
     return (
-      <p role="status" className={cn("font-display text-2xl text-ivory italic", className)}>
-        {state.message}
-      </p>
+      <div className={className}>
+        <p role="status" className="font-display text-xl leading-snug text-ivory italic">
+          {state.message}
+        </p>
+      </div>
     );
   }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -50,17 +51,30 @@ export default function StorePage() {
                 return (
                   <Reveal key={product.slug} delay={i * 0.08}>
                     <article aria-labelledby={`product-${product.slug}`}>
-                      {/* Product image placeholder — no approved images available yet */}
-                      <div className="aspect-square bg-linen border border-sand flex flex-col items-center justify-center gap-3">
-                        <span aria-hidden className="block h-px w-8 bg-gold/60" />
-                        <p className="font-display text-lg italic text-stone text-center px-8 leading-snug">
-                          {product.title}
-                        </p>
-                        <p className="font-sans text-[0.65rem] font-semibold text-stone uppercase tracking-[0.18em]">
-                          Photo coming soon
-                        </p>
-                        <span aria-hidden className="block h-px w-8 bg-gold/60" />
-                      </div>
+                      {/* Product image */}
+                      {product.imageUrl ? (
+                        <div className="aspect-square overflow-hidden bg-linen">
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.title}
+                            width={800}
+                            height={800}
+                            className="h-full w-full object-cover"
+                            sizes="(min-width: 1024px) 50vw, 100vw"
+                          />
+                        </div>
+                      ) : (
+                        <div className="aspect-square bg-linen border border-sand flex flex-col items-center justify-center gap-3">
+                          <span aria-hidden className="block h-px w-8 bg-gold/60" />
+                          <p className="font-display text-lg italic text-stone text-center px-8 leading-snug">
+                            {product.title}
+                          </p>
+                          <p className="font-sans text-[0.65rem] font-semibold text-stone uppercase tracking-[0.18em]">
+                            Photo coming soon
+                          </p>
+                          <span aria-hidden className="block h-px w-8 bg-gold/60" />
+                        </div>
+                      )}
 
                       <div className="mt-6">
                         <Eyebrow rule={false}>Ministry Apparel</Eyebrow>
@@ -112,7 +126,7 @@ export default function StorePage() {
       <div className="border-t border-sand bg-linen py-10">
         <Container>
           <p className="text-sm text-stone">
-            Product photos are pending ministry approval. Stock availability reflects our last audit and may have changed.
+            Stock availability reflects our last audit and may have changed.
             Purchases are processed through our external store.
           </p>
         </Container>

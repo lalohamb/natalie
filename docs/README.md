@@ -28,6 +28,10 @@
 | `reports/IMPLEMENTATION-PLAN.md` | Proposed implementation plan (pre-M0) |
 | `reports/PHASE-M0-GOVERNANCE.md` | M0 governance onboarding audit |
 
+See `REPORT-INDEX.md` for the full list. M4 (integrations, commerce, admin)
+has no phase report; its state is recorded in the governance documents above
+as of the M4-H synchronization (2026-11-17).
+
 ## Authority hierarchy
 
 When conflicts exist:

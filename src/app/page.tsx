@@ -7,7 +7,7 @@ import { HeroSection } from "@/components/sections/hero-section";
 import { MinistryMessage } from "@/components/sections/ministry-message";
 import { UpcomingEvents } from "@/components/sections/upcoming-events";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getHomeContent, getSite } from "@/lib/content";
+import { getHomeContent, getMinistryIdentity, getSite } from "@/lib/content";
 import { homeStructuredData } from "@/lib/structured-data";
 import { getFeaturedVideo } from "@/lib/video-content";
 
@@ -26,7 +26,8 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const featuredVideo = await getFeaturedVideo();
-  const { featuredMessage } = getHomeContent();
+  const { featuredMessage, message } = getHomeContent();
+  const { pillars } = getMinistryIdentity();
 
   return (
     <>
@@ -39,7 +40,7 @@ export default async function HomePage() {
       <BiographyPreview />
 
       {/* 3. Ministry Calling */}
-      <MinistryMessage />
+      <MinistryMessage message={message} pillars={pillars} />
 
       {/* 4. Featured Message */}
       {featuredVideo && (

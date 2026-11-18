@@ -15,9 +15,59 @@ const schema = z.object({
     error: "Please select a subject.",
   }),
   message: z.string().min(10, "Please enter a message (at least 10 characters).").max(4000),
-  // Honeypot — must be empty
   nfm_hp: z.string().max(0).optional(),
 });
+
+const SUBJECT_LABELS: Record<string, string> = {
+  booking: "Booking Inquiry",
+  general: "General Question",
+  other: "Other",
+};
+
+async function sendViaResend(data: {
+  name: string;
+  email: string;
+  organization?: string;
+  subject: string;
+  message: string;
+}): Promise<"ok" | "error"> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[contact] RESEND_API_KEY is not set");
+    return "error";
+  }
+
+  const subjectLabel = SUBJECT_LABELS[data.subject] ?? data.subject;
+  const orgLine = data.organization ? `\nOrganization: ${data.organization}` : "";
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: "Natalie Flemons Ministries <onboarding@resend.dev>",
+      to: ["info@natalieflemons.com"],
+      reply_to: data.email,
+      subject: `[Contact] ${subjectLabel} — ${data.name}`,
+      text: [
+        `Name: ${data.name}`,
+        `Email: ${data.email}`,
+        orgLine,
+        `Subject: ${subjectLabel}`,
+        "",
+        data.message,
+      ].filter((l) => l !== undefined).join("\n"),
+    }),
+  });
+
+  if (!res.ok) {
+    console.error("[contact] Resend error", res.status, await res.text());
+    return "error";
+  }
+  return "ok";
+}
 
 export async function submitContact(
   _prev: ContactState,
@@ -33,7 +83,6 @@ export async function submitContact(
   });
 
   if (!parsed.success) {
-    // Honeypot tripped — respond neutrally
     if (parsed.error.issues.some((i) => i.path[0] === "nfm_hp")) {
       return { status: "success", message: "Thank you for your message." };
     }
@@ -45,9 +94,8 @@ export async function submitContact(
     return { status: "error", message: "Please correct the errors below.", fieldErrors };
   }
 
-  // Email delivery is not yet configured (no RESEND_API_KEY / email provider).
-  // Return an honest message — never claim the inquiry was delivered.
   const provider = process.env.CONTACT_EMAIL_PROVIDER;
+
   if (!provider) {
     return {
       status: "error",
@@ -56,7 +104,20 @@ export async function submitContact(
     };
   }
 
-  // Placeholder for future Resend / email provider integration
+  if (provider === "resend") {
+    const result = await sendViaResend(parsed.data);
+    if (result === "ok") {
+      return {
+        status: "success",
+        message: "Thank you! Your message has been sent. We'll be in touch soon.",
+      };
+    }
+    return {
+      status: "error",
+      message: "Something went wrong sending your message. Please email info@natalieflemons.com directly.",
+    };
+  }
+
   console.error(`[contact] Unsupported CONTACT_EMAIL_PROVIDER "${provider}"`);
   return {
     status: "error",

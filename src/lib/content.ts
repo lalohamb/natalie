@@ -1,23 +1,22 @@
 import { bio, portraits } from "@/content/bio";
-import { books } from "@/content/books";
 import { events } from "@/content/events";
 import { homeContent } from "@/content/home";
 import { ministryIdentity } from "@/content/ministry-identity";
 import { partnershipContent } from "@/content/partnership";
 import { products } from "@/content/products";
-import { giving, giveCta, legalNavigation, mainNavigation, secondaryNavigation, site, socialLinks } from "@/content/site";
-import type { Book, MinistryEvent, MinistryIdentity, Product } from "@/content/types";
+import { giveCta, legalNavigation, mainNavigation, secondaryNavigation, site, socialLinks } from "@/content/site";
+import type { MinistryEvent, MinistryIdentity, Product } from "@/content/types";
 
 /*
  * Content accessors. Components import from here rather than from
  * `src/content/*` directly, so a CMS can replace these implementations later.
+ * getGiving() is in @/lib/giving (server-only — not exported from here).
  */
 
 // Site
 export const getSite = () => site;
 export const getNavigation = () => ({ main: mainNavigation, secondary: secondaryNavigation, legal: legalNavigation, give: giveCta });
 export const getSocialLinks = () => socialLinks.filter((link) => link.verified);
-export const getGiving = () => giving;
 
 // Bio
 export const getBio = () => bio;
@@ -30,10 +29,7 @@ export const getMinistryIdentity = (): MinistryIdentity => ministryIdentity;
 export const getHomeContent = () => homeContent;
 export const getPartnershipContent = () => partnershipContent;
 
-// Books
-export const getBooks = (): Book[] => books;
-export const getFeaturedBooks = (): Book[] => books.filter((b) => b.featured);
-export const getBook = (slug: string): Book | undefined => books.find((b) => b.slug === slug);
+// Books — server-only. Import from @/lib/book-content directly in server components.
 
 // Events
 export const getEvents = (): MinistryEvent[] => events.filter((e) => e.published);

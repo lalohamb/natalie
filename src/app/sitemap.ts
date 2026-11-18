@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import { getBooks, getEvents, getSite } from "@/lib/content";
+import { getEvents, getSite } from "@/lib/content";
+import { getPublishedBooks } from "@/lib/book-content";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { url } = getSite();
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -17,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${url}/terms`, priority: 0.3, changeFrequency: "yearly" },
   ];
 
-  const bookRoutes: MetadataRoute.Sitemap = getBooks().map((book) => ({
+  const bookRoutes: MetadataRoute.Sitemap = (await getPublishedBooks()).map((book) => ({
     url: `${url}/books/${book.slug}`,
     priority: 0.8,
     changeFrequency: "monthly" as const,

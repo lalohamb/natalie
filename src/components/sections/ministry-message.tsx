@@ -8,7 +8,6 @@ import { RestoreSymbol } from "@/components/animations/restore-symbol";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { getHomeContent, getMinistryIdentity } from "@/lib/content";
 import type { MinistryPillar } from "@/content/types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -88,9 +87,7 @@ function PillarCard({ pillar, index }: { pillar: MinistryPillar; index: number }
   );
 }
 
-export function MinistryMessage() {
-  const { message } = getHomeContent();
-  const { pillars } = getMinistryIdentity();
+export function MinistryMessage({ message, pillars }: { message: { eyebrow: string; heading: string; lede: string }; pillars: MinistryPillar[] }) {
   const sectionRef = useRef<HTMLElement>(null);
   const headingInView = useInView(sectionRef, { once: true, margin: "0px 0px -8% 0px" });
 

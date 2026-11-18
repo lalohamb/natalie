@@ -1,20 +1,37 @@
 # TEST STRATEGY
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M3 complete -->
+<!-- Last updated: M4-H governance synchronization (2026-11-17) -->
 
 ## Current Test Inventory
 
-| File | Type | Tests | Status |
-|---|---|---|---|
-| `tests/e2e/smoke.spec.ts` | E2E | 19 | ✅ PASSING |
-| `tests/e2e/navigation.spec.ts` | E2E | 5 | ✅ PASSING |
-| `tests/e2e/newsletter.spec.ts` | E2E | 3 | ✅ PASSING |
-| `tests/e2e/contact.spec.ts` | E2E | 3 | ✅ PASSING |
-| `tests/e2e/accessibility.spec.ts` | E2E/Axe | 17 routes × chromium | ✅ PASSING (skipped on mobile-chrome by design) |
-| `tests/e2e/ministry-identity.spec.ts` | E2E | 5 | ✅ PASSING |
-| `tests/regression/newsletter-honeypot.spec.ts` | Regression | 2 | ✅ PASSING |
+No test files were added or changed in M4. Statuses below are the **last
+recorded M3 results**; the suite has **not been re-run** against the M4 code.
 
-**Total: 22 passing, 16 skipped (axe mobile-chrome skip is intentional)**
+| File | Type | Tests | Last recorded | Expected against M4 |
+|---|---|---|---|---|
+| `tests/e2e/smoke.spec.ts` | E2E | 19 | ✅ M3 | ⚠️ `/events` asserts an `<h1>` that is absent when no calendar is configured (G-40); book routes depend on the runtime book store |
+| `tests/e2e/navigation.spec.ts` | E2E | 5 | ✅ M3 | ⚠️ Unverified — footer "Store" now links to Printify |
+| `tests/e2e/newsletter.spec.ts` | E2E | 3 | ✅ M3 | ❌ STALE — "valid email shows not-configured" fails when `NEWSLETTER_PROVIDER=mailerlite` and **creates `test@example.com` in the live MailerLite account** |
+| `tests/e2e/contact.spec.ts` | E2E | 3 | ✅ M3 | Expected unchanged |
+| `tests/e2e/accessibility.spec.ts` | E2E/Axe | 16 routes × chromium | ✅ M3 | ⚠️ Unverified against new `/books`, `/events`, `/store`, `/partnerships` markup |
+| `tests/e2e/ministry-identity.spec.ts` | E2E | 5 | ✅ M3 | Expected unchanged |
+| `tests/regression/newsletter-honeypot.spec.ts` | Regression | 2 | ✅ M3 | Expected unchanged (honeypot short-circuits before the provider) |
+
+Static checks at M4-H: `tsc --noEmit` ✅ pass. `npm run lint` ❌ 2 errors,
+4 warnings (G-39).
+
+### Running the suite safely (until G-38 is closed)
+
+The Playwright web server is `npm run start`, which loads `.env.local`. Before
+running tests, start the server with provider variables blanked so no test
+reaches a live service:
+
+```
+NEWSLETTER_PROVIDER= MAILERLITE_API_KEY= STRIPE_SECRET_KEY= npm run start
+```
+
+Do not run `tests/e2e/newsletter.spec.ts` against a server that has
+`NEWSLETTER_PROVIDER=mailerlite`.
 
 ## Test Fixes Applied (M2–M3)
 
@@ -43,35 +60,47 @@ WebKit not installed — mobile tests run on Pixel 7 (Chromium-based).
 
 | Type | Files | Status |
 |---|---|---|
-| Unit | 0 | ❌ GAP — deferred; no pure business logic to unit-test yet |
-| Integration | 0 | ❌ GAP — target M2 (newsletter provider, contact email) |
-| Contract | 0 | ❌ GAP — target M2 (newsletter provider fixture) |
-| E2E | 5 files | ✅ Baseline established |
+| Unit | 0 | ❌ GAP — pure logic now exists and is untested: iCal parser (`src/lib/ical.ts`), book schema/slug (`src/lib/book-store.ts`), session signing (`src/lib/admin-session.ts`) |
+| Integration | 0 | ❌ GAP — admin actions, book store read/write, giving override |
+| Contract | 0 | ❌ GAP (G-28) — MailerLite and Stripe adapters are live without fixtures |
+| E2E | 6 files | ⚠️ M3 baseline; stale for M4 (G-38) |
 | Regression | 1 file | ✅ Honeypot regression covered |
 
 ## Critical Workflows Without Test Coverage
 
 | Workflow | Risk |
 |---|---|
-| Newsletter form: honeypot field blocks bot submissions | HIGH |
-| Newsletter form: `"not-configured"` never returns a success state | HIGH |
-| All pages render without runtime error | HIGH |
-| Accessibility: no axe critical violations on homepage | HIGH |
-| Book purchase links navigate to correct external URLs | MEDIUM |
-| Donation links resolve | MEDIUM |
-| Responsive layout: no horizontal overflow at 320px, 375px, 768px, 1024px, 1440px | MEDIUM |
-| Navigation: all linked routes resolve (no 404 on built routes) | MEDIUM |
+| Checkout: only a published catalog book can be purchased; unknown/foreign price is refused (G-31) | HIGH |
+| Checkout: Stripe not configured → 503, Stripe error → 502, no session created | HIGH |
+| Admin: every `/admin/*` page, admin action and `/api/admin/*` route rejects a missing/forged session | HIGH |
+| Admin login: wrong password rejected; throttle after 5 failures | HIGH |
+| Newsletter: MailerLite 201 → "subscribed", 200 → "already subscribed", other → error, never success | HIGH |
+| Books: seed → store → published filter; unpublished title absent from `/books` and sitemap | MEDIUM |
+| Books: missing cover / missing price / empty purchase URL render safely | MEDIUM |
+| Giving: admin Payment Link override appears on `/partnerships` and homepage CTA | MEDIUM |
+| Events: iCal parse (all-day, TZID, UTC, cancelled, folded lines, HTML in description); null calendar empty state | MEDIUM |
+| Media file route: Range requests; path traversal rejected | MEDIUM |
+| Responsive layout: no horizontal overflow at 320 / 375 / 768 / 1024 / 1440 px | MEDIUM |
 
 ## External Provider Contract Tests
 
-None. No providers are called at runtime today, so no contract tests are
-needed yet. The `tests/contract/` directory exists but is intentionally empty.
+None exist. `tests/contract/` is empty.
 
-❌ GAP (G-28): When a newsletter or contact email provider is integrated (M4),
-a contract test against a captured fixture response must be written and pass
-before the adapter goes live. The fixture must be stored in `tests/fixtures/`.
+❌ GAP (G-28): the rule below was not followed in M4 — MailerLite and Stripe
+adapters were implemented without a captured fixture or contract test.
+`fixtures/newsletter/*.json` predate the adapter and are not captured
+MailerLite responses. Required before launch:
+
+- MailerLite `POST /subscribers`: captured 201, 200, and 4xx/5xx responses →
+  `SubscribeResult` mapping.
+- Stripe `POST /checkout/sessions`: captured success and error responses.
+- Google Calendar iCal: a captured feed with all-day, timed, recurring and
+  cancelled events.
 
 ## Recommended Test Phases
+
+Phases 1–2 were delivered in M1–M3. Phases 3–4 are **due now** (the
+integrations they cover are implemented); Phase 5 is new for M4.
 
 ### Phase 1 — Baseline (before any new route is built)
 
@@ -93,7 +122,7 @@ Each new route (`/about`, `/books`, `/books/[slug]`, `/donate`, `/booking`,
 - Accessibility axe scan (zero critical violations)
 - Any form: submit → correct server action response
 
-### Phase 3 — Integration (M2, when newsletter provider is configured)
+### Phase 3 — Integration (newsletter provider — DUE)
 
 - Contract test: mock provider response → `"subscribed"` → form shows success
 - Contract test: mock provider response → `"already-subscribed"` → form shows success
@@ -101,39 +130,53 @@ Each new route (`/about`, `/books`, `/books/[slug]`, `/donate`, `/booking`,
 - Contract test: provider unavailable → `"not-configured"` → form shows honest message
 - Regression: honeypot still blocks after provider is live
 
-### Phase 4 — Commerce (if Stripe Checkout approved, M2)
+### Phase 4 — Commerce (Stripe Checkout — DUE)
 
-- Contract test: Stripe Checkout Session creation with valid SKU
-- Contract test: Stripe Checkout Session rejects unknown SKU
-- Contract test: webhook signature verification — valid signature accepted
-- Contract test: webhook signature verification — invalid signature rejected
-- E2E: test-mode purchase flow (add to cart → checkout → Stripe test card → success page)
-- Regression: client never sends a price, only a SKU
+- Contract test: Checkout Session creation for a published catalog book
+- Contract test: unknown slug / non-catalog price is rejected (after G-31 fix)
+- Contract test: Stripe unconfigured → 503; Stripe error → 502
+- E2E (Stripe test mode): Purchase → Stripe test card → return to site with confirmation (after G-33)
+- Regression: client never sends a price or price ID, only a book slug
+- Webhook signature tests — only if a webhook is added (G-33)
+
+### Phase 5 — Admin (DUE)
+
+- Unauthenticated access to each `/admin/*` page and `/api/admin/*` route is refused
+- Login success / failure / throttle
+- Book create → publish → appears on `/books`; unpublish → disappears
+- Video feature flag → homepage
+- Unit: iCal parser fixtures; `newBookSlug`; session token sign/verify/expiry
 
 ## Test File Locations
 
 ```
 tests/
 ├── e2e/
-│   ├── homepage.spec.ts
+│   ├── smoke.spec.ts
+│   ├── navigation.spec.ts
 │   ├── newsletter.spec.ts
-│   └── [route].spec.ts   (one per route, added in M1)
-├── contract/
-│   ├── newsletter-provider.spec.ts   (added in M2)
-│   └── stripe.spec.ts                (added in M2 if commerce approved)
-├── regression/
-│   └── newsletter-honeypot.spec.ts
-└── fixtures/
-    └── newsletter/
-        ├── subscribed.json
-        ├── already-subscribed.json
-        └── provider-error.json
+│   ├── contact.spec.ts
+│   ├── accessibility.spec.ts
+│   └── ministry-identity.spec.ts
+├── contract/                         (empty — G-28)
+│   ├── newsletter-provider.spec.ts   (to add)
+│   └── stripe.spec.ts                (to add)
+└── regression/
+    └── newsletter-honeypot.spec.ts
+
+fixtures/                             (repo root, not under tests/)
+└── newsletter/
+    ├── subscribed.json               (pre-adapter stubs — replace with
+    ├── already-subscribed.json        captured MailerLite responses)
+    └── provider-error.json
 ```
 
 ## Governing Rules
 
 - Passing smoke tests do not prove an external provider contract.
 - Contract tests must run against captured fixtures, not live provider calls.
+- No automated test may reach a live provider account (MailerLite, Stripe
+  live mode). Test runs use blank or test-mode credentials.
 - A regression test must be written for every meaningful bug discovered.
 - Tests must not be modified merely to accommodate incorrect behavior.
 - `@axe-core/playwright` must be used on every public page before launch.

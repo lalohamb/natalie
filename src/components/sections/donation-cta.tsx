@@ -1,7 +1,8 @@
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
-import { getGiving, getHomeContent } from "@/lib/content";
+import { getGiving } from "@/lib/giving";
+import { getHomeContent } from "@/lib/content";
 
 function BotanicalMark({ className }: { className?: string }) {
   return (
@@ -29,9 +30,9 @@ function BotanicalMark({ className }: { className?: string }) {
   );
 }
 
-export function DonationCTA() {
+export async function DonationCTA() {
   const { partner } = getHomeContent();
-  const giving = getGiving();
+  const giving = await getGiving();
 
   return (
     <section aria-labelledby="partner-heading" className="bg-ivory py-12 lg:py-14">

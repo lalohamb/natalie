@@ -19,12 +19,16 @@ type Integration = {
   docsUrl?: string;
 };
 
+function status(envKey: string): IntegrationStatus {
+  return process.env[envKey] ? "connected" : "not-configured";
+}
+
 const integrations: Integration[] = [
   {
     id: "stripe",
     name: "Stripe",
     description: "Payment processing for donations and future book/merch checkout.",
-    status: "not-configured",
+    status: status("STRIPE_SECRET_KEY"),
     configKeys: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"],
     docsUrl: "https://stripe.com/docs",
   },
@@ -32,8 +36,8 @@ const integrations: Integration[] = [
     id: "mailerlite",
     name: "MailerLite",
     description: "Newsletter subscriber management and email campaigns.",
-    status: "not-configured",
-    configKeys: ["MAILERLITE_API_KEY", "MAILERLITE_GROUP_ID"],
+    status: "connected",
+    configKeys: ["MAILERLITE_API_KEY", "NEWSLETTER_PROVIDER"],
     docsUrl: "https://developers.mailerlite.com",
   },
   {
@@ -55,7 +59,7 @@ const integrations: Integration[] = [
     id: "facebook",
     name: "Facebook",
     description: "Ministry Facebook Page link displayed in the footer.",
-    status: "not-configured",
+    status: status("NEXT_PUBLIC_FACEBOOK_URL"),
     configKeys: ["NEXT_PUBLIC_FACEBOOK_URL"],
     docsUrl: "https://facebook.com",
   },
@@ -71,7 +75,7 @@ const integrations: Integration[] = [
     id: "youtube",
     name: "YouTube",
     description: "Ministry YouTube channel link displayed in the footer.",
-    status: "not-configured",
+    status: status("NEXT_PUBLIC_YOUTUBE_URL"),
     configKeys: ["NEXT_PUBLIC_YOUTUBE_URL"],
     docsUrl: "https://youtube.com",
   },

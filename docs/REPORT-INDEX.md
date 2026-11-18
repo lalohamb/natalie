@@ -110,38 +110,35 @@ G-11, G-12, G-14, G-17, G-19, G-20, G-21, G-22, G-23, G-24, G-25, G-26, G-28.
 
 ---
 
-## M4 — Integrations and Commerce
+## M4 — Integrations, Commerce and Admin
 
 | Phase | Report | Commit | Status | PO Accepted |
 |---|---|---|---|---|
-| — | — | — | NOT STARTED | — |
+| Admin auth, video/file management, Google Calendar (OAuth) | _(none)_ | committed (through `a204678`) | IMPLEMENTED — no report | PENDING |
+| Stripe book checkout, admin book store, MailerLite newsletter + admin, donations + book-sales admin, iCal calendar fallback, Printify store links | _(none)_ | **uncommitted working tree** | IMPLEMENTED — NOT VERIFIED | PENDING |
 
-Planned scope: newsletter provider adapter, rate limiting, Turnstile CAPTCHA,
-commerce decision implementation (Option A/B/C), Squarespace URL replacement,
-Resend contact email delivery, analytics/error tracking.
+Verification at M4-H: `tsc --noEmit` passes; `eslint` fails (2 errors, 4
+warnings — G-39). Production build and Playwright suite not re-run; the
+newsletter tests are stale and unsafe to run against a live provider (G-38).
 
-Closes gaps: G-02, G-03, G-04, G-07, G-09, G-14, G-24.
+No M4 phase report or recorded commerce/admin scope approval exists.
 
-Requires: commerce decision approval, newsletter provider selection,
-Stripe/Resend/Turnstile credentials, analytics provider selection.
+Gaps closed: G-02, G-07, G-12, G-21, G-30. Mostly closed: G-14.
+Superseded: G-05b, G-19, G-20, G-22. Closed outside M4: G-05c (`a204678`).
+
+Gaps opened: G-31 – G-52 (see KNOWN-GAPS.md).
+
+Still open from the original M4 plan: G-03 (rate limiting), G-04 (CAPTCHA),
+G-09 (analytics), G-24 (contact email), G-28 (contract tests).
 
 ---
 
-## Pre-Launch Content Gates (owner-supplied, not a dev phase)
+## Pre-Launch Gates
 
-The following gaps block production launch and require ministry action, not code:
+Authoritative list: `KNOWN-GAPS.md` §1 (code) and §2 (owner action).
 
-| Gap | Item |
-|---|---|
-| G-05b | Amazon URL for *From the Chaos to the Call* |
-| G-05c | Flat cover image for *From the Chaos to the Call* |
-| G-06 | Confirmed Facebook Page URL |
-| G-17 | Flat cover image for the Workbook |
-| G-19 | 2027 events schedule |
-| G-21 | Per-color product photos for Store |
-| G-22 | Current T-shirt stock verification |
-| G-25 | Approved Privacy Policy text |
-| G-26 | Approved Terms of Use text |
+Code: G-03, G-04, G-24, G-31, G-32, G-33, G-34, G-35, G-36, G-37, G-38, G-40.
+Owner: G-25, G-26, G-32 (fulfilment model), G-41, G-42, G-06, G-17.
 
 ---
 
@@ -152,6 +149,8 @@ The following gaps block production launch and require ministry action, not code
 | Initial contract established | M0 | pending |
 | Route inventory updated (all routes built) | M3 | pending |
 | Hero headline corrected; MinistryIdentity added to Data Ownership | M3-H | pending |
+| Identity Model (admin session, Google OAuth), admin media store | M4 | committed |
+| System/Data ownership, persistence, API boundaries, pricing invariant, security, providers, failure rules, route inventory rewritten for Stripe Checkout, MailerLite, book store, iCal | M4-H | pending |
 
 ---
 
@@ -174,3 +173,23 @@ M3-Corrective motion state verified (drift removed, portrait-enter present).
 Gaps closed: G-27 (architecture proposal archived), G-29 (domain model book catalog corrected).
 New gaps documented: G-28 (empty contract test directory).
 No new gaps opened by implementation.
+
+---
+
+## M4-H — Governance Synchronization (2026-11-17)
+
+| Phase | Report | Commit | Status | PO Accepted |
+|---|---|---|---|---|
+| Governance synchronization | _(none — findings recorded directly in the governance documents)_ | pending | COMPLETE | PENDING |
+
+Scope: read-only audit of HEAD `a204678` plus the uncommitted M4 working tree
+against all governance documents. Updated KNOWN-GAPS.md,
+CURRENT-ARCHITECTURE-CONTRACT.md, API-CONTRACTS.md, DOMAIN-MODEL.md,
+PRODUCT-REQUIREMENTS.md, BUSINESS-CHARTER.md, TEST-STRATEGY.md, README.md and
+this index. No application source files modified.
+
+Key findings: the documents described a static site with no runtime providers;
+the code now takes payments, writes to a live mailing list and persists admin
+data to disk. Checkout is not launch-ready (G-31, G-32, G-33). The committed
+book seed and the runtime book store have diverged (G-34). Tests are stale
+(G-38).

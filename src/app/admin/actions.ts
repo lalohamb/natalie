@@ -34,6 +34,16 @@ import {
   setCalendar,
   signOut as signOutOfGoogle,
 } from "@/lib/google-calendar";
+import { deleteSubscriber as mlDeleteSubscriber } from "@/lib/mailerlite";
+import { savePaymentLinkUrl } from "@/lib/stripe-settings";
+import {
+  BOOK_CATEGORIES,
+  BOOK_STATUSES,
+  newBookSlug,
+  readBooks,
+  updateBooks,
+} from "@/lib/book-store";
+import { BOOKS_CACHE_TAG } from "@/lib/book-content";
 
 export type FormState = {
   status: "idle" | "error" | "success";
@@ -355,4 +365,168 @@ export async function signOutGoogle() {
   await signOutOfGoogle();
   updateTag(CALENDAR_CACHE_TAG);
   refresh();
+}
+
+// ---------------------------------------------------------------------------
+// Newsletter (MailerLite)
+// ---------------------------------------------------------------------------
+
+export async function deleteSubscriber(id: string): Promise<void> {
+  await requireAdmin();
+  await mlDeleteSubscriber(id);
+  refresh();
+}
+
+// ---------------------------------------------------------------------------
+// Stripe
+// ---------------------------------------------------------------------------
+
+export async function saveStripePaymentLink(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const url = String(formData.get("url") ?? "").trim();
+  if (!url.startsWith("https://")) {
+    return { status: "error", message: "Please enter a valid https:// URL." };
+  }
+  await savePaymentLinkUrl(url);
+  return { status: "success", message: "Payment Link URL saved." };
+}
+
+// ---------------------------------------------------------------------------
+// Books
+// ---------------------------------------------------------------------------
+
+const bookFormSchema = z.object({
+  title: z.string().trim().min(1, "Title is required.").max(160),
+  subtitle: z.string().trim().max(200).optional(),
+  status: z.enum(BOOK_STATUSES, { error: "Please choose a status." }),
+  priceCents: z.preprocess((v) => (v === "" ? undefined : Number(v)), z.number().int().min(0).optional()),
+  summary: z.string().trim().min(1, "Summary is required.").max(500),
+  description: z.string().trim().min(1, "Description is required."),
+  coverUrl: z.string().trim().optional(),
+  coverAlt: z.string().trim().max(300).optional(),
+  forewordBy: z.string().trim().max(100).optional(),
+  note: z.string().trim().max(500).optional(),
+  companionOf: z.string().trim().optional(),
+  purchaseKind: z.enum(["none", "external", "stripe-checkout"]),
+  purchaseUrl: z.string().trim().optional(),
+  purchasePriceId: z.string().trim().optional(),
+  purchaseLabel: z.string().trim().max(60).optional(),
+  featured: z.boolean(),
+  category: z.enum(BOOK_CATEGORIES).optional(),
+  stripeProductId: z.string().trim().optional(),
+});
+
+function booksChanged() {
+  updateTag(BOOKS_CACHE_TAG);
+  refresh();
+}
+
+export async function saveBook(slug: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+
+  const raw = {
+    title: String(formData.get("title") ?? ""),
+    subtitle: String(formData.get("subtitle") ?? "") || undefined,
+    status: formData.get("status"),
+    priceCents: String(formData.get("priceCents") ?? ""),
+    summary: String(formData.get("summary") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    coverUrl: String(formData.get("coverUrl") ?? "") || undefined,
+    coverAlt: String(formData.get("coverAlt") ?? "") || undefined,
+    forewordBy: String(formData.get("forewordBy") ?? "") || undefined,
+    note: String(formData.get("note") ?? "") || undefined,
+    companionOf: String(formData.get("companionOf") ?? "") || undefined,
+    purchaseKind: formData.get("purchaseKind"),
+    purchaseUrl: String(formData.get("purchaseUrl") ?? "") || undefined,
+    purchasePriceId: String(formData.get("purchasePriceId") ?? "") || undefined,
+    purchaseLabel: String(formData.get("purchaseLabel") ?? "") || undefined,
+    featured: formData.get("featured") === "on",
+    category: (formData.get("category") as string) || undefined,
+    stripeProductId: String(formData.get("stripeProductId") ?? "") || undefined,
+  };
+
+  const parsed = bookFormSchema.safeParse(raw);
+  if (!parsed.success) {
+    const fieldErrors: Partial<Record<string, string>> = {};
+    for (const issue of parsed.error.issues) {
+      const key = String(issue.path[0]);
+      if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { status: "error", message: "Please correct the errors below.", fieldErrors };
+  }
+
+  const d = parsed.data;
+  const purchase =
+    d.purchaseKind === "external"
+      ? { kind: "external" as const, url: d.purchaseUrl ?? "", label: d.purchaseLabel ?? "Purchase" }
+      : d.purchaseKind === "stripe-checkout"
+        ? { kind: "stripe-checkout" as const, priceId: d.purchasePriceId ?? "", label: d.purchaseLabel ?? "Purchase" }
+        : { kind: "none" as const };
+
+  const found = await updateBooks((books) => {
+    if (slug) {
+      const book = books.find((b) => b.slug === slug);
+      if (!book) return false;
+      book.title = d.title;
+      book.subtitle = d.subtitle;
+      book.status = d.status;
+      book.priceCents = d.priceCents;
+      book.summary = d.summary;
+      book.description = d.description.split("\n\n").map((p) => p.trim()).filter(Boolean);
+      book.coverUrl = d.coverUrl;
+      book.coverAlt = d.coverAlt;
+      book.forewordBy = d.forewordBy;
+      book.note = d.note;
+      book.companionOf = d.companionOf;
+      book.purchase = purchase;
+      book.featured = d.featured;
+      book.category = d.category;
+      book.stripeProductId = d.stripeProductId;
+    } else {
+      const newSlug = newBookSlug(d.title);
+      books.push({
+        slug: newSlug,
+        title: d.title,
+        subtitle: d.subtitle,
+        status: d.status,
+        priceCents: d.priceCents,
+        summary: d.summary,
+        description: d.description.split("\n\n").map((p) => p.trim()).filter(Boolean),
+        coverUrl: d.coverUrl,
+        coverAlt: d.coverAlt,
+        forewordBy: d.forewordBy,
+        note: d.note,
+        companionOf: d.companionOf,
+        purchase,
+        featured: d.featured,
+        category: d.category,
+        stripeProductId: d.stripeProductId,
+        displayOrder: Math.max(0, ...books.map((b) => b.displayOrder)) + 1,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    return true;
+  });
+
+  if (!found) return { status: "error", message: "Book not found." };
+  booksChanged();
+  return { status: "success", message: slug ? "Book saved." : "Book added." };
+}
+
+export async function deleteBook(slug: string) {
+  await requireAdmin();
+  await updateBooks((books) => {
+    const i = books.findIndex((b) => b.slug === slug);
+    if (i >= 0) books.splice(i, 1);
+  });
+  booksChanged();
+}
+
+export async function setBookPublished(slug: string, status: "published" | "forthcoming" | "unavailable") {
+  await requireAdmin();
+  await updateBooks((books) => {
+    const book = books.find((b) => b.slug === slug);
+    if (book) book.status = status;
+  });
+  booksChanged();
 }

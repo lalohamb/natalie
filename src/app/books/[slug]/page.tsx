@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
 import { BookCard } from "@/components/sections/book-card";
+import { BookCoverImg } from "@/components/sections/book-cover-img";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { getBook, getBooks } from "@/lib/content";
+import { getBook, getBooks } from "@/lib/book-content";
 import { formatPrice } from "@/lib/format";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
-  return getBooks().map((b) => ({ slug: b.slug }));
+  return (await getBooks()).map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const book = getBook(slug);
+  const book = await getBook(slug);
   if (!book) return {};
   return {
     title: book.title,
@@ -29,48 +29,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BookDetailPage({ params }: Props) {
   const { slug } = await params;
-  const book = getBook(slug);
+  const book = await getBook(slug);
   if (!book) notFound();
 
-  const allBooks = getBooks();
+  const allBooks = await getBooks();
   const companion = book.companionOf
     ? allBooks.find((b) => b.slug === book.companionOf)
     : allBooks.find((b) => b.companionOf === book.slug);
 
-  const related = allBooks.filter(
-    (b) => b.slug !== book.slug && b.slug !== companion?.slug && b.featured,
-  ).slice(0, 2);
+  const related = allBooks
+    .filter((b) => b.slug !== book.slug && b.slug !== companion?.slug && b.featured)
+    .slice(0, 2);
 
-  const canPurchase = book.status === "published" && book.purchase.kind === "external";
+  const purchaseHref =
+    book.purchase.kind === "external"
+      ? book.purchase.url
+      : book.purchase.kind === "stripe-checkout"
+        ? `/api/checkout?priceId=${book.purchase.priceId}`
+        : null;
 
   return (
     <>
-      {/* ── Book detail ── */}
       <article aria-labelledby="book-title">
         <section className="py-section">
           <Container className="grid items-start gap-14 lg:grid-cols-12 lg:gap-8">
             {/* Cover */}
             <div className="mx-auto w-4/5 max-w-xs lg:sticky lg:top-28 lg:col-span-4 lg:w-full lg:max-w-none motion-safe:animate-fade">
               <div className="relative overflow-hidden shadow-cover aspect-[2/3]">
-                {book.coverIsMockup ? (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-linen border border-sand px-4 text-center">
-                    <span aria-hidden className="block h-px w-8 bg-gold/60" />
-                    <p className="font-display text-base italic text-stone leading-snug text-balance">{book.title}</p>
-                    <p className="font-sans text-[0.65rem] font-semibold text-stone uppercase tracking-[0.18em]">Cover coming soon</p>
-                    <span aria-hidden className="block h-px w-8 bg-gold/60" />
-                  </div>
-                ) : (
-                  <Image
-                    src={book.cover.src}
-                    alt={book.cover.alt}
-                    placeholder="blur"
-                    fetchPriority="high"
-                    loading="eager"
-                    quality={85}
-                    sizes="(min-width: 1280px) 380px, (min-width: 1024px) 32vw, 80vw"
-                    className="h-full w-full object-cover"
-                  />
-                )}
+                <BookCoverImg
+                  book={book}
+                  sizes="(min-width: 1280px) 380px, (min-width: 1024px) 32vw, 80vw"
+                  className="h-full w-full object-cover"
+                />
               </div>
             </div>
 
@@ -83,12 +73,8 @@ export default async function BookDetailPage({ params }: Props) {
               <h1 id="book-title" className="mt-6 font-display text-display-lg font-medium text-balance">
                 {book.title}
               </h1>
-              {book.subtitle && (
-                <p className="mt-3 font-display text-2xl text-stone italic">{book.subtitle}</p>
-              )}
-              {book.forewordBy && (
-                <p className="mt-4 text-sm text-stone">Foreword by {book.forewordBy}</p>
-              )}
+              {book.subtitle && <p className="mt-3 font-display text-2xl text-stone italic">{book.subtitle}</p>}
+              {book.forewordBy && <p className="mt-4 text-sm text-stone">Foreword by {book.forewordBy}</p>}
 
               <div className="mt-8 border-t border-sand pt-6">
                 {book.priceCents !== undefined && (
@@ -100,9 +86,9 @@ export default async function BookDetailPage({ params }: Props) {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-4">
-                {canPurchase && (
-                  <ButtonLink href={(book.purchase as { kind: "external"; url: string; label: string }).url}>
-                    {(book.purchase as { kind: "external"; url: string; label: string }).label}
+                {book.status === "published" && purchaseHref && (
+                  <ButtonLink href={purchaseHref}>
+                    {book.purchase.kind !== "none" ? book.purchase.label : "Purchase"}
                   </ButtonLink>
                 )}
                 {book.status === "forthcoming" && (
@@ -123,7 +109,6 @@ export default async function BookDetailPage({ params }: Props) {
           </Container>
         </section>
 
-        {/* ── Companion ── */}
         {companion && (
           <section aria-labelledby="companion-heading" className="bg-linen py-section">
             <Container>
@@ -137,7 +122,6 @@ export default async function BookDetailPage({ params }: Props) {
           </section>
         )}
 
-        {/* ── Related titles ── */}
         {related.length > 0 && (
           <section aria-labelledby="related-heading" className="py-section">
             <Container>

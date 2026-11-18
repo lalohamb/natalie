@@ -5,7 +5,8 @@ import { subscribeToNewsletter } from "@/lib/newsletter";
 
 export type NewsletterState =
   | { status: "idle" }
-  | { status: "success"; message: string }
+  /** `celebrate` is set only when the provider confirmed a brand-new subscription. */
+  | { status: "success"; message: string; celebrate?: boolean }
   | { status: "error"; message: string; fieldError?: string };
 
 const schema = z.object({
@@ -34,7 +35,11 @@ export async function subscribe(_prev: NewsletterState, formData: FormData): Pro
 
   switch (result) {
     case "subscribed":
-      return { status: "success", message: "Thank you! You’re subscribed to ministry news and updates." };
+      return {
+        status: "success",
+        message: "Thank you! You’re subscribed to ministry news and updates.",
+        celebrate: true,
+      };
     case "already-subscribed":
       return { status: "success", message: "You’re already on the list — thank you for staying connected." };
     case "not-configured":

@@ -74,7 +74,8 @@ export function SiteFooter() {
               {[
                 { label: "Books", href: "/books" },
                 { label: "Media", href: "/media" },
-                { label: "Store", href: "/store" },
+                { label: "Store", href: "https://thereformcollective.printify.me/" }  
+                //{ label: "Store", href: "/store" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="inline-flex min-h-8 items-center hover:text-ivory">

@@ -8,7 +8,11 @@ const items = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/videos", label: "Videos" },
   { href: "/admin/files", label: "Files" },
+  { href: "/admin/books", label: "Books" },
   { href: "/admin/calendar", label: "Calendar" },
+  { href: "/admin/newsletter", label: "Newsletter" },
+  { href: "/admin/donations", label: "Donations" },
+  { href: "/admin/book-sales", label: "Book Sales" },
   { href: "/admin/integrations", label: "Integrations" },
 ] as const;
 

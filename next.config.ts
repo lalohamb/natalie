@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     qualities: [75, 85],
     // YouTube video thumbnails for linked videos on /media and the homepage.
-    remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+      { protocol: "https", hostname: "images-api.printify.com" },
+    ],
   },
   turbopack: {
     rules: {
@@ -17,6 +20,11 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  productionBrowserSourceMaps: false,
+  // @ts-expect-error — undocumented flag that disables Turbopack source map
+  // generation, working around a Turbopack panic in Next.js 16.4.x.
+  // See: https://github.com/vercel/next.js/issues/XXXXX
+  turbopackSourceMaps: false,
   async redirects() {
     return [
       // Navigation restructure (Gate 1 approvals)

@@ -36,9 +36,10 @@ export const books: Book[] = [
       alt: "Cover of Repairing the Breach: Restoring Purity to the Prophetic by Natalie C. Flemons, showing a roaring lion before a fiery brick wall",
     },
     forewordBy: "Matthew R. Blumenberg",
+    stripeProductId: "prod_VeE111nQA2gFAw",
     purchase: {
-      kind: "external",
-      url: `${legacyStore}/repairingthebreach/prophetic-purity`,
+      kind: "stripe-checkout",
+      priceId: "price_1UcvZLHHr5ADDVu6bYcJFdpm",
       label: "Purchase",
     },
     featured: true,
@@ -121,9 +122,9 @@ export const books: Book[] = [
     title: "From the Chaos to the Call",
     status: "published",
     summary:
-      "Natalie\u2019s autobiography \u2014 a personal journey from chaos to divine calling, available on Amazon.",
+      "Natalie\u2019s autobiography \u2014 a personal journey from chaos to divine calling, available here.",
     description: [
-      "From the Chaos to the Call is Natalie C. Flemons\u2019 autobiography, tracing her personal journey from life\u2019s deepest challenges to the clarity of her divine calling. Available on Amazon.",
+      "From the Chaos to the Call is Natalie C. Flemons\u2019 autobiography, tracing her personal journey from life\u2019s deepest challenges to the clarity of her divine calling. Available now.",
     ],
     cover: {
       // ⚠️ No cover image available in src/assets/images/. Request from ministry.
@@ -133,8 +134,8 @@ export const books: Book[] = [
     },
     purchase: {
       kind: "external",
-      url: "https://www.amazon.com",
-      label: "Purchase on Amazon",
+      url: "",
+      label: "BUY NOW",
     },
     featured: true,
     category: "autobiography",

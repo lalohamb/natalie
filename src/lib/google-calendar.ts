@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import type { CalendarEvent, PublicCalendar } from "@/content/types";
+import { getICalCalendar } from "./ical";
 import { STORAGE_DIR, dataPath, writeFileAtomic } from "@/lib/storage";
 
 /*
@@ -320,9 +321,9 @@ export async function getPublicCalendar(): Promise<PublicCalendar | null> {
   cacheTag(CALENDAR_CACHE_TAG);
   cacheLife({ stale: 300, revalidate: 300, expire: 86_400 });
 
-  if (!googleConfig()) return null;
+  if (!googleConfig()) return getICalCalendar();
   const stored = await readStored();
-  if (!stored?.calendarId) return null;
+  if (!stored?.calendarId) return getICalCalendar();
 
   try {
     const now = new Date();

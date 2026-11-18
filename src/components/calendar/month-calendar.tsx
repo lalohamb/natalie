@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { CalendarPlus, ChevronLeft, ChevronRight, Clock, MapPin, X } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Clock, ExternalLink, MapPin, X } from "lucide-react";
 import type { CalendarEvent, PublicCalendar } from "@/content/types";
 import { cn } from "@/lib/cn";
 
@@ -188,8 +188,51 @@ export function MonthCalendar({ calendar }: { calendar: PublicCalendar }) {
   // Mobile agenda: selected day, or every day of the month with events.
   const agendaDays = (selectedDay ? [selectedDay] : monthDays).filter((day) => byDay.has(day));
 
+  // Build the list of months in the range for the nav strip
+  const monthRange: string[] = [];
+  for (let m = rangeStart; m <= rangeEnd; m = addMonths(m, 1)) monthRange.push(m);
+
   return (
     <div>
+      {/* ── Month strip nav ── */}
+      <nav aria-label="Jump to month" className="sticky top-20 z-30 -mx-4 border-b border-sand bg-linen/95 px-4 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+        <ul className="flex gap-1 overflow-x-auto py-2 scrollbar-none">
+          {monthRange.map((m) => {
+            const [y, mo] = ymdParts(m);
+            const name = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" }).format(utcDate(m));
+            const monthDaysList = Array.from(
+              { length: new Date(Date.UTC(y, mo, 0)).getUTCDate() },
+              (_, i) => addDays(`${m}-01`, i),
+            );
+            const count = new Set(monthDaysList.flatMap((day) => (byDay.get(day) ?? []).map((e) => e.id))).size;
+            const isCurrent = m === month;
+            return (
+              <li key={m} className="shrink-0">
+                <button
+                  type="button"
+                  onClick={() => goTo(m)}
+                  aria-current={isCurrent ? "true" : undefined}
+                  className={cn(
+                    "relative inline-flex items-center gap-1.5 px-3 py-2.5 font-sans text-[0.8125rem] font-semibold transition-colors",
+                    isCurrent ? "text-espresso" : "text-stone hover:text-espresso",
+                  )}
+                >
+                  {name}
+                  {count > 0 && (
+                    <span className="inline-flex size-4 items-center justify-center rounded-full bg-ember text-[0.625rem] font-bold text-ivory">
+                      {count}
+                    </span>
+                  )}
+                  {isCurrent && (
+                    <span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-gold" />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-sand pb-5">
         <div>
@@ -444,26 +487,91 @@ export function MonthCalendar({ calendar }: { calendar: PublicCalendar }) {
             </dl>
 
             {openEvent.description && (
-              <p className="mt-5 max-h-60 overflow-y-auto border-t border-sand pt-5 text-sm whitespace-pre-line text-pretty text-stone">
-                {openEvent.description}
-              </p>
+              <EventDescription description={openEvent.description} />
             )}
 
-            <a
-              href={googleCalendarLink(openEvent, timeZone)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-7 inline-flex min-h-11 items-center gap-2.5 rounded-sm bg-ember px-6 font-sans text-xs font-semibold tracking-[0.06em] text-ivory uppercase transition-colors hover:bg-ember-deep"
-            >
-              <CalendarPlus aria-hidden className="size-4" strokeWidth={1.75} />
-              Add to Google Calendar
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {openEvent.description && extractEventbriteLinks(openEvent.description).map((href) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-ember px-5 font-sans text-xs font-semibold tracking-[0.06em] text-ivory uppercase transition-colors hover:bg-ember-deep"
+                >
+                  Register on Eventbrite
+                  <ExternalLink aria-hidden className="size-3.5" strokeWidth={1.75} />
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              ))}
+              <a
+                href={googleCalendarLink(openEvent, timeZone)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center gap-2.5 rounded-sm border border-espresso/30 px-5 font-sans text-xs font-semibold tracking-[0.06em] text-espresso uppercase transition-colors hover:bg-espresso hover:text-ivory"
+              >
+                <CalendarPlus aria-hidden className="size-4" strokeWidth={1.75} />
+                Add to Calendar
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </div>
           </div>
         )}
       </dialog>
     </div>
   );
+}
+
+/** Parses description text, rendering mp4 URLs as video players and other URLs as links.
+ * Eventbrite links are extracted separately and returned for the caller to render as buttons. */
+function EventDescription({ description }: { description: string }) {
+  const URL_RE = /https?:\/\/[^\s]+/g;
+  const mp4s: string[] = [];
+  const otherLinks: string[] = [];
+  let match;
+  while ((match = URL_RE.exec(description)) !== null) {
+    const url = match[0].replace(/[.,)]+$/, "");
+    if (url.endsWith(".mp4") || url.includes(".mp4?")) mp4s.push(url);
+    else if (!url.includes("eventbrite.")) otherLinks.push(url);
+  }
+  const plainText = description.replace(/https?:\/\/[^\s]+/g, "").replace(/\n{3,}/g, "\n\n").trim();
+
+  if (!plainText && mp4s.length === 0 && otherLinks.length === 0) return null;
+
+  return (
+    <div className="mt-5 border-t border-sand pt-5">
+      {plainText && (
+        <p className="text-sm whitespace-pre-line text-pretty text-stone">{plainText}</p>
+      )}
+      {mp4s.map((src) => (
+        <video key={src} src={src} controls className="mt-4 w-full rounded-sm" aria-label="Event video" />
+      ))}
+      {otherLinks.map((href) => (
+        <a
+          key={href}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center gap-1.5 font-sans text-xs text-ember underline decoration-ember/40 underline-offset-4 hover:decoration-ember"
+        >
+          <ExternalLink aria-hidden className="size-3" strokeWidth={1.75} />
+          {href.length > 50 ? `${href.slice(0, 50)}\u2026` : href}
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function extractEventbriteLinks(description: string): string[] {
+  const URL_RE = /https?:\/\/[^\s]+/g;
+  const links: string[] = [];
+  let match;
+  while ((match = URL_RE.exec(description)) !== null) {
+    const url = match[0].replace(/[.,)]+$/, "");
+    if (url.includes("eventbrite.")) links.push(url);
+  }
+  return links;
 }
 
 function CloseButton({ onClick }: { onClick: () => void }) {

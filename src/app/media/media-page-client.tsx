@@ -8,7 +8,6 @@ import { Reveal } from "@/components/motion/reveal";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { ButtonLink } from "@/components/ui/button-link";
 import type { CuratedVideo, VideoCategory } from "@/content/types";
 import { cn } from "@/lib/cn";
 
@@ -197,22 +196,6 @@ export function MediaPageClient({ videos }: MediaPageClientProps) {
         </Container>
       </section>
 
-      {/* ── CTA ── */}
-      <section aria-labelledby="media-cta-heading" className="border-t border-sand bg-linen py-16">
-        <Container className="flex flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 id="media-cta-heading" className="font-display text-display-sm font-medium">
-              Stay connected with the ministry
-            </h2>
-            <p className="mt-2 text-stone">
-              Follow Natalie on social media for the latest messages and updates.
-            </p>
-          </div>
-          <ButtonLink href="/#newsletter" variant="secondary" className="shrink-0">
-            Sign up for updates
-          </ButtonLink>
-        </Container>
-      </section>
     </>
   );
 }

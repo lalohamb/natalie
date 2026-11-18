@@ -36,10 +36,38 @@ export type CallToAction = {
  */
 export type PurchaseOption =
   | { kind: "external"; url: string; label: string }
+  | { kind: "stripe-checkout"; priceId: string; label: string }
   | { kind: "none" };
 
 /** Publication state. `forthcoming` and `unavailable` suppress purchase UI. */
 export type BookStatus = "published" | "forthcoming" | "unavailable";
+
+// ---------------------------------------------------------------------------
+// Admin-managed book (stored in storage/books.json)
+// ---------------------------------------------------------------------------
+
+export type AdminBook = {
+  slug: string;
+  title: string;
+  subtitle?: string;
+  status: BookStatus;
+  priceCents?: number;
+  summary: string;
+  description: string[];
+  /** URL string — either /media-files/<name> (uploaded) or an absolute URL. */
+  coverUrl?: string;
+  coverAlt?: string;
+  coverIsMockup?: boolean;
+  forewordBy?: string;
+  note?: string;
+  companionOf?: string;
+  purchase: PurchaseOption;
+  featured: boolean;
+  category?: "prophetic" | "destiny" | "warfare" | "autobiography";
+  stripeProductId?: string;
+  displayOrder: number;
+  createdAt: string;
+};
 
 // ---------------------------------------------------------------------------
 // Ministry identity
@@ -77,6 +105,8 @@ export type Book = {
   /** Unconfirmed offers (e.g. signed copies) stay null until the ministry confirms. */
   note?: string;
   companionOf?: string;
+  /** Stripe Product ID — when set, book sales are tracked in the admin. */
+  stripeProductId?: string;
   purchase: PurchaseOption;
   featured: boolean;
   /** Used for tab filtering on the /books page. */
@@ -208,6 +238,7 @@ export type Product = {
   title: string;
   description: string;
   priceCents: number;
+  imageUrl?: string;
   variants: ProductVariant[];
   /** Purchase destination — same pattern as Book.purchase */
   purchase: PurchaseOption;

@@ -21,6 +21,7 @@ export const products: Product[] = [
     description:
       "\"Pray\" script with a heartbeat line and the tagline Spirit · Truth · Strategy. Available in Burnt Orange and Hunter Green.",
     priceCents: 5500,
+    imageUrl: "https://images-api.printify.com/mockup/6af7abff413f1f5f200118de/32880/98424/white-hooded-sweatshirt.jpg?camera_label=front&revision=1794616543427&s=2048",
     variants: [
       { size: "S", color: "Burnt Orange", available: true },
       { size: "M", color: "Burnt Orange", available: true },
@@ -37,36 +38,25 @@ export const products: Product[] = [
     ],
     purchase: {
       kind: "external",
-      url: `${legacyStore}/store-1/pray-hoodies`,
+      url: "https://thereformcollective.printify.me/product/34401279",
+      // url: `${legacyStore}/store-1/pray-hoodies`,
       label: "Purchase",
     },
     published: true,
   },
   {
-    slug: "pray-t-shirt",
-    title: "Pray T-Shirt",
+    slug: "pray-coffee-mug",
+    title: "Pray Coffee Mug",
     description:
-      "\"Pray\" script with a heartbeat line and the tagline Spirit · Truth · Strategy. Available in Orange and Green.",
-    priceCents: 2500,
+      "\"Pray\" script with a heartbeat line and the tagline Spirit · Truth · Strategy. A bold statement for your morning routine.",
+    priceCents: 1999,
+    imageUrl: "https://images-api.printify.com/mockup/6af7adc1dac4ab99400bbef1/72184/102752/pray-black-coffee-mug.jpg?camera_label=front&revision=1794617159910&s=2048",
     variants: [
-      // ⚠️ Stock as of 2026-10-10 audit. Most variants were sold out.
-      // Availability must be re-verified before launch.
-      { size: "S", color: "Orange", available: false },
-      { size: "M", color: "Orange", available: true },
-      { size: "L", color: "Orange", available: false },
-      { size: "XL", color: "Orange", available: true },
-      { size: "2X", color: "Orange", available: true },
-      { size: "3X", color: "Orange", available: true },
-      { size: "S", color: "Green", available: false },
-      { size: "M", color: "Green", available: false },
-      { size: "L", color: "Green", available: true },
-      { size: "XL", color: "Green", available: true },
-      { size: "2X", color: "Green", available: true },
-      { size: "3X", color: "Green", available: true },
+      { size: "11oz", color: "Black", available: true },
     ],
     purchase: {
       kind: "external",
-      url: `${legacyStore}/store-1/pray-t-shirts`,
+      url: "https://thereformcollective.printify.me/product/34401684",
       label: "Purchase",
     },
     published: true,

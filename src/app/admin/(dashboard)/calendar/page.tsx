@@ -1,154 +1,193 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
-import {
-  GoogleReauthRequired,
-  getConnection,
-  getPublicCalendar,
-  googleConfig,
-  listCalendars,
-  redirectUriFor,
-  type CalendarListItem,
-} from "@/lib/google-calendar";
+import { getConnection, getPublicCalendar, googleConfig } from "@/lib/google-calendar";
 import { AdminPageHeader, StatusPill, adminButton } from "../../_components/admin-ui";
-import { CalendarPicker, GoogleSignOutButton } from "./calendar-controls";
 
 export const metadata: Metadata = { title: "Calendar" };
 
-const NOTICES: Record<string, { ok: boolean; message: string }> = {
-  connected: { ok: true, message: "Signed in with Google." },
-  denied: { ok: false, message: "Google sign-in was cancelled." },
-  state: { ok: false, message: "That sign-in link expired or was opened in another tab. Please try again." },
-  scope: {
-    ok: false,
-    message: "Calendar access wasn't granted. When Google asks, tick the box to let this site see your calendars.",
-  },
-  signin: { ok: false, message: "Google sign-in failed. Please try again." },
-  google: { ok: false, message: "Google reported an error during sign-in. Please try again." },
-  "not-configured": { ok: false, message: "Google sign-in isn't configured yet — see the setup steps below." },
-};
-
-export default async function AdminCalendarPage({ searchParams }: PageProps<"/admin/calendar">) {
+export default async function AdminCalendarPage() {
   await requireAdmin();
-  const params = await searchParams;
-  const noticeKey = params.connected ? "connected" : typeof params.error === "string" ? params.error : null;
-  const notice = noticeKey ? NOTICES[noticeKey] : null;
 
-  const config = googleConfig();
-  const connection = await getConnection();
-
-  let calendars: CalendarListItem[] = [];
-  let apiError: string | null = null;
-  if (config && connection) {
-    try {
-      calendars = await listCalendars();
-    } catch (err) {
-      apiError = err instanceof GoogleReauthRequired ? err.message : "Couldn't reach Google Calendar right now.";
-      if (!(err instanceof GoogleReauthRequired)) console.error("[admin/calendar]", err);
-    }
-  }
-
-  const calendar = connection?.calendarId ? await getPublicCalendar() : null;
+  const icalUrl = process.env.GOOGLE_CALENDAR_ICAL_URL;
+  const oauthConfig = googleConfig();
+  const oauthConnection = oauthConfig ? await getConnection() : null;
+  const calendar = await getPublicCalendar();
   const now = new Date().toISOString().slice(0, 10);
   const upcoming = (calendar?.events ?? []).filter((e) => e.end.slice(0, 10) >= now).slice(0, 5);
+
+  const source = oauthConnection?.calendarId ? "oauth" : icalUrl ? "ical" : "none";
 
   return (
     <>
       <AdminPageHeader
         title="Calendar"
-        description="Connect a Google account and choose the calendar shown as a monthly calendar on the Events page."
+        description="Manage the events calendar shown on the public Events page."
         actions={
-          <Link href="/events" className={adminButton.secondary} target="_blank">
-            View Events page ↗
-          </Link>
+          <div className="flex gap-2">
+            <a
+              href="https://calendar.google.com/calendar/r"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={adminButton.secondary}
+            >
+              Open Google Calendar ↗
+            </a>
+            <Link href="/events" className={adminButton.secondary} target="_blank">
+              View Events page ↗
+            </Link>
+          </div>
         }
       />
 
-      {notice && (
-        <p
-          role={notice.ok ? "status" : "alert"}
-          className={`mb-6 rounded border px-4 py-3 font-sans text-sm ${
-            notice.ok ? "border-green-800/50 bg-green-950/40 text-green-300" : "border-red-800/50 bg-red-950/40 text-red-300"
-          }`}
-        >
-          {notice.message}
-        </p>
-      )}
+      <div className="flex flex-col gap-6">
 
-      {!config ? (
-        <SetupSteps redirectUri={redirectUriFor(await requestOrigin())} />
-      ) : !connection ? (
-        <section className="rounded border border-ivory/10 bg-ivory/5 p-8 text-center">
-          <h2 className="font-display text-2xl font-medium text-ivory">Connect Google Calendar</h2>
-          <p className="mx-auto mt-2 max-w-md font-sans text-sm text-mist">
-            Sign in with the Google account that owns the ministry’s events calendar. The site only asks for
-            read-only access.
-          </p>
-          <GoogleSignInLink className="mt-6" label="Sign in with Google" />
-        </section>
-      ) : (
-        <div className="flex flex-col gap-6">
-          {/* Account */}
-          <section className="flex flex-wrap items-center justify-between gap-4 rounded border border-ivory/10 bg-ivory/5 p-5">
-            <div>
-              <p className="font-sans text-xs font-semibold text-mist uppercase tracking-[0.12em]">Google account</p>
-              <p className="mt-1 flex flex-wrap items-center gap-2 font-sans text-sm font-semibold text-ivory">
-                {connection.email}
-                {apiError ? <StatusPill tone="amber">Needs sign-in</StatusPill> : <StatusPill tone="green">Connected</StatusPill>}
-              </p>
-              <p className="mt-1 font-sans text-xs text-mist">
-                Signed in {new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(connection.connectedAt))}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <GoogleSignInLink switchAccount label={apiError ? "Sign in again" : "Switch account"} compact />
-              <GoogleSignOutButton email={connection.email} />
-            </div>
-          </section>
-
-          {apiError && (
-            <p role="alert" className="rounded border border-amber-700/40 bg-amber-900/20 px-4 py-3 font-sans text-sm text-amber-300">
-              {apiError} Until then, the Events page shows the standard schedule instead of the calendar.
+        {/* ── Connection status ── */}
+        <section className="rounded border border-ivory/10 bg-ivory/5 p-5">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-mist">Connection</p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {source === "ical" && (
+              <>
+                <StatusPill tone="green">iCal feed active</StatusPill>
+                <span className="break-all font-sans text-sm text-ivory">{icalUrl}</span>
+              </>
+            )}
+            {source === "oauth" && (
+              <>
+                <StatusPill tone="green">Google OAuth active</StatusPill>
+                <span className="font-sans text-sm text-ivory">{oauthConnection?.email}</span>
+                {oauthConnection?.calendarName && (
+                  <span className="font-sans text-xs text-mist">Calendar: {oauthConnection.calendarName}</span>
+                )}
+              </>
+            )}
+            {source === "none" && (
+              <StatusPill tone="amber">Not connected</StatusPill>
+            )}
+          </div>
+          {source === "none" && (
+            <p className="mt-3 font-sans text-sm text-mist">
+              No calendar is connected. Follow Option A below to get started.
             </p>
           )}
+        </section>
 
-          {/* Calendar choice */}
-          {!apiError && (
-            <section className="rounded border border-ivory/10 bg-ivory/5 p-5">
-              <CalendarPicker calendars={calendars} selectedId={connection.calendarId} />
-              <p className="mt-3 font-sans text-xs text-mist">
-                Tip: use a dedicated calendar (e.g. “Ministry Events”) so personal appointments never appear publicly.
-                Events marked <em>Private</em> in Google Calendar are always hidden.
+        {/* ── Upcoming events preview ── */}
+        {source !== "none" && (
+          <section className="rounded border border-ivory/10 bg-ivory/5 p-5">
+            <h2 className="font-sans text-sm font-semibold text-ivory">Upcoming events</h2>
+            {upcoming.length === 0 ? (
+              <p className="mt-2 font-sans text-sm text-mist">
+                No upcoming events found. Make sure events are added to the connected calendar and it is set to public.
               </p>
-            </section>
-          )}
+            ) : (
+              <ul className="mt-3 flex flex-col divide-y divide-ivory/10" role="list">
+                {upcoming.map((event) => (
+                  <li key={event.id} className="flex flex-wrap items-baseline gap-x-4 py-2 font-sans text-sm">
+                    <span className="w-44 shrink-0 text-xs text-mist tabular-nums">
+                      {formatWhen(event.start, event.allDay, calendar!.timeZone)}
+                    </span>
+                    <span className="text-ivory">{event.title}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-3 font-sans text-xs text-mist">
+              {source === "ical"
+                ? "The feed refreshes every 5 minutes. Changes in Google Calendar appear on the site shortly after."
+                : "Changes made in Google Calendar appear on the site within about 5 minutes."}
+            </p>
+          </section>
+        )}
 
-          {/* Preview */}
-          {connection.calendarId && !apiError && (
-            <section className="rounded border border-ivory/10 bg-ivory/5 p-5">
-              <h2 className="font-sans text-sm font-semibold text-ivory">Upcoming on “{connection.calendarName}”</h2>
-              {upcoming.length === 0 ? (
-                <p className="mt-2 font-sans text-sm text-mist">No upcoming events in the next 12 months.</p>
+        {/* ── Option A: iCal ── */}
+        <section className="rounded border border-ivory/10 bg-ivory/5 p-5">
+          <h2 className="font-sans text-sm font-semibold text-ivory">
+            Option A — Public iCal feed
+            <span className="ml-2 font-sans text-xs font-normal text-mist">(recommended · no Google Cloud setup needed)</span>
+          </h2>
+          <ol className="mt-4 flex list-decimal flex-col gap-3 pl-5 font-sans text-sm text-mist marker:text-gold-light">
+            <li>
+              In Google Calendar, click the three dots next to your calendar →{" "}
+              <strong className="text-ivory">Settings and sharing</strong>.
+            </li>
+            <li>
+              Under <em>Access permissions for events</em>, tick{" "}
+              <strong className="text-ivory">Make available to public</strong> → See all event details.
+            </li>
+            <li>
+              Scroll to <em>Integrate calendar</em> and copy the{" "}
+              <strong className="text-ivory">Public address in iCal format</strong> URL.
+            </li>
+            <li>
+              Add it to your server <code className="font-mono text-ivory">.env.local</code> and restart:
+              <code className="mt-2 block break-all rounded bg-espresso px-3 py-2 font-mono text-xs text-ivory">
+                GOOGLE_CALENDAR_ICAL_URL=https://calendar.google.com/calendar/ical/...
+              </code>
+            </li>
+          </ol>
+          {icalUrl ? (
+            <p className="mt-4 rounded border border-green-800/50 bg-green-950/40 px-3 py-2 font-sans text-xs text-green-300">
+              ✓ GOOGLE_CALENDAR_ICAL_URL is set.
+            </p>
+          ) : (
+            <p className="mt-4 rounded border border-amber-700/40 bg-amber-900/20 px-3 py-2 font-sans text-xs text-amber-300">
+              GOOGLE_CALENDAR_ICAL_URL is not set in the environment.
+            </p>
+          )}
+        </section>
+
+        {/* ── Option B: OAuth ── */}
+        <section className="rounded border border-ivory/10 bg-ivory/5 p-5">
+          <h2 className="font-sans text-sm font-semibold text-ivory">
+            Option B — Google OAuth
+            <span className="ml-2 font-sans text-xs font-normal text-mist">(requires Google Cloud project)</span>
+          </h2>
+          <ol className="mt-4 flex list-decimal flex-col gap-3 pl-5 font-sans text-sm text-mist marker:text-gold-light">
+            <li>
+              In the{" "}
+              <a
+                className="text-gold-light underline underline-offset-4"
+                href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google Cloud Console
+              </a>
+              , enable the <strong className="text-ivory">Google Calendar API</strong>.
+            </li>
+            <li>
+              Create an OAuth 2.0 client ID (Web application) and add{" "}
+              <code className="font-mono text-ivory">/api/admin/google/callback</code> as an authorized redirect URI.
+            </li>
+            <li>
+              Set <code className="font-mono text-ivory">GOOGLE_CLIENT_ID</code> and{" "}
+              <code className="font-mono text-ivory">GOOGLE_CLIENT_SECRET</code> in your environment, restart, then sign in below.
+            </li>
+          </ol>
+          <div className="mt-4">
+            {oauthConfig ? (
+              oauthConnection ? (
+                <p className="rounded border border-green-800/50 bg-green-950/40 px-3 py-2 font-sans text-xs text-green-300">
+                  ✓ Connected as {oauthConnection.email}.
+                </p>
               ) : (
-                <ul className="mt-3 flex flex-col divide-y divide-ivory/10" role="list">
-                  {upcoming.map((event) => (
-                    <li key={event.id} className="flex flex-wrap items-baseline gap-x-4 py-2 font-sans text-sm">
-                      <span className="w-44 shrink-0 text-xs text-mist tabular-nums">
-                        {formatWhen(event.start, event.allDay, calendar!.timeZone)}
-                      </span>
-                      <span className="text-ivory">{event.title}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="mt-3 font-sans text-xs text-mist">
-                Changes made in Google Calendar appear on the site within about 5 minutes.
+                <a
+                  href="/api/admin/google/connect"
+                  className="inline-flex min-h-10 items-center justify-center gap-3 rounded-sm bg-white px-5 font-sans text-sm font-medium text-[#1f1f1f] shadow-sm transition-colors hover:bg-[#f2f2f2]"
+                >
+                  <GoogleLogo /> Sign in with Google
+                </a>
+              )
+            ) : (
+              <p className="font-sans text-xs text-mist">
+                GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET not set in environment.
               </p>
-            </section>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        </section>
+
+      </div>
     </>
   );
 }
@@ -159,38 +198,6 @@ function formatWhen(start: string, allDay: boolean, timeZone: string) {
     : new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone }).format(new Date(start));
 }
 
-async function requestOrigin() {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-}
-
-function GoogleSignInLink({
-  label,
-  switchAccount,
-  compact,
-  className,
-}: {
-  label: string;
-  switchAccount?: boolean;
-  compact?: boolean;
-  className?: string;
-}) {
-  return (
-    // A plain <a>: this starts a full-page OAuth redirect, so it must not be prefetched.
-    <a
-      href={`/api/admin/google/connect${switchAccount ? "?switch=1" : ""}`}
-      className={`inline-flex min-h-10 items-center justify-center gap-3 rounded-sm bg-white font-sans text-sm font-medium text-[#1f1f1f] shadow-sm transition-colors hover:bg-[#f2f2f2] ${
-        compact ? "px-4" : "px-5 py-1"
-      } ${className ?? ""}`}
-    >
-      <GoogleLogo />
-      {label}
-    </a>
-  );
-}
-
 function GoogleLogo() {
   return (
     <svg aria-hidden viewBox="0 0 48 48" className="size-[18px]">
@@ -199,24 +206,5 @@ function GoogleLogo() {
       <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
       <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
     </svg>
-  );
-}
-
-function SetupSteps({ redirectUri }: { redirectUri: string }) {
-  const steps = [
-    <>In the <a className="text-gold-light underline underline-offset-4" href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>, create (or pick) a project and enable the <strong className="text-ivory">Google Calendar API</strong>.</>,
-    <>Under <em>APIs &amp; Services → OAuth consent screen</em>, set the app name and support email, add the scope <code className="font-mono text-ivory">…/auth/calendar.readonly</code>, and publish the app (“In production”). While it’s in “Testing”, Google expires the sign-in after 7 days.</>,
-    <>Under <em>Credentials</em>, create an <strong className="text-ivory">OAuth client ID</strong> of type <em>Web application</em> and add this Authorized redirect URI:<code className="mt-2 block break-all rounded bg-espresso px-3 py-2 font-mono text-xs text-ivory">{redirectUri}</code></>,
-    <>Set <code className="font-mono text-ivory">GOOGLE_CLIENT_ID</code> and <code className="font-mono text-ivory">GOOGLE_CLIENT_SECRET</code> in the server environment and restart the site. Then return here and sign in with Google.</>,
-  ];
-  return (
-    <section className="rounded border border-ivory/10 bg-ivory/5 p-6">
-      <h2 className="font-display text-2xl font-medium text-ivory">Set up Google sign-in</h2>
-      <ol className="mt-4 flex list-decimal flex-col gap-3 pl-5 font-sans text-sm text-mist marker:text-gold-light">
-        {steps.map((step, i) => (
-          <li key={i}>{step}</li>
-        ))}
-      </ol>
-    </section>
   );
 }

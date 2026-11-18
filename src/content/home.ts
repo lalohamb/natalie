@@ -55,7 +55,7 @@ export const homeContent = {
     eyebrow: "Speaking & Ministry",
     heading: "Invite Natalie",
     body: "Natalie is a sought-after speaker, spiritual advisor and builder of God’s Kingdom. Churches, ministries, organizations and event coordinators are invited to share the details of their gathering.",
-    cta: { label: "VIEW 2027 SCHEDULE", href: "/contact" } satisfies CallToAction,
+    cta: { label: "VIEW 2027 SCHEDULE", href: "/events" } satisfies CallToAction,
   },
 
   partner: {

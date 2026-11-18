@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { BookCard } from "@/components/sections/book-card";
-import type { Book } from "@/content/types";
+import type { AdminBook } from "@/content/types";
 import { cn } from "@/lib/cn";
 
 type Tab = { id: string; label: string };
@@ -15,7 +15,7 @@ const TABS: Tab[] = [
   { id: "warfare", label: "Warfare" },
 ];
 
-export function BooksPageClient({ books }: { books: Book[] }) {
+export function BooksPageClient({ books }: { books: AdminBook[] }) {
   const [active, setActive] = useState("all");
 
   const visible = books.filter(
