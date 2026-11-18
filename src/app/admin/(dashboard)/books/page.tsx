@@ -6,6 +6,7 @@ import { AdminPageHeader, StatusPill, adminButton } from "../../_components/admi
 import { BookRowActions } from "./book-row-actions";
 
 export const metadata: Metadata = { title: "Books" };
+export const instant = false;
 
 const STATUS_TONE = {
   published: "green",
