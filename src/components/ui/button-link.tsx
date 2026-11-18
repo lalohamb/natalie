@@ -29,7 +29,7 @@ type ButtonLinkProps = {
   "aria-label"?: string;
 };
 
-const isExternal = (href: string) => /^https?:\/\//.test(href);
+const isExternal = (href: string) => /^https?:\/\//.test(href) || href.startsWith("/api/");
 
 export function ButtonLink({
   href,
@@ -51,11 +51,18 @@ export function ButtonLink({
   );
 
   if (external) {
+    const isApi = href.startsWith("/api/");
     return (
-      <a href={href} className={classes} target="_blank" rel="noopener noreferrer" {...rest}>
+      <a
+        href={href}
+        className={classes}
+        target={isApi ? undefined : "_blank"}
+        rel={isApi ? undefined : "noopener noreferrer"}
+        {...rest}
+      >
         {children}
-        {icon}
-        <span className="sr-only"> (opens in a new tab)</span>
+        {!isApi && icon}
+        {!isApi && <span className="sr-only"> (opens in a new tab)</span>}
       </a>
     );
   }

@@ -1,9 +1,13 @@
-import { redirect } from "next/navigation";
 import { type NextRequest, NextResponse } from "next/server";
 
 const BASE = "https://api.stripe.com/v1";
 
 export async function GET(req: NextRequest) {
+  // Block RSC prefetch requests — this route must only be hit by real navigation.
+  if (req.headers.get("rsc") || req.nextUrl.searchParams.has("_rsc")) {
+    return NextResponse.json({ error: "Not prefetchable" }, { status: 400 });
+  }
+
   const priceId = req.nextUrl.searchParams.get("priceId");
   const origin = req.nextUrl.origin;
 
@@ -39,5 +43,5 @@ export async function GET(req: NextRequest) {
   }
 
   const session = (await res.json()) as { url: string };
-  redirect(session.url);
+  return NextResponse.redirect(session.url, 303);
 }
