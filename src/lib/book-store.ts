@@ -4,7 +4,9 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { StaticImageData } from "next/image";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { books as seedBooks } from "@/content/books";
 import { STORAGE_DIR, dataPath, writeFileAtomic } from "@/lib/storage";
 import type { AdminBook } from "@/content/types";
@@ -43,7 +45,7 @@ const bookSchema = z.object({
 });
 
 // Bump this when seedToAdmin() changes in a way that should overwrite stored data.
-const SEED_VERSION = 2;
+const SEED_VERSION = 3;
 
 const manifestSchema = z.object({
   version: z.number(),
@@ -55,6 +57,10 @@ const manifestSchema = z.object({
 // ---------------------------------------------------------------------------
 
 function seedToAdmin(): AdminBook[] {
+  return [];
+}
+
+function _seedToAdmin_legacy(): AdminBook[] {
   return seedBooks.map((b, i) => ({
     slug: b.slug,
     title: b.title,

@@ -13,7 +13,9 @@ type Props = { params: Promise<{ slug: string }> };
 export const instant = false;
 
 export async function generateStaticParams() {
-  return (await getBooks()).map((b) => ({ slug: b.slug }));
+  const books = await getBooks();
+  if (books.length === 0) return [{ slug: "_placeholder" }];
+  return books.map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
