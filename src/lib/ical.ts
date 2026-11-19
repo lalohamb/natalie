@@ -90,7 +90,7 @@ function parseICal(text: string): PublicCalendar | null {
 
   const now = new Date();
   const currentMonth = monthInZone(now, timeZone);
-  const rangeStart = addMonths(currentMonth, -1);
+  const rangeStart = addMonths(currentMonth, 0);
   const rangeEnd = addMonths(currentMonth, 12);
 
   const filtered = events.filter((e) => {

@@ -29,8 +29,8 @@ const SCOPES = ["openid", "email", "https://www.googleapis.com/auth/calendar.rea
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const API = "https://www.googleapis.com/calendar/v3";
 
-/** Months shown on /events: one back, twelve ahead. */
-const MONTHS_BEFORE = 1;
+/** Months shown on /events: current month plus twelve ahead. */
+const MONTHS_BEFORE = 0;
 const MONTHS_AFTER = 12;
 
 /** Sign-in failed because the calendar permission checkbox was left unticked. */
