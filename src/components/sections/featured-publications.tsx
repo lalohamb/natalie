@@ -39,7 +39,7 @@ function FeaturedBookCard({ book, index }: { book: AdminBook; index: number }) {
 
 export async function FeaturedPublications() {
   const { publications } = getHomeContent();
-  const featured = (await getPublishedBooks()).filter((b) => !b.companionOf).slice(0, 3);
+  const featured = (await getPublishedBooks()).filter((b) => b.featured && !b.companionOf).slice(0, 3);
 
   if (!featured.length) return null;
 

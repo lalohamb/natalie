@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${manrope.variable} antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${cormorant.variable} ${manrope.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col bg-ivory text-espresso">
         <noscript>
           {/* Scroll-reveal content starts transparent; keep it visible without JS. */}

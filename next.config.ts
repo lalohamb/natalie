@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [75, 85],
+    qualities: [75, 85, 90],
     // YouTube video thumbnails for linked videos on /media and the homepage.
     remotePatterns: [
       { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
