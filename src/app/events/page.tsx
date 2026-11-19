@@ -96,7 +96,7 @@ export default function EventsPage() {
     <>
       {/* ── Header ── */}
       <section aria-labelledby="events-heading" className="border-b border-sand">
-        <div className="relative h-64 w-full overflow-hidden sm:h-80">
+        <div className="relative h-64 w-full overflow-hidden sm:h-100">
           <Image
             src="/Open Bible Overlooking Golden Cityscape.png"
             alt="Open Bible Overlooking Golden Cityscape"
@@ -105,7 +105,7 @@ export default function EventsPage() {
             loading="eager"
             quality={85}
             sizes="100vw"
-            className="object-cover object-center"
+            className="object-cover object-bottom"
           />
           {/* Gradient fade to ivory at the bottom */}
           <div aria-hidden className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-ivory to-transparent" />
