@@ -1,0 +1,86 @@
+[
+  {
+    "id": "v-d6b17dbb",
+    "title": "Iceland Scenic Relaxation Video in 4K - Family Luxury Travel",
+    "description": "",
+    "category": "ministry-message",
+    "embeddable": true,
+    "youtubeId": "6UBCO5vtH_o",
+    "featured": true,
+    "published": true,
+    "displayOrder": 1,
+    "createdAt": "2026-10-24T16:26:29.703Z"
+  },
+  {
+    "id": "v-004",
+    "title": "Purge",
+    "description": "You cannot repair what you refuse to confront.\r\nThe second phase of the Repair the Breach: 3-Phase Journey to Prophetic Purity Workbook is \"PURGE\"",
+    "category": "ministry-message",
+    "facebookUrl": "https://www.facebook.com/reel/2193603641565058",
+    "embeddable": true,
+    "featured": false,
+    "published": true,
+    "displayOrder": 2,
+    "createdAt": "2027-01-01T00:00:00"
+  },
+  {
+    "id": "v-002",
+    "title": "Believe",
+    "description": "",
+    "category": "ministry-message",
+    "embeddable": true,
+    "localSrc": "/Believe.mp4",
+    "featured": false,
+    "published": true,
+    "displayOrder": 3,
+    "createdAt": "2027-01-01T00:00:00"
+  },
+  {
+    "id": "v-003",
+    "title": "Seek",
+    "description": "",
+    "category": "ministry-message",
+    "embeddable": true,
+    "localSrc": "/FINAL_1_SEEK.mp4",
+    "featured": false,
+    "published": true,
+    "displayOrder": 4,
+    "createdAt": "2027-01-01T00:00:00"
+  },
+  {
+    "id": "v-005",
+    "title": "Repair",
+    "description": "",
+    "category": "ministry-message",
+    "embeddable": true,
+    "localSrc": "/FINAL_3_REPAIR.mp4",
+    "featured": false,
+    "published": true,
+    "displayOrder": 5,
+    "createdAt": "2027-01-01T00:00:00"
+  },
+  {
+    "id": "v-006",
+    "title": "Pray in the Spirit",
+    "description": "",
+    "category": "ministry-message",
+    "embeddable": true,
+    "localSrc": "/Pray in the Spirit.mp4",
+    "featured": false,
+    "published": true,
+    "displayOrder": 6,
+    "createdAt": "2027-01-01T00:00:00"
+  },
+  {
+    "id": "v-001",
+    "title": "When God Had to Interrupt Me",
+    "description": "Encouraging words, real conversations, and faith-filled teaching to strengthen your walk with God.",
+    "category": "ministry-message",
+    "facebookUrl": "https://www.facebook.com/reel/27601806466164022",
+    "embeddable": false,
+    "featured": false,
+    "published": true,
+    "displayOrder": 7,
+    "createdAt": "2027-01-01T00:00:00"
+  }
+]

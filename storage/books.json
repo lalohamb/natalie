@@ -1,0 +1,51 @@
+{
+  "version": 3,
+  "books": [
+    {
+      "slug": "reparing-the-breack-b82b",
+      "title": "Repairing the Breach",
+      "subtitle": "Restoring Purity to the Prophetic",
+      "status": "published",
+      "priceCents": 1499,
+      "summary": "This manual was divinely written by Natalie C. Flemons as a clarion call to whom she describes as “the authentic” prophetic voices, to restore the integrity of prophetic ministry in today’s world. It challenges those called to the prophetic ministry to confront the cultural infiltration that has diluted its power and to righteously repair. Designed for emerging, mature, or inquiring prophets, this guide offers practical tools for personal and collective reformation. Natalie establishes a code of",
+      "description": [
+        "This manual was divinely written by Natalie C. Flemons as a clarion call to whom she describes as “the authentic” prophetic voices, to restore the integrity of prophetic ministry in today’s world. It challenges those called to the prophetic ministry to confront the cultural infiltration that has diluted its power and to righteously repair. Designed for emerging, mature, or inquiring prophets, this guide offers practical tools for personal and collective reformation. Natalie establishes a code of conduct, a framework for maintaining purity, rooted in the standards set by Christ, the Chief Prophet. Although the prophets lead this charge, every believer needs the divine revelation in this guide as arsenal against the enemy. Fulfilling the mandate to empower and equip believers to stand firm in this time of reformation by discerning falsehood and upholding the truth."
+      ],
+      "coverUrl": "/media-files/cover-repairing-the-breach.jpg",
+      "coverAlt": "Repairing the Breach",
+      "purchase": {
+        "kind": "stripe-checkout",
+        "priceId": "price_1UcvZLHHr5ADDVu6bYcJFdpm",
+        "label": "Purchase"
+      },
+      "featured": true,
+      "category": "prophetic",
+      "stripeProductId": "prod_VeE111nQA2gFAw",
+      "displayOrder": 1,
+      "createdAt": "2026-11-19T17:58:38.597Z"
+    },
+    {
+      "slug": "repair-the-breach-workbook-0702",
+      "title": "Repair the Breach Workbook",
+      "subtitle": "A 3-Phase Journey to Prophetic Purity",
+      "status": "published",
+      "priceCents": 2500,
+      "summary": "rophetic lives according to God’s pattern. Through teaching, reflection questions, practical iah in 2 Chronicles 34, this workbook",
+      "description": [
+        "Repair the Breach: 3-Phase Journey to Prophetic Purity is a guided companion workbook for those who are ready to examine, purify, and rebuild their prophetic lives according to God’s pattern. Through teaching, reflection questions, practical assignments, activation prayers, and personal examination, you will be challenged to move beyond simply identifying what is broken and take responsibility for what God is calling you to repair. Rooted in the story of Josiah in 2 Chronicles 34, this workbook"
+      ],
+      "coverUrl": "/media-files/cover-repair-the-breach-workbook-mockup.jpg",
+      "note": "Designed to be used alongside Repairing the Breach: Restoring Purity to the Prophetic, this workbook is not simply something to read—it is a journey to walk through.",
+      "purchase": {
+        "kind": "stripe-checkout",
+        "priceId": "price_1Ucx0KHHr5ADDVu6Kb7Tgplo",
+        "label": "Purchase"
+      },
+      "featured": false,
+      "category": "prophetic",
+      "stripeProductId": "prod_VeFVhyz4IM6G43",
+      "displayOrder": 2,
+      "createdAt": "2026-11-19T18:07:46.383Z"
+    }
+  ]
+}
