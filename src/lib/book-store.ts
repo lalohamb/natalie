@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import type { StaticImageData } from "next/image";
 import { books as seedBooks } from "@/content/books";
 import { STORAGE_DIR, dataPath, writeFileAtomic } from "@/lib/storage";
 import type { AdminBook } from "@/content/types";
@@ -58,7 +59,7 @@ function seedToAdmin(): AdminBook[] {
     description: b.description,
     // StaticImageData has a `.src` string — use it as the coverUrl so images
     // aren't lost when the store is seeded from books.ts.
-    coverUrl: b.coverIsMockup ? undefined : (b.cover.src as unknown as { src: string }).src ?? String(b.cover.src),
+    coverUrl: b.coverIsMockup ? undefined : (b.cover.src as unknown as StaticImageData).src,
     coverAlt: b.cover.alt,
     coverIsMockup: b.coverIsMockup,
     forewordBy: b.forewordBy,
