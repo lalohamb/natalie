@@ -42,7 +42,13 @@ const bookSchema = z.object({
   createdAt: z.string(),
 });
 
-const manifestSchema = z.array(bookSchema);
+// Bump this when seedToAdmin() changes in a way that should overwrite stored data.
+const SEED_VERSION = 2;
+
+const manifestSchema = z.object({
+  version: z.number(),
+  books: z.array(bookSchema),
+});
 
 // ---------------------------------------------------------------------------
 // Seed: convert static Book entries to AdminBook format
@@ -83,10 +89,22 @@ export async function readBooks(): Promise<AdminBook[]> {
   try {
     raw = await fs.readFile(MANIFEST_PATH, "utf8");
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return structuredClone(seedToAdmin());
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      const seeded = seedToAdmin();
+      await writeFileAtomic(MANIFEST_PATH, JSON.stringify({ version: SEED_VERSION, books: seeded }, null, 2) + "\n");
+      return seeded;
+    }
     throw err;
   }
-  return manifestSchema.parse(JSON.parse(raw)).sort((a, b) => a.displayOrder - b.displayOrder);
+
+  const parsed = JSON.parse(raw);
+  if (!parsed.version || parsed.version < SEED_VERSION) {
+    const seeded = seedToAdmin();
+    await writeFileAtomic(MANIFEST_PATH, JSON.stringify({ version: SEED_VERSION, books: seeded }, null, 2) + "\n");
+    return seeded;
+  }
+
+  return manifestSchema.parse(parsed).books.sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
 let writeQueue: Promise<unknown> = Promise.resolve();
@@ -96,7 +114,7 @@ export function updateBooks<T>(mutate: (books: AdminBook[]) => T | Promise<T>): 
     const books = await readBooks();
     const result = await mutate(books);
     books.sort((a, b) => a.displayOrder - b.displayOrder).forEach((b, i) => (b.displayOrder = i + 1));
-    await writeFileAtomic(MANIFEST_PATH, JSON.stringify(manifestSchema.parse(books), null, 2) + "\n");
+    await writeFileAtomic(MANIFEST_PATH, JSON.stringify({ version: SEED_VERSION, books }, null, 2) + "\n");
     return result;
   });
   writeQueue = run.catch(() => {});
