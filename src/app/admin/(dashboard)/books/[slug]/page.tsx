@@ -8,6 +8,8 @@ import { BookForm } from "../book-form";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const instant = false;
+
 // cacheComponents requires at least one static param. "_" is a placeholder
 // that hits notFound() at runtime — real slugs are resolved dynamically.
 export function generateStaticParams() { return [{ slug: "_" }]; }

@@ -14,9 +14,9 @@ const STATUS_TONE = {
   unavailable: "muted",
 } as const;
 
-export default async function AdminBooksPage() {
+export default async function AdminBooksPage({ searchParams }: { searchParams: Promise<{ added?: string }> }) {
   await requireAdmin();
-  const books = await readBooks();
+  const [books, { added }] = await Promise.all([readBooks(), searchParams]);
 
   return (
     <>
@@ -30,6 +30,11 @@ export default async function AdminBooksPage() {
         }
       />
 
+      {added && (
+        <p role="status" className="rounded border border-green-800/50 bg-green-950/40 px-4 py-3 font-sans text-sm text-green-300">
+          Book added successfully.
+        </p>
+      )}
       {books.length === 0 ? (
         <div className="rounded border border-ivory/10 bg-ivory/5 px-6 py-12 text-center">
           <p className="font-sans text-sm text-mist">No books yet.</p>

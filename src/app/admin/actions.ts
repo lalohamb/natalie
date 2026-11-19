@@ -510,7 +510,8 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
 
   if (!found) return { status: "error", message: "Book not found." };
   booksChanged();
-  return { status: "success", message: slug ? "Book saved." : "Book added." };
+  if (slug) return { status: "success", message: "Book saved." };
+  redirect("/admin/books?added=1");
 }
 
 export async function deleteBook(slug: string) {
