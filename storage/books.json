@@ -46,6 +46,28 @@
       "stripeProductId": "prod_VeFVhyz4IM6G43",
       "displayOrder": 2,
       "createdAt": "2026-11-19T18:07:46.383Z"
+    },
+    {
+      "slug": "test-c3c0",
+      "title": "test",
+      "subtitle": "test",
+      "status": "published",
+      "priceCents": 500,
+      "summary": "test",
+      "description": [
+        "test"
+      ],
+      "coverUrl": "/media-files/cover-from-the-chaos-to-the-call.jpg",
+      "coverAlt": "test",
+      "forewordBy": "test",
+      "note": "test",
+      "purchase": {
+        "kind": "none"
+      },
+      "featured": true,
+      "category": "prophetic",
+      "displayOrder": 3,
+      "createdAt": "2026-11-19T20:04:18.076Z"
     }
   ]
 }
