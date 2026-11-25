@@ -31,8 +31,13 @@ RUN addgroup --system --gid 1001 nodejs \
 # Public assets
 COPY --from=builder /app/public ./public
 
-# Storage (books.json, videos.json, cover files) — committed content
-COPY --from=builder /app/storage ./storage
+# Storage seed — baked-in books.json, videos.json and cover files.
+# The entrypoint copies this into the persistent volume on first run.
+COPY --from=builder /app/storage ./storage-seed
+
+# Entrypoint seeds the persistent volume on first run
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 # Standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -44,4 +49,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["./docker-entrypoint.sh"]
