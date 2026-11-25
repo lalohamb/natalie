@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { refresh, updateTag } from "next/cache";
+import { refresh, updateTag, revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { CuratedVideo } from "@/content/types";
 import {
@@ -459,6 +459,7 @@ async function checkStripePrice(
 
 function booksChanged() {
   updateTag(BOOKS_CACHE_TAG);
+  revalidatePath("/books", "layout");
   refresh();
 }
 

@@ -5,6 +5,7 @@ import { AdminPageHeader } from "../../../_components/admin-ui";
 import { BookForm } from "../book-form";
 
 export const metadata: Metadata = { title: "Add book" };
+export const instant = false;
 
 export default async function NewBookPage() {
   await requireAdmin();
