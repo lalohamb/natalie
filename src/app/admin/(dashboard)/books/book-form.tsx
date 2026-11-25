@@ -42,43 +42,52 @@ export function BookForm({ book, files: initialFiles }: { book?: AdminBook; file
     selectedProductId: string;
     selectedPriceId: string;
     loading: boolean;
+    error: string | null;
   };
   type StripeAction =
     | { type: "loading" }
     | { type: "products_loaded"; products: StripeProduct[]; prices: StripePrice[] }
     | { type: "prices_loaded"; prices: StripePrice[]; productId: string }
     | { type: "select_price"; priceId: string }
-    | { type: "clear_product" };
+    | { type: "clear_product" }
+    | { type: "error"; message: string };
 
   const [stripe, dispatchStripe] = useReducer(
     (s: StripeState, a: StripeAction): StripeState => {
       switch (a.type) {
-        case "loading": return { ...s, loading: true };
-        case "products_loaded": return { ...s, loading: false, products: a.products, prices: a.prices };
-        case "prices_loaded": return { ...s, loading: false, prices: a.prices, selectedProductId: a.productId, selectedPriceId: "" };
+        case "loading": return { ...s, loading: true, error: null };
+        case "products_loaded": return { ...s, loading: false, products: a.products, prices: a.prices, error: null };
+        case "prices_loaded": return { ...s, loading: false, prices: a.prices, selectedProductId: a.productId, selectedPriceId: "", error: null };
         case "select_price": return { ...s, selectedPriceId: a.priceId };
-        case "clear_product": return { ...s, prices: [], selectedProductId: "", selectedPriceId: "" };
+        case "clear_product": return { ...s, prices: [], selectedProductId: "", selectedPriceId: "", error: null };
+        case "error": return { ...s, loading: false, error: a.message };
       }
     },
-    { products: [], prices: [], selectedProductId: initialProductId, selectedPriceId: initialPriceId, loading: false },
+    { products: [], prices: [], selectedProductId: initialProductId, selectedPriceId: initialPriceId, loading: false, error: null },
   );
 
   useEffect(() => {
     if (purchaseKind !== "stripe-checkout") return;
     dispatchStripe({ type: "loading" });
-    getStripeProductsForPicker(initialProductId || undefined).then(({ products, prices }) => {
-      dispatchStripe({ type: "products_loaded", products, prices });
-    });
+    getStripeProductsForPicker(initialProductId || undefined)
+      .then(({ products, prices }) => dispatchStripe({ type: "products_loaded", products, prices }))
+      .catch((err: unknown) => dispatchStripe({ type: "error", message: String(err instanceof Error ? err.message : err) }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchaseKind]);
 
   const onProductChange = (productId: string) => {
     if (!productId) { dispatchStripe({ type: "clear_product" }); return; }
     dispatchStripe({ type: "loading" });
-    getStripeProductsForPicker(productId).then(({ prices }) => {
-      dispatchStripe({ type: "prices_loaded", prices, productId });
-    });
+    getStripeProductsForPicker(productId)
+      .then(({ prices }) => dispatchStripe({ type: "prices_loaded", prices, productId }))
+      .catch((err: unknown) => dispatchStripe({ type: "error", message: String(err instanceof Error ? err.message : err) }));
   };
+
+  useEffect(() => {
+    if (state.status !== "success") return;
+    const t = setTimeout(() => { window.location.href = "/admin/books"; }, 1200);
+    return () => clearTimeout(t);
+  }, [state.status]);
 
   const imageFiles = files.filter((f) => f.kind === "image");
   const errors = state.fieldErrors ?? {};
@@ -230,7 +239,7 @@ export function BookForm({ book, files: initialFiles }: { book?: AdminBook; file
             )}
             {purchaseKind === "stripe-checkout" && (
               <>
-                <Field label="Stripe Product" htmlFor="stripeProductPicker" hint={stripe.loading ? "Loading…" : stripe.products.length === 0 ? "No active Stripe products found. Check STRIPE_SECRET_KEY." : undefined}>
+                <Field label="Stripe Product" htmlFor="stripeProductPicker" hint={stripe.loading ? "Loading…" : stripe.error ? undefined : stripe.products.length === 0 ? "No active Stripe products found. Check STRIPE_SECRET_KEY." : undefined} error={stripe.error ?? undefined}>
                   <select
                     id="stripeProductPicker"
                     value={stripe.selectedProductId}

@@ -68,5 +68,7 @@ export async function POST(request: NextRequest) {
     return back("unavailable");
   }
 
-  return result.ok ? NextResponse.redirect(result.url, 303) : back("unavailable");
+  if (!result.ok) return back("unavailable");
+  // Return JSON so the client can read the Stripe URL without opaque-redirect restrictions.
+  return NextResponse.json({ url: result.url });
 }

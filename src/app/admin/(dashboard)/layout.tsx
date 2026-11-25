@@ -4,6 +4,8 @@ import { LogOut } from "lucide-react";
 import { logout } from "../actions";
 import { AdminNav, AdminNavFallback } from "../_components/admin-nav";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s | Admin" },
   robots: { index: false, follow: false },

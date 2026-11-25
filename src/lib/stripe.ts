@@ -5,7 +5,7 @@ const BASE = "https://api.stripe.com/v1";
 function headers() {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
-  return { Authorization: `Bearer ${key}` };
+  return { Authorization: `Bearer ${key}`, "Stripe-Version": "2025-06-30.basil" };
 }
 
 export type StripePaymentIntent = {
