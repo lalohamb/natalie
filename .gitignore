@@ -34,6 +34,7 @@ yarn-error.log*
 .env*
 !.env.example
 
+
 # vercel
 .vercel
 
@@ -48,3 +49,5 @@ next-env.d.ts
 # playwright output
 /playwright-report/
 /test-results/
+
+*/AI-Assisted *

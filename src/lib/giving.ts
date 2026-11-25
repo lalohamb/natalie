@@ -5,8 +5,6 @@ const PAYMENT_LINK_HOSTS = new Set(["donate.stripe.com", "buy.stripe.com"]);
 
 /**
  * STRIPE_DONATION_PAYMENT_LINK if it is a Stripe Payment Link, otherwise null.
- * The value becomes the "Give by Card" href, so anything else is ignored
- * rather than sending donors to an arbitrary address.
  */
 export function donationLinkFromEnv(): string | null {
   const value = process.env.STRIPE_DONATION_PAYMENT_LINK?.trim();
@@ -21,6 +19,18 @@ export function donationLinkFromEnv(): string | null {
   return null;
 }
 
+/**
+ * The Zelle recipient (email or phone) shown on the partnerships page.
+ * ZELLE_RECIPIENT overrides the default from site.ts.
+ */
+export function zelleRecipient(): string {
+  return process.env.ZELLE_RECIPIENT?.trim() || giving.zelleEmail;
+}
+
 export async function getGiving() {
-  return { ...giving, stripeUrl: donationLinkFromEnv() ?? giving.stripeUrl };
+  return {
+    ...giving,
+    stripeUrl: donationLinkFromEnv() ?? giving.stripeUrl,
+    zelleRecipient: zelleRecipient(),
+  };
 }

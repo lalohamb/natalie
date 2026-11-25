@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BookOpen, Flame, Sprout, Users, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -8,6 +9,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import type { EmphasisSegment } from "@/content/partnership";
 import { getGiving } from "@/lib/giving";
 import { getPartnershipContent, getSite } from "@/lib/content";
+import { ZelleCard } from "@/components/sections/zelle-card";
 
 export const metadata: Metadata = {
   title: "Partnerships",
@@ -208,26 +210,19 @@ export default async function PartnershipsPage() {
 
             {/* Zelle */}
             <Reveal delay={0.16}>
-              <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
-                <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
-                <span aria-hidden className="absolute right-0 bottom-0 h-8 w-8 border-r border-b border-gold" />
-                <div>
-                  <div className="flex items-center justify-between gap-4">
-                    <Eyebrow rule={false}>Give by Zelle</Eyebrow>
-                    <ZelleLogo />
+              <Suspense fallback={
+                <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
+                  <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
+                  <span aria-hidden className="absolute right-0 bottom-0 h-8 w-8 border-r border-b border-gold" />
+                  <div className="animate-pulse">
+                    <div className="h-4 w-24 rounded bg-sand" />
+                    <div className="mt-4 h-6 w-16 rounded bg-sand" />
+                    <div className="mt-5 h-16 w-full rounded bg-sand" />
                   </div>
-                  <h3 className="mt-4 font-display text-display-sm font-medium">
-                    Zelle
-                  </h3>
-                  <p className="mt-5 text-pretty text-stone">
-                    Send your gift directly via Zelle to{" "}
-                    <span className="font-semibold text-espresso">{giving.zelleEmail}</span>.
-                  </p>
                 </div>
-                <ButtonLink href={`https://enroll.zellepay.com/qr-codes?data=${encodeURIComponent(giving.zelleEmail)}`} variant="secondary" className="self-start mt-auto">
-                  Open Zelle
-                </ButtonLink>
-              </div>
+              }>
+                <ZelleCard recipient={giving.zelleRecipient} />
+              </Suspense>
             </Reveal>
           </div>
           <p className="mt-8 text-center text-sm text-stone italic">
@@ -282,13 +277,4 @@ function CashAppLogo() {
   );
 }
 
-function ZelleLogo() {
-  return (
-    <svg aria-label="Zelle" role="img" viewBox="0 0 50 20" className="h-4 w-auto opacity-30">
-      <path
-        fill="currentColor"
-        d="M5.8 2h10.4l.8 2.2L4.6 14.6H17v3.4H5.8L5 15.8 17.4 5.4H5.8V2zM20 2h3.6v16H20V2zm6 0h10v3.2h-6.4v3h5.8v3h-5.8v3.6H36V18H26V2zm12 0h10v3.2h-6.4v3h5.8v3h-5.8v3.6H48V18H38V2z"
-      />
-    </svg>
-  );
-}
+

@@ -7,6 +7,7 @@ import { getCheckoutSession } from "@/lib/stripe";
 import { formatPrice } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Order Confirmed" };
+export const instant = false;
 
 type Props = { searchParams: Promise<{ session_id?: string; checkout?: string }> };
 

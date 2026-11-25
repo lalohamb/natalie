@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env*
+!.env.example
+.next
+node_modules
+playwright-report
+test-results
+tests
+docs
+scripts
+*.md
+*.tsbuildinfo
