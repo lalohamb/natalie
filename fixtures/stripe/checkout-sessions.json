@@ -1,0 +1,101 @@
+{
+  "_source": "documented-shape",
+  "status": 200,
+  "body": {
+    "object": "list",
+    "url": "/v1/checkout/sessions",
+    "has_more": false,
+    "data": [
+      {
+        "id": "cs_test_a",
+        "object": "checkout.session",
+        "payment_intent": {
+          "id": "pi_test_001",
+          "object": "payment_intent",
+          "amount": 1499,
+          "currency": "usd",
+          "status": "succeeded",
+          "description": null,
+          "receipt_email": null,
+          "created": 1799582400,
+          "metadata": {},
+          "latest_charge": {
+            "id": "ch_test_001",
+            "billing_details": {
+              "name": "Test Buyer",
+              "email": "buyer@example.com"
+            },
+            "receipt_url": "https://pay.stripe.com/receipts/test"
+          }
+        },
+        "line_items": {
+          "object": "list",
+          "data": [
+            {
+              "id": "li_1",
+              "quantity": 1,
+              "price": {
+                "id": "price_test_book",
+                "product": "prod_test_book"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "cs_test_b",
+        "object": "checkout.session",
+        "payment_intent": null,
+        "line_items": {
+          "object": "list",
+          "data": [
+            {
+              "id": "li_2",
+              "quantity": 1,
+              "price": {
+                "id": "price_test_book",
+                "product": "prod_test_book"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "cs_test_c",
+        "object": "checkout.session",
+        "payment_intent": {
+          "id": "pi_test_002",
+          "object": "payment_intent",
+          "amount": 5000,
+          "currency": "usd",
+          "status": "succeeded",
+          "description": null,
+          "receipt_email": null,
+          "created": 1799582400,
+          "metadata": {},
+          "latest_charge": {
+            "id": "ch_test_002",
+            "billing_details": {
+              "name": "Test Buyer",
+              "email": "buyer@example.com"
+            },
+            "receipt_url": "https://pay.stripe.com/receipts/test"
+          }
+        },
+        "line_items": {
+          "object": "list",
+          "data": [
+            {
+              "id": "li_3",
+              "quantity": 1,
+              "price": {
+                "id": "price_test_donation",
+                "product": "prod_test_donation"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

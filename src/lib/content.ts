@@ -4,7 +4,7 @@ import { homeContent } from "@/content/home";
 import { ministryIdentity } from "@/content/ministry-identity";
 import { partnershipContent } from "@/content/partnership";
 import { products } from "@/content/products";
-import { giveCta, legalNavigation, mainNavigation, secondaryNavigation, site, socialLinks } from "@/content/site";
+import { STORE_URL, giveCta, legalNavigation, mainNavigation, secondaryNavigation, site, socialLinks } from "@/content/site";
 import type { MinistryEvent, MinistryIdentity, Product } from "@/content/types";
 
 /*
@@ -17,6 +17,8 @@ import type { MinistryEvent, MinistryIdentity, Product } from "@/content/types";
 export const getSite = () => site;
 export const getNavigation = () => ({ main: mainNavigation, secondary: secondaryNavigation, legal: legalNavigation, give: giveCta });
 export const getSocialLinks = () => socialLinks.filter((link) => link.verified);
+/** External storefront every "Store" link points at. */
+export const getStoreUrl = () => STORE_URL;
 
 // Bio
 export const getBio = () => bio;

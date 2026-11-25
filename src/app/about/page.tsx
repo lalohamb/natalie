@@ -5,7 +5,9 @@ import { BookingCTA } from "@/components/sections/booking-cta";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getBio, getPortraits, getSite } from "@/lib/content";
+import { personStructuredData } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
   title: "About Natalie",
@@ -30,6 +32,8 @@ export default function AboutPage() {
 
   return (
     <>
+      <JsonLd data={personStructuredData()} />
+
       {/* ── Hero: heading + tabs left, portrait right ── */}
       <section aria-labelledby="about-heading" className="relative overflow-hidden bg-linen">
         <div className="grid lg:grid-cols-12 lg:items-stretch">
@@ -97,7 +101,7 @@ export default function AboutPage() {
               {bio.roles.map((role) => (
                 <li key={role}>{role}</li>
               ))}
-              <li className="text-gold-light">{bio.yearsInMinistry} years in ministry</li>
+              <li className="text-ivory">{bio.yearsInMinistry} years in ministry</li>
             </ul>
             <ButtonLink href="/books/from-the-chaos-to-the-call" variant="inverse" arrow>
               Read Full Story

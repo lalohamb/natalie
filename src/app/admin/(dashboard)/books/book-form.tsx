@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useReducer, useState } from "react";
 import type { AdminBook } from "@/content/types";
 import type { MediaFile } from "@/lib/media-store";
+import type { StripePrice, StripeProduct } from "@/lib/stripe";
 import { BOOK_CATEGORIES, BOOK_STATUSES } from "@/content/book-constants";
-import { saveBook, type FormState } from "../../actions";
+import { saveBook, getStripeProductsForPicker, type FormState } from "../../actions";
 import { adminButton, adminInput } from "../../_components/admin-ui";
 import { FileUploader } from "../../_components/file-uploader";
 
@@ -31,6 +32,53 @@ export function BookForm({ book, files: initialFiles }: { book?: AdminBook; file
   const [purchaseKind, setPurchaseKind] = useState<"none" | "external" | "stripe-checkout">(
     book?.purchase.kind ?? "none",
   );
+
+  const initialProductId = book?.stripeProductId ?? "";
+  const initialPriceId = book?.purchase.kind === "stripe-checkout" ? book.purchase.priceId : "";
+
+  type StripeState = {
+    products: StripeProduct[];
+    prices: StripePrice[];
+    selectedProductId: string;
+    selectedPriceId: string;
+    loading: boolean;
+  };
+  type StripeAction =
+    | { type: "loading" }
+    | { type: "products_loaded"; products: StripeProduct[]; prices: StripePrice[] }
+    | { type: "prices_loaded"; prices: StripePrice[]; productId: string }
+    | { type: "select_price"; priceId: string }
+    | { type: "clear_product" };
+
+  const [stripe, dispatchStripe] = useReducer(
+    (s: StripeState, a: StripeAction): StripeState => {
+      switch (a.type) {
+        case "loading": return { ...s, loading: true };
+        case "products_loaded": return { ...s, loading: false, products: a.products, prices: a.prices };
+        case "prices_loaded": return { ...s, loading: false, prices: a.prices, selectedProductId: a.productId, selectedPriceId: "" };
+        case "select_price": return { ...s, selectedPriceId: a.priceId };
+        case "clear_product": return { ...s, prices: [], selectedProductId: "", selectedPriceId: "" };
+      }
+    },
+    { products: [], prices: [], selectedProductId: initialProductId, selectedPriceId: initialPriceId, loading: false },
+  );
+
+  useEffect(() => {
+    if (purchaseKind !== "stripe-checkout") return;
+    dispatchStripe({ type: "loading" });
+    getStripeProductsForPicker(initialProductId || undefined).then(({ products, prices }) => {
+      dispatchStripe({ type: "products_loaded", products, prices });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [purchaseKind]);
+
+  const onProductChange = (productId: string) => {
+    if (!productId) { dispatchStripe({ type: "clear_product" }); return; }
+    dispatchStripe({ type: "loading" });
+    getStripeProductsForPicker(productId).then(({ prices }) => {
+      dispatchStripe({ type: "prices_loaded", prices, productId });
+    });
+  };
 
   const imageFiles = files.filter((f) => f.kind === "image");
   const errors = state.fieldErrors ?? {};
@@ -78,7 +126,7 @@ export function BookForm({ book, files: initialFiles }: { book?: AdminBook; file
           </select>
         </Field>
 
-        <Field label="Price (cents)" htmlFor="priceCents" hint="e.g. 1499 for $14.99. Leave blank if not sold here.">
+        <Field label="Price (cents)" htmlFor="priceCents" hint="e.g. 1499 for $14.99. Leave blank if not sold here. With Stripe Checkout this must match the Stripe price — leave blank to fill it in from Stripe.">
           <input id="priceCents" name="priceCents" type="number" min={0} defaultValue={book?.priceCents} className={adminInput} />
         </Field>
       </div>
@@ -181,14 +229,40 @@ export function BookForm({ book, files: initialFiles }: { book?: AdminBook; file
               </Field>
             )}
             {purchaseKind === "stripe-checkout" && (
-              <Field label="Stripe Price ID" htmlFor="purchasePriceId" hint="e.g. price_1Abc…">
-                <input
-                  id="purchasePriceId"
-                  name="purchasePriceId"
-                  defaultValue={book?.purchase.kind === "stripe-checkout" ? book.purchase.priceId : ""}
-                  className={adminInput}
-                />
-              </Field>
+              <>
+                <Field label="Stripe Product" htmlFor="stripeProductPicker" hint={stripe.loading ? "Loading…" : stripe.products.length === 0 ? "No active Stripe products found. Check STRIPE_SECRET_KEY." : undefined}>
+                  <select
+                    id="stripeProductPicker"
+                    value={stripe.selectedProductId}
+                    onChange={(e) => onProductChange(e.target.value)}
+                    disabled={stripe.loading}
+                    className={adminInput}
+                  >
+                    <option value="">— choose a product —</option>
+                    {stripe.products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <input type="hidden" name="stripeProductId" value={stripe.selectedProductId} />
+                </Field>
+                <Field label="Stripe Price" htmlFor="purchasePriceId" hint={stripe.selectedProductId && stripe.prices.length === 0 && !stripe.loading ? "No active prices for this product." : undefined}>
+                  <select
+                    id="purchasePriceId"
+                    value={stripe.selectedPriceId}
+                    onChange={(e) => dispatchStripe({ type: "select_price", priceId: e.target.value })}
+                    disabled={stripe.loading || !stripe.selectedProductId}
+                    className={adminInput}
+                  >
+                    <option value="">— choose a price —</option>
+                    {stripe.prices.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nickname ? `${p.nickname} — ` : ""}{p.unit_amount !== null ? `$${(p.unit_amount / 100).toFixed(2)} ${p.currency.toUpperCase()}` : "variable"} ({p.id})
+                      </option>
+                    ))}
+                  </select>
+                  <input type="hidden" name="purchasePriceId" value={stripe.selectedPriceId} />
+                </Field>
+              </>
             )}
             <Field label="Button label" htmlFor="purchaseLabel" hint='Defaults to "Purchase".'>
               <input
@@ -204,10 +278,12 @@ export function BookForm({ book, files: initialFiles }: { book?: AdminBook; file
         )}
       </fieldset>
 
-      {/* Stripe product */}
-      <Field label="Stripe Product ID" htmlFor="stripeProductId" hint="Optional. Links this book to a Stripe product for sales tracking.">
-        <input id="stripeProductId" name="stripeProductId" defaultValue={book?.stripeProductId} className={adminInput} />
-      </Field>
+      {/* Stripe product ID for non-checkout books (sales tracking only) */}
+      {purchaseKind !== "stripe-checkout" && (
+        <Field label="Stripe Product ID" htmlFor="stripeProductId" hint="Optional. Links this book to a Stripe product for sales tracking.">
+          <input id="stripeProductId" name="stripeProductId" defaultValue={book?.stripeProductId} className={adminInput} />
+        </Field>
+      )}
 
       <div className="flex flex-col gap-3">
         <Checkbox name="featured" label="Featured — shown on homepage and books page highlights" defaultChecked={book?.featured ?? false} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type Phase = "cross" | "rotate" | "settle";
 
@@ -59,15 +59,26 @@ function drawParticles(
   }
 }
 
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+const getReducedMotion = () => window.matchMedia(REDUCED_MOTION_QUERY).matches;
+
 export function NfMedallion({ className, size = SIZE }: { className?: string; size?: number }) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const rafRef     = useRef<number>(0);
   const particles  = useRef<Particle[]>([]);
   const [phase, setPhase] = useState<Phase>("cross");
 
-  const reduced =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Read through useSyncExternalStore so the first client render matches the
+  // server's (which can't know the preference) and hydration never mismatches;
+  // the real value is applied immediately afterwards.
+  const reduced = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
 
   // Always-current alpha ref — start at 1 so particles are visible immediately
   const alphaRef = useRef(1);
@@ -91,12 +102,13 @@ export function NfMedallion({ className, size = SIZE }: { className?: string; si
     }
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced, size]);
 
   // ── Phase sequencer ────────────────────────────────────────────────────────
   useEffect(() => {
-    if (reduced) { setPhase("settle"); return; }
+    // With reduced motion the finished medallion is rendered directly (see
+    // `medallionStyle` / `crossVisible`), so the phase never needs to advance.
+    if (reduced) return;
 
     const t1 = setTimeout(() => setPhase("rotate"), CROSS_DURATION);
     const t2 = setTimeout(() => setPhase("settle"), CROSS_DURATION + ROTATE_DURATION);

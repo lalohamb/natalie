@@ -39,7 +39,7 @@ function FeaturedBookCard({ book, index }: { book: AdminBook; index: number }) {
 
 export async function FeaturedPublications() {
   const { publications } = getHomeContent();
-  const featured = (await getPublishedBooks()).filter((b) => b.featured && !b.companionOf).slice(0, 3);
+  const featured = (await getPublishedBooks()).filter((b) => b.featured && !b.companionOf).slice(0, 4);
 
   if (!featured.length) return null;
 
@@ -57,7 +57,7 @@ export async function FeaturedPublications() {
             {publications.cta.label}
           </ButtonLink>
         </Reveal>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-8">
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-10 lg:gap-y-8">
           {featured.map((book, i) => (
             <FeaturedBookCard key={book.slug} book={book} index={i} />
           ))}

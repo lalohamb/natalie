@@ -3,11 +3,15 @@ import { notFound } from "next/navigation";
 import { Reveal } from "@/components/motion/reveal";
 import { BookCard } from "@/components/sections/book-card";
 import { BookCoverImg } from "@/components/sections/book-cover-img";
+import { CheckoutButton } from "@/components/sections/checkout-button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getBook, getBooks } from "@/lib/book-content";
 import { formatPrice } from "@/lib/format";
+import { checkoutFulfilment } from "@/lib/stripe";
+import { bookStructuredData } from "@/lib/structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
 export const instant = false;
@@ -30,6 +34,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** "the United States and Canada" — from the countries checkout accepts. */
+function shippingDestinations() {
+  const names = new Intl.DisplayNames(["en"], { type: "region" });
+  const countries = checkoutFulfilment().shippingCountries.map((code) => {
+    const name = names.of(code) ?? code;
+    return code === "US" ? "the United States" : name;
+  });
+  return new Intl.ListFormat("en", { style: "long", type: "conjunction" }).format(countries);
+}
+
 export default async function BookDetailPage({ params }: Props) {
   const { slug } = await params;
   const book = await getBook(slug);
@@ -44,15 +58,12 @@ export default async function BookDetailPage({ params }: Props) {
     .filter((b) => b.slug !== book.slug && b.slug !== companion?.slug && b.featured)
     .slice(0, 2);
 
-  const purchaseHref =
-    book.purchase.kind === "external"
-      ? book.purchase.url
-      : book.purchase.kind === "stripe-checkout"
-        ? `/api/checkout?priceId=${book.purchase.priceId}`
-        : null;
+  const purchaseHref = book.purchase.kind === "external" ? book.purchase.url : null;
+  const checkout = book.purchase.kind === "stripe-checkout" && !!book.purchase.priceId;
 
   return (
     <>
+      <JsonLd data={bookStructuredData(book)} />
       <article aria-labelledby="book-title">
         <section className="py-section">
           <Container className="grid items-start gap-14 lg:grid-cols-12 lg:gap-8">
@@ -89,6 +100,9 @@ export default async function BookDetailPage({ params }: Props) {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-4">
+                {book.status === "published" && checkout && book.purchase.kind === "stripe-checkout" && (
+                  <CheckoutButton slug={book.slug}>{book.purchase.label}</CheckoutButton>
+                )}
                 {book.status === "published" && purchaseHref && (
                   <ButtonLink href={purchaseHref}>
                     {book.purchase.kind !== "none" ? book.purchase.label : "Purchase"}
@@ -98,6 +112,9 @@ export default async function BookDetailPage({ params }: Props) {
                   <p className="self-center font-sans text-sm text-stone">Coming soon</p>
                 )}
               </div>
+              {book.status === "published" && checkout && (
+                <p className="mt-4 font-sans text-sm text-stone">Ships to {shippingDestinations()}.</p>
+              )}
 
               <div className="mt-12 flex flex-col gap-5 text-pretty text-stone">
                 {book.description.map((para, i) => (

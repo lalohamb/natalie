@@ -5,7 +5,9 @@ import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getEvent, getEvents } from "@/lib/content";
+import { eventStructuredData } from "@/lib/structured-data";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -74,6 +76,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd data={eventStructuredData(event)} />
       <article aria-labelledby="event-title">
         {/* ── Header ── */}
         <section className="border-b border-sand bg-linen py-16">
@@ -173,7 +176,7 @@ export default async function EventDetailPage({ params }: Props) {
             </p>
           </div>
           <ButtonLink href="/contact" variant="inverse" arrow className="shrink-0">
-            VIEW 2027 SCHEDULE
+            Submit an Inquiry
           </ButtonLink>
         </Container>
       </section>

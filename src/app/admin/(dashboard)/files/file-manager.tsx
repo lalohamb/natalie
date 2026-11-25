@@ -117,7 +117,7 @@ export function FileManager({ files }: { files: FileRow[] }) {
                         disabled={pending || file.usedBy.length > 0}
                         onClick={() => remove(file)}
                         aria-label={`Delete ${file.name}`}
-                        title={file.usedBy.length > 0 ? "In use — remove it from those videos first" : "Delete"}
+                        title={file.usedBy.length > 0 ? "In use — remove it from those videos or books first" : "Delete"}
                       >
                         <Trash2 aria-hidden className="size-4" strokeWidth={1.75} />
                       </button>

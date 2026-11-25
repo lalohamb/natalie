@@ -1,6 +1,6 @@
 # DOMAIN MODEL
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M4-H governance synchronization (2026-11-17) -->
+<!-- Last updated: M4-J section 3 remediation (2026-11-20, HEAD 247c069 + uncommitted working tree) -->
 
 Types are defined in `src/content/types.ts` unless noted. That file is the
 authority; this document summarizes it. (The duplicated pre-M2 copy of this
@@ -13,7 +13,7 @@ Site (singleton, static)
  ├── NavItem[] (main, secondary, legal) + CallToAction (Give)
  ├── SocialLink[] (verified flag gates rendering)
  └── GivingChannels (stripeUrl*, cashAppHandle, cashAppUrl, zelleEmail)
-        * overridable at runtime → StripeSettings.paymentLinkUrl
+        * replaced by the STRIPE_DONATION_PAYMENT_LINK env var when set
 
 Person — Natalie C. Flemons (singleton, static)
  ├── Bio
@@ -22,7 +22,7 @@ Person — Natalie C. Flemons (singleton, static)
 MinistryIdentity (singleton, static)
  └── MinistryPillar[]  EQUIP · RESTORE · ACTIVATE
 
-AdminBook (runtime store, admin-managed)          ← seeded from Book (static)
+AdminBook (runtime store, admin-managed)          ← not seeded (starts empty, by decision)
  ├── coverUrl → UploadedFile (/media-files/…) or absolute URL
  ├── PurchaseOption (external | stripe-checkout | none)
  │      └── stripe-checkout.priceId → Stripe Price   (external, authoritative for amount)
@@ -44,12 +44,12 @@ Product (static)
  └── PurchaseOption (external → Printify)
 
 GoogleCalendarConnection (runtime, encrypted refresh token)
-StripeSettings (runtime: paymentLinkUrl)
 AdminSession (signed cookie; no stored entity)
 
 External-only records (never stored by the application):
  Order / Payment (Stripe) · Donation (Stripe, Cash App, Zelle)
  NewsletterSubscriber (MailerLite) · MerchOrder (Printify)
+ ContactSubmission (emailed through Resend; never stored)
 ```
 
 ---
@@ -59,8 +59,8 @@ External-only records (never stored by the application):
 ### Site
 Owned by: application (`src/content/site.ts`). Mutable by code change + deploy.
 Giving: `stripeUrl`, `cashAppHandle`, `cashAppUrl`, `zelleEmail`. Consumers read
-giving through `getGiving()` (`src/lib/giving.ts`), which substitutes the
-admin-saved Payment Link when one exists.
+giving through `getGiving()` (`src/lib/giving.ts`), which substitutes
+`STRIPE_DONATION_PAYMENT_LINK` when that variable is set.
 
 ### MinistryIdentity / MinistryPillar
 ```ts
@@ -104,10 +104,17 @@ type AdminBook = {
   createdAt: string;
 }
 ```
-Internal ID: `slug`. New books get `slugified-title-xxxx` (4 random hex chars).
-Owned by: application — `MEDIA_STORAGE_DIR/books.json`, managed at
-`/admin/books`, validated by a zod schema in `src/lib/book-store.ts`.
-Immutable: `slug` (not editable in the admin; changing it breaks URLs).
+Internal ID: `slug`. New books get `slugified-title-xxxx` (4 random hex chars);
+the admin cannot choose or edit a slug, so a typo in the title at creation is
+permanent in the URL (G-54).
+Owned by: application — `MEDIA_STORAGE_DIR/books.json`, shape
+`{ version: number, books: AdminBook[] }`, managed at `/admin/books`.
+Validated by a zod schema in `src/lib/book-store.ts` on read and on write
+(G-57 resolved M4-O).
+`version` (currently 3) identifies the file format; files with any or no
+version, and the original bare-array format, are read as-is and never reset.
+No file → empty catalog; the first admin save creates it.
+Immutable: `slug` (changing it breaks URLs).
 Accessors (`src/lib/book-content.ts`): `getPublishedBooks()` / `getBooks()`,
 `getAdminBooks()`, `getAdminBook(slug)` / `getBook(slug)`.
 Visibility: only `status: "published"` appears on `/books` and in the sitemap.
@@ -116,22 +123,23 @@ forthcoming/unavailable titles by direct URL (with the purchase button
 suppressed) — intentional per the detail page's status eyebrow, but not
 recorded as an approved decision.
 
-### Book (static seed)
-`src/content/books.ts`, type `Book` (cover is a static `ImageAsset`). Used
-**only** to seed the store when `books.json` does not exist, and (incorrectly)
-by `/admin/book-sales` (G-43).
+### Book (static, reference copy)
+`src/content/books.ts`, type `Book`. Not read by the application and not a seed. Kept, with a
+header saying so, as the record of the original five titles' copy to re-enter
+at `/admin/books` (G-54).
 
-Catalog (5 titles, all featured in the current runtime store):
+Current store contents (`storage/books.json`, version 3, as of 2026-11-20) —
+**not launch data** (G-54):
 
-| Slug | Title | Companion of | Seed purchase (`books.ts`) | Runtime purchase (local `books.json`) |
-|---|---|---|---|---|
-| `repairing-the-breach` | Repairing the Breach | — | Stripe Checkout | Stripe Checkout · $14.99 |
-| `repair-the-breach-workbook` | Repair the Breach Workbook | `repairing-the-breach` | Squarespace URL ❌ | Stripe Checkout · $25.00 |
-| `the-midwife-to-your-destiny` | The Midwife To Your Destiny | — | Squarespace URL ❌ | Stripe Checkout · $14.99 |
-| `war-in-the-wait` | War In The Wait | — | Squarespace URL ❌ | Stripe Checkout · $14.99 |
-| `from-the-chaos-to-the-call` | From the Chaos to the Call | — | external, **empty URL** ❌ | Stripe Checkout · no display price, label "Purchase on Amazon" ❌ |
+| Slug | Title | Status | Display price | Purchase | Featured |
+|---|---|---|---|---|---|
+| `reparing-the-breack-b82b` (misspelled) | Repairing the Breach | published | $14.99 | Stripe Checkout | yes |
+| `repair-the-breach-workbook-0702` | Repair the Breach Workbook | published | $25.00 | Stripe Checkout | no |
+| `test-c3c0` | test | published | $5.00 | none | yes |
 
-Seed/runtime divergence: G-34. Runtime data defects: G-36.
+Missing from the store: *The Midwife To Your Destiny*, *War In The Wait*,
+*From the Chaos to the Call*. Cover files for all five titles are in
+`storage/files/`. The workbook's `companionOf` link is not set.
 
 ### PurchaseOption
 ```ts
@@ -141,7 +149,8 @@ type PurchaseOption =
   | { kind: "none" }
 ```
 `none` (or `external` with an empty URL) renders no purchase button.
-`stripe-checkout` renders a link to `/api/checkout?priceId=…` (G-31).
+`stripe-checkout` renders a `CheckoutButton` — a form POST of the book's
+`slug` to `/api/checkout`; the `priceId` stays on the server.
 `/store` renders a button only for `external`.
 
 ---
@@ -162,7 +171,8 @@ Owned by: application — `MEDIA_STORAGE_DIR/videos.json`, managed at
 `/admin/videos`; seeded from `src/content/media.ts`.
 Accessors (`src/lib/video-content.ts`): `getVideos()`, `getFeaturedVideo()`.
 One video may be `featured` (homepage). ⚠️ The currently featured video in
-the local store is test content (G-37).
+the store is test content, and the seed's first entry carries the same
+YouTube id (G-37). Store: 7 videos, all published, all `ministry-message`.
 
 ### PublicCalendar / CalendarEvent
 ```ts
@@ -170,14 +180,14 @@ type CalendarEvent = { id: string; title: string; description?: string; location
 type PublicCalendar = { timeZone: string; events: CalendarEvent[]; rangeStart: string; rangeEnd: string; currentMonth: string }
 ```
 Owned by: Google Calendar (external). The application holds a 5-minute cached,
-public-safe projection covering the previous month through 12 months ahead.
+public-safe projection covering the current month through 12 months ahead.
 Source: OAuth connection or public iCal feed (see API-CONTRACTS.md).
 
 ### MinistryEvent (static)
 `src/content/events.ts` — empty. Accessors in `src/lib/content.ts`
 (`getEvents`, `getUpcomingEvents`, `getEventsByYear`, `getEventsByMonth`,
-`getEvent`). Read only by the homepage `UpcomingEvents` section and
-`/events/[slug]`. Retire or reconnect under G-40.
+`getEvent`). Read only as the homepage fallback (when the calendar has no
+upcoming events) and by the unlinked `/events/[slug]` route (G-23).
 
 ---
 
@@ -213,8 +223,8 @@ type CallToAction = { label: string; href: string }
 - Legal: Privacy Policy · Terms of Use
 - Give CTA → `/donate` (redirects to `/partnerships`)
 
-Footer "Store" is hard-coded to the external Printify storefront, bypassing
-`secondaryNavigation` (G-47).
+Every "Store" link (secondary navigation and footer) points at `STORE_URL`
+in `site.ts`, the external Printify storefront.
 
 ### ImageAsset
 ```ts
@@ -229,23 +239,34 @@ seed; runtime books and videos use URL strings instead.
 
 | Entity | File (under `MEDIA_STORAGE_DIR`) | Contents |
 |---|---|---|
-| StripeSettings | `stripe-settings.json` | `paymentLinkUrl?` — donation link override |
 | GoogleCalendarConnection | `google-calendar.json` (mode 0600) | Account, chosen `calendarId`, AES-GCM-encrypted refresh token |
-| UploadedFile | `files/*` | Videos, posters, book covers |
+| BookStore | `books.json` | `{ version, books }` |
+| VideoStore | `videos.json` | `CuratedVideo[]` |
+| UploadedFile | `files/*` | Videos, posters, book covers. A file used by a video or as a book cover cannot be deleted |
+
+The `./storage` directory is tracked in git and is the authoritative content
+source. `ADMIN_READONLY=true` must be set in production to prevent runtime
+writes (G-53, G-35 resolved M4-P).
 
 ---
 
 ## External-only records
 
 ### NewsletterSubscriber — owned by MailerLite
-The application sends `{ email }` and stores nothing. Admin view reads
-`id, email, status, subscribed_at` and can delete a subscriber. No group or
-source is set (G-51).
+The application sends `{ email }` (plus a group when `MAILERLITE_GROUP_ID` is
+set) and stores nothing. Admin view reads `id, email, status, subscribed_at`
+and can delete a subscriber (G-51).
 
 ### Order / Payment — owned by Stripe
 Created by Stripe Checkout. The application stores nothing and receives no
-webhook (G-33). The admin reads PaymentIntents (amount, status, billing name,
-email, receipt URL) on demand. ❌ No shipping address is collected (G-32).
+webhook (none planned — G-33 resolved M4-Q; Stripe receipt email + Dashboard
+is the accepted order notification). The admin reads PaymentIntents (amount,
+status, billing name, email, receipt URL, delivery address) on demand.
+Checkout collects a delivery address in the United States or Canada; Stripe
+holds it — the application does not store it.
+The Stripe account in use is live mode (G-42).
 
-### ContactSubmission
-Not delivered, not persisted (G-24).
+### ContactSubmission — transient
+Name, email, optional organization, subject, message. Emailed through Resend
+to info@natalieflemons.com when `CONTACT_EMAIL_PROVIDER=resend`; never
+persisted by the application. Delivery unverified (G-24).

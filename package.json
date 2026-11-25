@@ -1,5 +1,5 @@
 {
-  "name": "natalie-flemons-ministries .v3",
+  "name": "natalie-flemons-ministries",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test",
+    "test:contract": "NODE_OPTIONS=--conditions=react-server playwright test -c playwright.contract.config.ts",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report"
   },

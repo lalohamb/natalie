@@ -1,12 +1,17 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "noEmit": true
   },
   "include": [
     "playwright.config.ts",
+    "playwright.contract.config.ts",
     "tests/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

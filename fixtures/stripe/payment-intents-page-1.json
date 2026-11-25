@@ -1,0 +1,49 @@
+{
+  "_source": "documented-shape",
+  "status": 200,
+  "body": {
+    "object": "list",
+    "url": "/v1/payment_intents",
+    "has_more": true,
+    "data": [
+      {
+        "id": "pi_test_001",
+        "object": "payment_intent",
+        "amount": 1499,
+        "currency": "usd",
+        "status": "succeeded",
+        "description": null,
+        "receipt_email": null,
+        "created": 1799582400,
+        "metadata": {},
+        "latest_charge": {
+          "id": "ch_test_001",
+          "billing_details": {
+            "name": "Test Buyer",
+            "email": "buyer@example.com"
+          },
+          "receipt_url": "https://pay.stripe.com/receipts/test"
+        }
+      },
+      {
+        "id": "pi_test_002",
+        "object": "payment_intent",
+        "amount": 5000,
+        "currency": "usd",
+        "status": "succeeded",
+        "description": null,
+        "receipt_email": null,
+        "created": 1799582400,
+        "metadata": {},
+        "latest_charge": {
+          "id": "ch_test_002",
+          "billing_details": {
+            "name": "Test Buyer",
+            "email": "buyer@example.com"
+          },
+          "receipt_url": "https://pay.stripe.com/receipts/test"
+        }
+      }
+    ]
+  }
+}

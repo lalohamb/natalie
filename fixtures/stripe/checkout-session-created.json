@@ -1,0 +1,15 @@
+{
+  "_source": "documented-shape",
+  "status": 200,
+  "body": {
+    "id": "cs_test_new",
+    "object": "checkout.session",
+    "mode": "payment",
+    "payment_status": "unpaid",
+    "status": "open",
+    "metadata": {
+      "book_slug": "sample-book"
+    },
+    "url": "https://checkout.stripe.com/c/pay/cs_test_new"
+  }
+}

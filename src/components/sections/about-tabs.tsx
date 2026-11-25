@@ -14,15 +14,21 @@ export function AboutTabs({ tabs }: AboutTabsProps) {
   const [panelHeight, setPanelHeight] = useState<number | undefined>(undefined);
   const measureRef = useRef<HTMLDivElement>(null);
 
-  // After first paint measure all hidden panels and lock to the tallest
+  // Measure the hidden copies of every panel and lock the visible one to the
+  // tallest, so switching tabs never shifts the page. The observer reports once
+  // on attach and again whenever fonts load or the text reflows.
   useEffect(() => {
-    if (!measureRef.current) return;
-    const panels = measureRef.current.querySelectorAll<HTMLDivElement>("[data-measure]");
-    let max = 0;
-    panels.forEach((el) => {
-      if (el.offsetHeight > max) max = el.offsetHeight;
+    const container = measureRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => {
+      let max = 0;
+      container.querySelectorAll<HTMLDivElement>("[data-measure]").forEach((el) => {
+        if (el.offsetHeight > max) max = el.offsetHeight;
+      });
+      if (max > 0) setPanelHeight(max);
     });
-    if (max > 0) setPanelHeight(max);
+    observer.observe(container);
+    return () => observer.disconnect();
   }, []);
 
   const current = tabs.find((t) => t.id === active) ?? tabs[0];
@@ -59,7 +65,9 @@ export function AboutTabs({ tabs }: AboutTabsProps) {
         id={`tabpanel-${current.id}`}
         role="tabpanel"
         aria-label={current.label}
-        className="mt-5 overflow-y-auto text-pretty text-stone"
+        // Focusable so keyboard users can scroll the panel when its text overflows.
+        tabIndex={0}
+        className="mt-5 overflow-y-auto text-pretty text-stone focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
         style={panelHeight ? { height: panelHeight } : undefined}
       >
         <div className="flex flex-col gap-4">

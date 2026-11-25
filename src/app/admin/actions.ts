@@ -8,9 +8,11 @@ import type { CuratedVideo } from "@/content/types";
 import {
   checkAdminPassword,
   clearLoginFailures,
+  clientIp,
   endAdminSession,
   isAdminConfigured,
   isLoginThrottled,
+  isReadOnly,
   recordLoginFailure,
   requireAdmin,
   startAdminSession,
@@ -35,7 +37,7 @@ import {
   signOut as signOutOfGoogle,
 } from "@/lib/google-calendar";
 import { deleteSubscriber as mlDeleteSubscriber } from "@/lib/mailerlite";
-import { savePaymentLinkUrl } from "@/lib/stripe-settings";
+import { getPrice, listStripeProducts, listStripeProductPrices, type StripeProduct, type StripePrice } from "@/lib/stripe";
 import {
   BOOK_CATEGORIES,
   BOOK_STATUSES,
@@ -63,7 +65,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     };
   }
 
-  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip = clientIp(await headers());
   if (isLoginThrottled(ip)) {
     return { status: "error", message: "Too many attempts. Please wait 15 minutes and try again." };
   }
@@ -229,6 +231,7 @@ function enforceSingleFeatured(videos: CuratedVideo[], featuredId: string) {
 
 export async function saveVideo(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
+  if (isReadOnly()) return { status: "error", message: "The admin is read-only in this environment." };
 
   const parsed = parseVideoForm(formData);
   if (!parsed.success) return fieldErrorsOf(parsed.error);
@@ -275,6 +278,7 @@ export async function saveVideo(id: string | null, _prev: FormState, formData: F
 
 export async function deleteVideo(id: string) {
   await requireAdmin();
+  if (isReadOnly()) return;
   await updateVideos((videos) => {
     const index = videos.findIndex((v) => v.id === id);
     if (index >= 0) videos.splice(index, 1);
@@ -284,6 +288,7 @@ export async function deleteVideo(id: string) {
 
 export async function setVideoPublished(id: string, published: boolean) {
   await requireAdmin();
+  if (isReadOnly()) return;
   await updateVideos((videos) => {
     const video = videos.find((v) => v.id === id);
     if (video) video.published = published;
@@ -293,6 +298,7 @@ export async function setVideoPublished(id: string, published: boolean) {
 
 export async function setVideoFeatured(id: string, featured: boolean) {
   await requireAdmin();
+  if (isReadOnly()) return;
   await updateVideos((videos) => {
     const video = videos.find((v) => v.id === id);
     if (!video) return;
@@ -304,6 +310,7 @@ export async function setVideoFeatured(id: string, featured: boolean) {
 
 export async function moveVideo(id: string, direction: "up" | "down") {
   await requireAdmin();
+  if (isReadOnly()) return;
   await updateVideos((videos) => {
     videos.sort((a, b) => a.displayOrder - b.displayOrder);
     const i = videos.findIndex((v) => v.id === id);
@@ -320,12 +327,14 @@ export async function moveVideo(id: string, direction: "up" | "down") {
 
 export async function deleteFile(name: string): Promise<{ ok: boolean; message: string }> {
   await requireAdmin();
+  if (isReadOnly()) return { ok: false, message: "The admin is read-only in this environment." };
   const url = `${UPLOAD_URL_PREFIX}${name}`;
-  const usedBy = videosUsingUrl(await readVideos(), url);
+  const [videos, books] = await Promise.all([readVideos(), readBooks()]);
+  const usedBy = [...videosUsingUrl(videos, url), ...books.filter((b) => b.coverUrl === url)];
   if (usedBy.length > 0) {
     return {
       ok: false,
-      message: `In use by: ${usedBy.map((v) => `“${v.title}”`).join(", ")}. Change or delete those videos first.`,
+      message: `In use by: ${usedBy.map((item) => `“${item.title}”`).join(", ")}. Change or delete those videos or books first.`,
     };
   }
   const deleted = await deleteUploadedFile(name);
@@ -339,6 +348,7 @@ export async function deleteFile(name: string): Promise<{ ok: boolean; message: 
 
 export async function selectCalendar(_prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
+  if (isReadOnly()) return { status: "error", message: "The admin is read-only in this environment." };
   const calendarId = String(formData.get("calendarId") ?? "");
 
   let calendars;
@@ -362,6 +372,7 @@ export async function selectCalendar(_prev: FormState, formData: FormData): Prom
 
 export async function signOutGoogle() {
   await requireAdmin();
+  if (isReadOnly()) return;
   await signOutOfGoogle();
   updateTag(CALENDAR_CACHE_TAG);
   refresh();
@@ -373,22 +384,9 @@ export async function signOutGoogle() {
 
 export async function deleteSubscriber(id: string): Promise<void> {
   await requireAdmin();
+  if (isReadOnly()) return;
   await mlDeleteSubscriber(id);
   refresh();
-}
-
-// ---------------------------------------------------------------------------
-// Stripe
-// ---------------------------------------------------------------------------
-
-export async function saveStripePaymentLink(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
-  const url = String(formData.get("url") ?? "").trim();
-  if (!url.startsWith("https://")) {
-    return { status: "error", message: "Please enter a valid https:// URL." };
-  }
-  await savePaymentLinkUrl(url);
-  return { status: "success", message: "Payment Link URL saved." };
 }
 
 // ---------------------------------------------------------------------------
@@ -416,6 +414,49 @@ const bookFormSchema = z.object({
   stripeProductId: z.string().trim().optional(),
 });
 
+/**
+ * Compares a book's display price with the Stripe Price that checkout will
+ * charge. A blank display price is filled in from Stripe; a different one is
+ * rejected. If Stripe can't be asked (no key, network error, a non-USD or
+ * customer-chosen amount) the entered value is kept unchanged.
+ */
+async function checkStripePrice(
+  priceId: string,
+  entered: number | undefined,
+): Promise<{ priceCents: number | undefined; fieldErrors?: Partial<Record<string, string>> }> {
+  if (!process.env.STRIPE_SECRET_KEY) return { priceCents: entered };
+
+  let price;
+  try {
+    price = await getPrice(priceId);
+  } catch (err) {
+    console.error("[admin] Stripe price lookup failed", err);
+    return { priceCents: entered };
+  }
+
+  if (!price) {
+    return {
+      priceCents: entered,
+      fieldErrors: { purchasePriceId: "Stripe has no price with this ID. Check it was copied in full and is from the same (live or test) Stripe account." },
+    };
+  }
+  if (!price.active) {
+    return { priceCents: entered, fieldErrors: { purchasePriceId: "This Stripe price is archived, so checkout would fail. Use an active price." } };
+  }
+  if (price.unit_amount === null || price.currency !== "usd") return { priceCents: entered };
+  if (entered === undefined) return { priceCents: price.unit_amount };
+  if (entered !== price.unit_amount) {
+    const dollars = (price.unit_amount / 100).toFixed(2);
+    return {
+      priceCents: entered,
+      fieldErrors: {
+        priceCents: "Stripe charges USD " + dollars + " for this price. Enter " + price.unit_amount + ", or leave this blank to use the Stripe amount.",
+      },
+    };
+  }
+  return { priceCents: entered };
+}
+
 function booksChanged() {
   updateTag(BOOKS_CACHE_TAG);
   refresh();
@@ -423,6 +464,7 @@ function booksChanged() {
 
 export async function saveBook(slug: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
+  if (isReadOnly()) return { status: "error", message: "The admin is read-only in this environment." };
 
   const raw = {
     title: String(formData.get("title") ?? ""),
@@ -456,6 +498,18 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
   }
 
   const d = parsed.data;
+
+  // The amount charged is whatever the Stripe Price says; the price shown on
+  // the site must agree with it.
+  let priceCents = d.priceCents;
+  if (d.purchaseKind === "stripe-checkout" && d.purchasePriceId) {
+    const check = await checkStripePrice(d.purchasePriceId, priceCents);
+    if (check.fieldErrors) {
+      return { status: "error", message: "Please correct the errors below.", fieldErrors: check.fieldErrors };
+    }
+    priceCents = check.priceCents;
+  }
+
   const purchase =
     d.purchaseKind === "external"
       ? { kind: "external" as const, url: d.purchaseUrl ?? "", label: d.purchaseLabel ?? "Purchase" }
@@ -470,7 +524,7 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
       book.title = d.title;
       book.subtitle = d.subtitle;
       book.status = d.status;
-      book.priceCents = d.priceCents;
+      book.priceCents = priceCents;
       book.summary = d.summary;
       book.description = d.description.split("\n\n").map((p) => p.trim()).filter(Boolean);
       book.coverUrl = d.coverUrl;
@@ -489,7 +543,7 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
         title: d.title,
         subtitle: d.subtitle,
         status: d.status,
-        priceCents: d.priceCents,
+        priceCents,
         summary: d.summary,
         description: d.description.split("\n\n").map((p) => p.trim()).filter(Boolean),
         coverUrl: d.coverUrl,
@@ -516,6 +570,7 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
 
 export async function deleteBook(slug: string) {
   await requireAdmin();
+  if (isReadOnly()) return;
   await updateBooks((books) => {
     const i = books.findIndex((b) => b.slug === slug);
     if (i >= 0) books.splice(i, 1);
@@ -525,9 +580,23 @@ export async function deleteBook(slug: string) {
 
 export async function setBookPublished(slug: string, status: "published" | "forthcoming" | "unavailable") {
   await requireAdmin();
+  if (isReadOnly()) return;
   await updateBooks((books) => {
     const book = books.find((b) => b.slug === slug);
     if (book) book.status = status;
   });
   booksChanged();
+}
+
+/** Fetches active Stripe products and, optionally, prices for one product. */
+export async function getStripeProductsForPicker(
+  productId?: string,
+): Promise<{ products: StripeProduct[]; prices: StripePrice[] }> {
+  await requireAdmin();
+  if (!process.env.STRIPE_SECRET_KEY) return { products: [], prices: [] };
+  const [products, prices] = await Promise.all([
+    listStripeProducts(),
+    productId ? listStripeProductPrices(productId) : Promise.resolve([]),
+  ]);
+  return { products, prices };
 }

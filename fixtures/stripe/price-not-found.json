@@ -1,0 +1,12 @@
+{
+  "_source": "documented-shape",
+  "status": 404,
+  "body": {
+    "error": {
+      "code": "resource_missing",
+      "message": "No such price: 'price_missing'",
+      "param": "price",
+      "type": "invalid_request_error"
+    }
+  }
+}

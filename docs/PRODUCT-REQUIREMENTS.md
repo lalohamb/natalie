@@ -1,6 +1,6 @@
 # PRODUCT REQUIREMENTS
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M4-H governance synchronization (2026-11-17) -->
+<!-- Last updated: M4-Q post-purchase confirmation G-33 (uncommitted working tree) -->
 
 Gap IDs (G-nn) refer to `KNOWN-GAPS.md`.
 
@@ -20,8 +20,8 @@ Can:
 Cannot:
 - Log in or create an account
 - Use a cart or buy more than one item per checkout
-- Have a contact-form message delivered — the form validates but does not
-  send; it directs the visitor to email (G-24)
+- Rely on the contact form yet — it sends through Resend when configured,
+  but delivery to the ministry inbox is unverified (G-24)
 
 ### Administrator / Ministry Operator
 Signs in at `/admin/login` with the shared admin password (8-hour session).
@@ -32,12 +32,14 @@ Can:
   cover, purchase method and Stripe price/product IDs
 - Connect a Google account and choose the public events calendar
 - View MailerLite subscriber stats, groups and subscribers; delete a subscriber
-- View Stripe balance and recent payments; change the donation Payment Link
-- View book orders and revenue per title (G-43: currently incomplete)
-- View integration status (G-45: currently unreliable)
+- View Stripe balance and recent payments (filter by status, search by name
+  or email); see whether the donation-link env var is set
+- View book orders, delivery addresses and revenue per title
+- View integration status
 
-Cannot (requires a code change + deploy): edit store products, bio, ministry
-copy, navigation, social links, legal pages.
+Cannot (requires a code change or env change + deploy): edit store products,
+bio, ministry copy, navigation, social links, legal pages, the donation
+Payment Link, or a book's slug.
 
 There is a single shared credential — no per-user accounts, roles, or audit
 trail of admin changes.
@@ -46,10 +48,13 @@ trail of admin changes.
 Automatically:
 - Filters unverified social links from all rendering
 - Reports newsletter/contact unavailability honestly
-- Seeds books and videos from static content until the first admin save
+- Seeds videos from static content until the first admin save. Books are not
+  seeded: the catalog starts empty and is never reset by the application
 - Refreshes the events calendar every 5 minutes
-- Generates JSON-LD structured data for the homepage, sitemap, and robots
-- Redirects legacy Squarespace URLs (`next.config.ts`)
+- Generates JSON-LD (homepage, `/about`, book and event pages), Open Graph
+  images, sitemap and robots
+- Redirects legacy Squarespace URLs (`next.config.ts`) — the book targets
+  currently 404 (G-54)
 - Serves a branded 404 for unknown routes
 
 ---
@@ -62,7 +67,7 @@ Required data: `homeContent`, bio, ministry identity, featured books, featured
 video, giving.
 Failure behavior: sections with no data (featured books, featured video) are
 omitted; upcoming events falls back to a generic invitation.
-⚠️ Homepage "Upcoming Events" reads static events, not the calendar (G-40).
+"Upcoming Events" shows the next three events from the public calendar.
 
 ### F-02: Book catalog and book detail
 Business purpose: surface publications and sell them.
@@ -81,20 +86,22 @@ Success condition: subscriber created in MailerLite; visitor told
 "subscribed" or "already on the list".
 Failure behavior: not configured → "not available" message; provider error →
 "you were not subscribed"; never fakes success.
-Spam protection: honeypot only (G-03, G-04).
+Spam protection: honeypot + per-IP rate limit (G-03 resolved M4-O, G-04 open).
 
 ### F-04: Giving
 Business purpose: enable financial partnership.
 User flow: Give CTA → `/donate` → `/partnerships` → Stripe Payment Link /
 Cash App / Zelle.
-Required data: `getGiving()` (static channels + optional admin override of
-the Stripe link).
+Required data: `getGiving()` (static channels; Stripe link from
+`STRIPE_DONATION_PAYMENT_LINK` when set).
 No tax-deductibility claim may be made (LLC, not a nonprofit).
 
 ### F-05: Speaking invitation
 Business purpose: generate ministry/speaking inquiries.
 User flow: "Invite Natalie" CTAs → `/contact` or `/events#invite`.
-Success condition: ❌ NOT MET — the contact form does not deliver (G-24).
+Required config: `CONTACT_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`.
+Success condition: ⚠️ UNVERIFIED — the form sends through Resend, but
+delivery from the test sender to the ministry inbox is not confirmed (G-24).
 
 ### F-06: Branded 404
 Renders with `robots: noindex` and CTAs back into the site.
@@ -102,18 +109,24 @@ Renders with `robots: noindex` and CTAs back into the site.
 ### F-07: Book checkout (added M4)
 Business purpose: sell books directly, replacing legacy Squarespace.
 User flow: "Purchase" → `/api/checkout` → Stripe Checkout → back to `/books`.
-Required config: `STRIPE_SECRET_KEY`; each book needs a Stripe Price ID.
+Required config: `STRIPE_SECRET_KEY` (currently a live-mode key, G-42); each
+book needs a Stripe Price ID.
 Success condition: buyer pays the Stripe price, receives confirmation, and the
 ministry has what it needs to fulfil the order.
-Status: ❌ NOT LAUNCH-READY — unvalidated price ID (G-31), no shipping
-address (G-32), no confirmation or order notification (G-33).
+Failure behavior: Stripe unavailable or rate limit reached → back on the book
+page with a message that the buyer was not charged.
+Delivery: Stripe collects a shipping address (United States and Canada);
+the book page states where books ship; the admin sees the address per order.
+Status: ⚠️ Shipping fee undecided (G-32). Confirmation shown on `/books` after
+  Stripe redirects back (G-33 resolved M4-Q). Order notification: Stripe
+  receipt email + Dashboard (decided M4-Q).
 
 ### F-08: Events calendar (added M4)
 Business purpose: publish the ministry schedule without code changes.
 User flow: `/events` → month calendar → event details.
 Required config: Google OAuth connection or `GOOGLE_CALENDAR_ICAL_URL`.
-Failure behavior: "The upcoming schedule is being finalised." (G-40: this
-state has no `<h1>`.)
+Failure behavior: the heading stays; the calendar area reads "The upcoming
+schedule is being finalised."
 
 ### F-09: Media library (added M4)
 Business purpose: present ministry messages.
@@ -122,7 +135,8 @@ YouTube, or Facebook).
 
 ### F-10: Store (merchandise)
 Business purpose: route merchandise buyers to the Printify storefront.
-Presentation only; price/variants shown are static copies (G-41, G-47).
+Store links go straight to Printify. `/store` remains as a product page
+(not in navigation or the sitemap); its prices/variants are static copies (G-41).
 
 ### F-11: Admin dashboard (added M4)
 See Administrator role above.
@@ -134,7 +148,7 @@ See Administrator role above.
 FR-001: Content must be read through the accessor modules
   (`src/lib/content.ts`, `book-content.ts`, `video-content.ts`, `giving.ts`).
   Pages and components must not import directly from `src/content/*`.
-  Known violations: `/admin/book-sales`, `/admin/donations` (G-43).
+  No known violations.
 
 FR-002: Unverified social links (`verified: false`) must not be rendered.
 
@@ -163,7 +177,7 @@ FR-011 (M4): Every admin page, admin Server Action and admin Route Handler
   must verify the admin session itself; `src/proxy.ts` is convenience only.
 
 FR-012 (M4): The amount charged for a book must come from a Stripe Price
-  resolved on the server from the book catalog. ❌ Not met (G-31).
+  resolved on the server from the book catalog. ✅ Met (M4-K).
 
 FR-013 (M4): Secret keys must never be exposed with a `NEXT_PUBLIC_` prefix or
   imported into Client Components.
@@ -180,30 +194,36 @@ FR-014 (M4): Only public-safe calendar fields (title, time, location,
 - `next/image` with AVIF/WebP for static imagery; `next/font` self-hosting.
 - `cacheComponents: true`, `partialPrefetching: true`.
 - Hero portrait uses `fetchPriority="high"`.
-- ⚠️ Deviation: book covers use a plain `<img>` (G-49).
+- Book covers hosted by the site are served through `next/image`.
 
 ### Security
-- Admin session: HMAC-signed, HTTP-only cookie; login throttled per IP.
+- Admin session: HMAC-signed, HTTP-only cookie; login throttled per IP (must
+  run behind a reverse proxy).
+- Security headers on every response (HSTS, nosniff, frame protection,
+  referrer and permissions policies, minimal CSP).
 - Secrets server-only; `.env*` gitignored.
 - Honeypot on public forms.
-- ❌ No rate limiting on public actions or `/api/checkout` (G-03).
+- ✅ Rate limiting on newsletter and contact actions (G-03 resolved M4-O); checkout is also limited.
 - ❌ No CAPTCHA (G-04).
-- ❌ `/api/checkout` accepts arbitrary price IDs over GET (G-31).
+- ✅ Book-store writes are validated before persisting (G-57 resolved M4-O).
 
 ### Accessibility
 - Target: WCAG 2.2 AA. Skip link, alt text, reduced motion, focus-visible.
 - Automated axe scanning exists for public routes; last recorded pass was M3
-  and has not been re-run against M4 changes (G-38). `/events` empty state
-  lacks an `<h1>` (G-40).
+  and is stale (G-38); `/about` colour contrast resolved (G-62 resolved M4-O).
 
 ### Operability
-- Requires a persistent, writable, single-instance disk for
-  `MEDIA_STORAGE_DIR` (G-35). No backup procedure is defined.
-- Node version pinned in `.nvmrc`.
+- ✅ Storage model decided (M4-P, G-53, G-35): content committed to the
+  repository; `ADMIN_READONLY=true` disables writes in production. No
+  persistent volume required. Backup is git history.
+- Node version pinned in `.nvmrc` (22).
+- ❌ No separate test-mode environment; development uses live provider
+  credentials (G-55).
 
 ### Observability
-- `console.error` logging at provider boundaries.
-- ❌ No structured logging, error tracking or analytics (G-09).
+- `console.error` logging at provider boundaries; every uncaught server
+  error is logged as one JSON line (`src/instrumentation.ts`).
+- Optional, off until configured: error webhook, Google Analytics 4 (G-09).
 
 ---
 
@@ -216,16 +236,17 @@ FR-014 (M4): Only public-safe calendar fields (title, time, location,
 | Visual design + animation (M3) | ✅ Complete |
 | Admin auth + dashboard | ✅ Built |
 | Admin-managed videos + uploads | ✅ Built |
-| Admin-managed books | ✅ Built — seed divergence G-34 |
-| Google Calendar events (OAuth + iCal) | ✅ Built — G-40 |
-| Newsletter via MailerLite | ✅ Built — G-03, G-28, G-51 |
-| Stripe book checkout | ⚠️ Built, not launch-ready — G-31, G-32, G-33 |
-| Admin donations / book sales views | ⚠️ Built — G-43, G-44 |
+| Admin-managed books | ⚠️ Built — catalog data G-54 |
+| Google Calendar events (OAuth + iCal), incl. homepage | ✅ Built — test data G-63 |
+| Newsletter via MailerLite | ✅ Built — G-28, G-51 |
+| Stripe book checkout | ⚠️ Built — shipping fee decision G-32 |
+| Admin donations / book sales views | ✅ Built |
 | Merchandise via Printify links | ⚠️ Built, unverified — G-41 |
-| Contact form delivery (Resend) | ❌ Not implemented — G-24 |
-| Rate limiting / CAPTCHA | ❌ Not implemented — G-03, G-04 |
-| Analytics / error tracking | ❌ Not implemented — G-09 |
-| OG image generation | ❌ Not implemented — G-11 |
-| Privacy Policy / Terms text | ❌ Owner-supplied — G-25, G-26 |
+| Provider contract tests | ⚠️ Built on documented-shape fixtures — G-28 |
+| Contact form delivery (Resend) | ⚠️ Built, delivery unverified — G-24 |
+| Rate limiting / CAPTCHA | ⚠️ Partial — newsletter and contact rate-limited (G-03 resolved M4-O); no CAPTCHA (G-04) |
+| Analytics / error tracking | ⚠️ Built, not configured — G-09 |
+| OG image generation | ✅ Built (uncommitted) |
+| Privacy Policy / Terms text | ⚠️ Text present, owner approval not recorded — G-25, G-26 |
 | Cart / multi-item checkout, merch checkout on site | Not planned |
 | Autobiography / My Story section | Future — content not supplied |

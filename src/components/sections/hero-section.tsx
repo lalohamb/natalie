@@ -60,6 +60,7 @@ export function HeroSection() {
             */}
             <h1
               id="hero-heading"
+              data-speakable
               aria-label={`${lineOne} ${lineTwo} ${emphasis}`}
               className="mt-6 font-display text-display-lg font-medium text-espresso uppercase leading-[0.95] tracking-[-0.015em]"
             >

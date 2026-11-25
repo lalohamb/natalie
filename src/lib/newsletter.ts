@@ -14,13 +14,15 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
       return "error";
     }
 
+    const groupId = process.env.MAILERLITE_GROUP_ID?.trim();
     const res = await fetch("https://connect.mailerlite.com/api/subscribers", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ email }),
+      // MAILERLITE_GROUP_ID (optional) files new subscribers under one MailerLite group.
+      body: JSON.stringify(groupId ? { email, groups: [groupId] } : { email }),
     });
 
     if (res.status === 200) return "already-subscribed";

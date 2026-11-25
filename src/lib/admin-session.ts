@@ -10,9 +10,23 @@ export const SESSION_TTL_SECONDS = 60 * 60 * 8;
 
 const encoder = new TextEncoder();
 
-/** Sessions are signed with ADMIN_SESSION_SECRET, falling back to ADMIN_PASSWORD. */
+let warnedAboutFallback = false;
+
+/**
+ * Sessions are signed with ADMIN_SESSION_SECRET, falling back to ADMIN_PASSWORD.
+ * The fallback keeps a fresh install working, but production should set a
+ * separate random secret: rotating it signs every admin out without changing
+ * the password, and a leaked session token then says nothing about the password.
+ */
 function signingSecret() {
-  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || "";
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (secret) return secret;
+  const password = process.env.ADMIN_PASSWORD || "";
+  if (password && process.env.NODE_ENV === "production" && !warnedAboutFallback) {
+    warnedAboutFallback = true;
+    console.warn("[admin] ADMIN_SESSION_SECRET is not set; admin sessions are signed with ADMIN_PASSWORD. Set a separate random secret.");
+  }
+  return password;
 }
 
 function toBase64Url(bytes: ArrayBuffer) {

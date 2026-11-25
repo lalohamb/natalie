@@ -10,7 +10,7 @@ import { formatPrice } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Store",
-  description: "Ministry merchandise from Natalie Flemons Ministries — Pray Hoodies and T-Shirts.",
+  description: "Ministry merchandise from Natalie Flemons Ministries — the Pray Hoodie and Pray Coffee Mug.",
   alternates: { canonical: "/store" },
   openGraph: { url: "/store" },
 };
@@ -26,7 +26,7 @@ export default function StorePage() {
             as="h1"
             eyebrow="Ministry Store"
             title="Spirit · Truth · Strategy"
-            lede="Ministry merchandise. Purchases are fulfilled through our store."
+            lede="Ministry merchandise. Orders are placed and fulfilled through our online store."
             className="motion-safe:animate-rise"
           />
         </Container>
@@ -77,7 +77,7 @@ export default function StorePage() {
                       )}
 
                       <div className="mt-6">
-                        <Eyebrow rule={false}>Ministry Apparel</Eyebrow>
+                        <Eyebrow rule={false}>Ministry Merchandise</Eyebrow>
                         <h2
                           id={`product-${product.slug}`}
                           className="mt-3 font-display text-display-sm font-medium"
@@ -126,8 +126,8 @@ export default function StorePage() {
       <div className="border-t border-sand bg-linen py-10">
         <Container>
           <p className="text-sm text-stone">
-            Stock availability reflects our last audit and may have changed.
-            Purchases are processed through our external store.
+            Prices, sizes and availability are confirmed at checkout in our online store,
+            where purchases are processed.
           </p>
         </Container>
       </div>

@@ -1,6 +1,6 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
-import { getNavigation, getSite, getSocialLinks, getHomeContent } from "@/lib/content";
+import { getNavigation, getSite, getSocialLinks, getHomeContent, getStoreUrl } from "@/lib/content";
 import { Container } from "@/components/ui/container";
 import { NewsletterForm } from "@/components/forms/newsletter-form";
 import { SocialIcon } from "@/components/ui/social-icon";
@@ -74,8 +74,7 @@ export function SiteFooter() {
               {[
                 { label: "Books", href: "/books" },
                 { label: "Media", href: "/media" },
-                { label: "Store", href: "https://thereformcollective.printify.me/" }  
-                //{ label: "Store", href: "/store" },
+                { label: "Store", href: getStoreUrl() },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="inline-flex min-h-8 items-center hover:text-ivory">

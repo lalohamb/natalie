@@ -2,12 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
-import path from "node:path";
 import { z } from "zod";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { StaticImageData } from "next/image";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { books as seedBooks } from "@/content/books";
 import { STORAGE_DIR, dataPath, writeFileAtomic } from "@/lib/storage";
 import type { AdminBook } from "@/content/types";
 
@@ -44,73 +39,52 @@ const bookSchema = z.object({
   createdAt: z.string(),
 });
 
-// Bump this when seedToAdmin() changes in a way that should overwrite stored data.
-const SEED_VERSION = 3;
+/*
+ * books.json holds `{ version, books }`. `version` identifies the FILE FORMAT
+ * only. It must never be used to decide that stored books are out of date:
+ * whatever is in the file is the catalog, and nothing here ever replaces or
+ * discards it. (An earlier version of this module reset the file to an empty
+ * catalog whenever a "seed version" was raised, which deleted every book the
+ * admin had entered.)
+ *
+ * If the format ever has to change, convert old files in `parseBookManifest`
+ * so their books are carried over.
+ */
+const FORMAT_VERSION = 3;
 
-const manifestSchema = z.object({
-  version: z.number(),
-  books: z.array(bookSchema),
-});
+/** Current format, and the older ones still readable: no/any version number, or a bare array of books. */
+const manifestSchema = z.union([
+  z.object({ version: z.number().optional(), books: z.array(bookSchema) }),
+  z.array(bookSchema).transform((books) => ({ version: undefined, books })),
+]);
 
-// ---------------------------------------------------------------------------
-// Seed: convert static Book entries to AdminBook format
-// ---------------------------------------------------------------------------
-
-function seedToAdmin(): AdminBook[] {
-  return [];
-}
-
-function _seedToAdmin_legacy(): AdminBook[] {
-  return seedBooks.map((b, i) => ({
-    slug: b.slug,
-    title: b.title,
-    subtitle: b.subtitle,
-    status: b.status,
-    priceCents: b.priceCents,
-    summary: b.summary,
-    description: b.description,
-    // StaticImageData has a `.src` string — use it as the coverUrl so images
-    // aren't lost when the store is seeded from books.ts.
-    coverUrl: b.coverIsMockup ? undefined : (b.cover.src as unknown as StaticImageData).src,
-    coverAlt: b.cover.alt,
-    coverIsMockup: b.coverIsMockup,
-    forewordBy: b.forewordBy,
-    note: b.note,
-    companionOf: b.companionOf,
-    purchase: b.purchase,
-    featured: b.featured,
-    category: b.category,
-    stripeProductId: b.stripeProductId,
-    displayOrder: i + 1,
-    createdAt: new Date().toISOString(),
-  }));
+/**
+ * Parses the contents of books.json into the catalog, in display order.
+ * Throws if the file is not valid — the caller must not "repair" it by
+ * overwriting, because that would destroy the catalog.
+ */
+export function parseBookManifest(raw: string): AdminBook[] {
+  return manifestSchema.parse(JSON.parse(raw)).books.sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
 // ---------------------------------------------------------------------------
 // Read / write
 // ---------------------------------------------------------------------------
 
+/**
+ * The catalog as stored. A store that has never been written (no books.json)
+ * is an empty catalog: books are entered at /admin/books, there is no seed.
+ * Reading never writes — the file is created by the first admin save.
+ */
 export async function readBooks(): Promise<AdminBook[]> {
   let raw: string;
   try {
     raw = await fs.readFile(MANIFEST_PATH, "utf8");
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-      const seeded = seedToAdmin();
-      await writeFileAtomic(MANIFEST_PATH, JSON.stringify({ version: SEED_VERSION, books: seeded }, null, 2) + "\n");
-      return seeded;
-    }
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw err;
   }
-
-  const parsed = JSON.parse(raw);
-  if (!parsed.version || parsed.version < SEED_VERSION) {
-    const seeded = seedToAdmin();
-    await writeFileAtomic(MANIFEST_PATH, JSON.stringify({ version: SEED_VERSION, books: seeded }, null, 2) + "\n");
-    return seeded;
-  }
-
-  return manifestSchema.parse(parsed).books.sort((a, b) => a.displayOrder - b.displayOrder);
+  return parseBookManifest(raw);
 }
 
 let writeQueue: Promise<unknown> = Promise.resolve();
@@ -120,7 +94,9 @@ export function updateBooks<T>(mutate: (books: AdminBook[]) => T | Promise<T>): 
     const books = await readBooks();
     const result = await mutate(books);
     books.sort((a, b) => a.displayOrder - b.displayOrder).forEach((b, i) => (b.displayOrder = i + 1));
-    await writeFileAtomic(MANIFEST_PATH, JSON.stringify({ version: SEED_VERSION, books }, null, 2) + "\n");
+    const manifest = { version: FORMAT_VERSION, books };
+    manifestSchema.parse(manifest);
+    await writeFileAtomic(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");
     return result;
   });
   writeQueue = run.catch(() => {});

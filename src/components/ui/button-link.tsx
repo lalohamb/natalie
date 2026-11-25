@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 
+export type ButtonVariant = Variant;
 type Variant = "primary" | "secondary" | "inverse" | "outline-inverse" | "text" | "text-inverse";
 
 const base =
@@ -29,7 +30,10 @@ type ButtonLinkProps = {
   "aria-label"?: string;
 };
 
-const isExternal = (href: string) => /^https?:\/\//.test(href) || href.startsWith("/api/");
+/** Class names for a button in one of the site's variants — shared with real <button> elements. */
+export const buttonClasses = (variant: Variant = "primary", className?: string) => cn(base, variants[variant], className);
+
+const isExternal = (href: string) => /^https?:\/\//.test(href);
 
 export function ButtonLink({
   href,
@@ -51,18 +55,11 @@ export function ButtonLink({
   );
 
   if (external) {
-    const isApi = href.startsWith("/api/");
     return (
-      <a
-        href={href}
-        className={classes}
-        target={isApi ? undefined : "_blank"}
-        rel={isApi ? undefined : "noopener noreferrer"}
-        {...rest}
-      >
+      <a href={href} className={classes} target="_blank" rel="noopener noreferrer" {...rest}>
         {children}
-        {!isApi && icon}
-        {!isApi && <span className="sr-only"> (opens in a new tab)</span>}
+        {icon}
+        <span className="sr-only"> (opens in a new tab)</span>
       </a>
     );
   }

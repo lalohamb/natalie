@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-session";
+import { isReadOnly } from "@/lib/admin-auth";
 import { MAX_UPLOAD_BYTES, saveUpload } from "@/lib/media-store";
 
 /*
@@ -17,6 +18,10 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   if (!origin || new URL(origin).host !== request.headers.get("host")) {
     return Response.json({ error: "Cross-origin upload rejected." }, { status: 403 });
+  }
+
+  if (isReadOnly()) {
+    return Response.json({ error: "The admin is read-only in this environment." }, { status: 403 });
   }
 
   const name = request.nextUrl.searchParams.get("name");

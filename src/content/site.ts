@@ -4,7 +4,8 @@ export const site = {
   name: "Natalie Flemons Ministries",
   legalName: "Natalie Flemons Ministries",
   principal: "Natalie C. Flemons",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.natalieflemons.com",
+  // `||`, not `??`: an empty NEXT_PUBLIC_SITE_URL= (as copied from .env.example) means "use the default".
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.natalieflemons.com",
   tagline: "Shaping Destinies. Advancing the Kingdom.",
   mission: "Leading people from their chaos to their call.",
   description:
@@ -12,6 +13,9 @@ export const site = {
   email: "info@natalieflemons.com",
   locale: "en_US",
 } as const;
+
+/** The ministry's Printify storefront — the one place "Store" links point. */
+export const STORE_URL = "https://thereformcollective.printify.me/";
 
 export const mainNavigation: NavItem[] = [
   { label: "About", href: "/about" },
@@ -23,7 +27,7 @@ export const mainNavigation: NavItem[] = [
 
 /** Secondary navigation rendered in the footer (not the main header). */
 export const secondaryNavigation: NavItem[] = [
-  { label: "Store", href: "/store" },
+  { label: "Store", href: STORE_URL },
   { label: "Partnerships", href: "/partnerships" },
   { label: "Contact", href: "/contact" },
 ];

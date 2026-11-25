@@ -1,7 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 import { subscribeToNewsletter } from "@/lib/newsletter";
+import { clientIp, createRateLimiter } from "@/lib/rate-limit";
+
+const limiter = createRateLimiter({ limit: 5, windowMs: 10 * 60 * 1000 });
 
 export type NewsletterState =
   | { status: "idle" }
@@ -29,6 +33,10 @@ export async function subscribe(_prev: NewsletterState, formData: FormData): Pro
     }
     const fieldError = parsed.error.issues.find((issue) => issue.path[0] === "email")?.message;
     return { status: "error", message: "Please check your email address.", fieldError };
+  }
+
+  if (!limiter.hit(clientIp(await headers()))) {
+    return { status: "error", message: "Too many requests. Please try again in a few minutes." };
   }
 
   const result = await subscribeToNewsletter(parsed.data.email);

@@ -1,0 +1,18 @@
+{
+  "_source": "documented-shape",
+  "status": 200,
+  "body": {
+    "data": {
+      "id": "31897397363737859",
+      "email": "new.subscriber@example.com",
+      "status": "active",
+      "source": "api",
+      "subscribed_at": "2027-01-10 12:00:00",
+      "fields": {
+        "name": null,
+        "last_name": null
+      },
+      "groups": []
+    }
+  }
+}

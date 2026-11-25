@@ -1,6 +1,6 @@
 # BUSINESS CHARTER
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M4-H governance synchronization (2026-11-17) -->
+<!-- Last updated: M4-I code audit (2026-11-20) — contact delivery and Stripe mode lines only -->
 
 ## Product Name
 
@@ -32,8 +32,9 @@ for booking inquiries, and enables financial partnership with the ministry.
 
 ## Revenue Model
 
-- Book sales — Stripe Checkout on this site (implemented M4; not yet
-  launch-ready, see KNOWN-GAPS G-31/G-32/G-33). ⚠️ UNVERIFIED: no recorded
+- Book sales — Stripe Checkout on this site (implemented M4; shipping fee
+  undecided, see KNOWN-GAPS G-32; G-33 resolved M4-Q. The Stripe account in
+  use is live mode, G-42). ⚠️ UNVERIFIED: no recorded
   owner approval of the commerce option (IMPLEMENTATION-PLAN.md §5), and the
   fulfilment/shipping model is not documented.
 - Merchandise sales — external Printify storefront
@@ -50,10 +51,12 @@ intends to add one.
 ## Primary Business Workflows
 
 1. Visitor discovers site → reads about Natalie → explores books → pays
-   through Stripe Checkout → ministry fulfils the order (⚠️ fulfilment
-   process UNVERIFIED — no shipping address is collected today, G-32)
+   through Stripe Checkout, giving a delivery address in the United States or
+   Canada → ministry fulfils the order (⚠️ shipping fee and who ships are not
+   yet decided, G-32)
 2. Visitor → submits booking inquiry → ministry receives email → responds
-   off-platform (❌ contact form does not deliver yet, G-24)
+   off-platform (⚠️ the form now sends through Resend; delivery to the
+   ministry inbox is unverified, G-24)
 3. Visitor → clicks Give → Stripe Payment Link, Cash App or Zelle → donation
    processed off-platform
 4. Visitor → signs up for newsletter → subscriber stored in MailerLite

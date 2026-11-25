@@ -383,9 +383,53 @@ export async function getPublicCalendar(): Promise<PublicCalendar | null> {
   }
 }
 
+/**
+ * The next few events on the public calendar that have not finished yet, for
+ * the homepage. Null when no calendar is available (the caller falls back).
+ * "Now" is read inside the cache boundary, so the list is at most 5 minutes old.
+ */
+export async function getUpcomingCalendarEvents(limit = 3): Promise<{ timeZone: string; events: CalendarEvent[] } | null> {
+  "use cache";
+  cacheTag(CALENDAR_CACHE_TAG);
+  cacheLife({ stale: 300, revalidate: 300, expire: 86_400 });
+
+  const calendar = await getPublicCalendar();
+  if (!calendar) return null;
+  return { timeZone: calendar.timeZone, events: upcomingEvents(calendar, new Date(), limit) };
+}
+
+/** Events still to come (or under way) at `now`, soonest first. Pure — exported for tests. */
+export function upcomingEvents(calendar: PublicCalendar, now: Date, limit: number): CalendarEvent[] {
+  const today = localStamp(now, calendar.timeZone).slice(0, 10);
+  // One comparable key per event: all-day events sort at the start of their day.
+  const sortKey = (e: CalendarEvent) => (e.allDay ? e.start : localStamp(new Date(e.start), calendar.timeZone));
+
+  return calendar.events
+    .filter((e) =>
+      e.allDay
+        ? // All-day `end` is exclusive; a one-day event may also carry end === start.
+          e.end > today || e.start >= today
+        : new Date(e.end).getTime() >= now.getTime(),
+    )
+    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
+    .slice(0, limit);
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** "YYYY-MM-DDTHH:mm" wall-clock time in a zone — sortable against "YYYY-MM-DD" dates. */
+function localStamp(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
 
 function monthInZone(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit" }).formatToParts(date);

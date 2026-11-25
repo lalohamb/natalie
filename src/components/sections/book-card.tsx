@@ -4,6 +4,7 @@ import type { AdminBook } from "@/content/types";
 import { cn } from "@/lib/cn";
 import { formatPrice } from "@/lib/format";
 import { BookCoverImg } from "./book-cover-img";
+import { CheckoutButton } from "./checkout-button";
 
 type BookCardProps = {
   book: AdminBook;
@@ -24,12 +25,9 @@ function BookCover({ book, sizes, className }: { book: AdminBook; sizes: string;
 }
 
 function BookActions({ book, compact = false }: { book: AdminBook; compact?: boolean }) {
-  const purchaseHref =
-    book.purchase.kind === "external"
-      ? book.purchase.url
-      : book.purchase.kind === "stripe-checkout"
-        ? `/api/checkout?priceId=${book.purchase.priceId}`
-        : null;
+  const purchasable = book.status === "published";
+  const purchaseHref = purchasable && book.purchase.kind === "external" ? book.purchase.url : null;
+  const checkout = purchasable && book.purchase.kind === "stripe-checkout" && !!book.purchase.priceId;
 
   const purchaseLabel =
     book.purchase.kind !== "none" ? book.purchase.label : null;
@@ -44,6 +42,11 @@ function BookActions({ book, compact = false }: { book: AdminBook; compact?: boo
       >
         Learn More
       </ButtonLink>
+      {checkout && purchaseLabel && (
+        <CheckoutButton slug={book.slug} variant={compact ? "text" : "primary"} aria-label={`${purchaseLabel} ${book.title}`}>
+          {purchaseLabel}
+        </CheckoutButton>
+      )}
       {purchaseHref && purchaseLabel && (
         <ButtonLink
           href={purchaseHref}

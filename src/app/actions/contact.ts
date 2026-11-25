@@ -1,6 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
+import { deliverContactMessage } from "@/lib/contact-email";
+import { clientIp, createRateLimiter } from "@/lib/rate-limit";
+
+const limiter = createRateLimiter({ limit: 5, windowMs: 10 * 60 * 1000 });
 
 export type ContactState =
   | { status: "idle" }
@@ -23,51 +28,6 @@ const SUBJECT_LABELS: Record<string, string> = {
   general: "General Question",
   other: "Other",
 };
-
-async function sendViaResend(data: {
-  name: string;
-  email: string;
-  organization?: string;
-  subject: string;
-  message: string;
-}): Promise<"ok" | "error"> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error("[contact] RESEND_API_KEY is not set");
-    return "error";
-  }
-
-  const subjectLabel = SUBJECT_LABELS[data.subject] ?? data.subject;
-  const orgLine = data.organization ? `\nOrganization: ${data.organization}` : "";
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      from: "Natalie Flemons Ministries <onboarding@resend.dev>",
-      to: ["info@natalieflemons.com"],
-      reply_to: data.email,
-      subject: `[Contact] ${subjectLabel} — ${data.name}`,
-      text: [
-        `Name: ${data.name}`,
-        `Email: ${data.email}`,
-        orgLine,
-        `Subject: ${subjectLabel}`,
-        "",
-        data.message,
-      ].filter((l) => l !== undefined).join("\n"),
-    }),
-  });
-
-  if (!res.ok) {
-    console.error("[contact] Resend error", res.status, await res.text());
-    return "error";
-  }
-  return "ok";
-}
 
 export async function submitContact(
   _prev: ContactState,
@@ -94,33 +54,31 @@ export async function submitContact(
     return { status: "error", message: "Please correct the errors below.", fieldErrors };
   }
 
-  const provider = process.env.CONTACT_EMAIL_PROVIDER;
-
-  if (!provider) {
-    return {
-      status: "error",
-      message:
-        "Our contact form isn't available just yet. Please email us directly at info@natalieflemons.com and we'll respond as soon as possible.",
-    };
+  if (!limiter.hit(clientIp(await headers()))) {
+    return { status: "error", message: "Too many requests. Please try again in a few minutes." };
   }
 
-  if (provider === "resend") {
-    const result = await sendViaResend(parsed.data);
-    if (result === "ok") {
+  const result = await deliverContactMessage({
+    ...parsed.data,
+    subject: SUBJECT_LABELS[parsed.data.subject] ?? parsed.data.subject,
+  });
+
+  switch (result) {
+    case "sent":
       return {
         status: "success",
         message: "Thank you! Your message has been sent. We'll be in touch soon.",
       };
-    }
-    return {
-      status: "error",
-      message: "Something went wrong sending your message. Please email info@natalieflemons.com directly.",
-    };
+    case "not-configured":
+      return {
+        status: "error",
+        message:
+          "Our contact form isn't available just yet. Please email us directly at info@natalieflemons.com and we'll respond as soon as possible.",
+      };
+    default:
+      return {
+        status: "error",
+        message: "Something went wrong sending your message. Please email info@natalieflemons.com directly.",
+      };
   }
-
-  console.error(`[contact] Unsupported CONTACT_EMAIL_PROVIDER "${provider}"`);
-  return {
-    status: "error",
-    message: "Something went wrong. Please email info@natalieflemons.com directly.",
-  };
 }

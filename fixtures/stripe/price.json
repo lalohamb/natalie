@@ -1,0 +1,14 @@
+{
+  "_source": "documented-shape",
+  "status": 200,
+  "body": {
+    "id": "price_test_book",
+    "object": "price",
+    "active": true,
+    "currency": "usd",
+    "unit_amount": 1499,
+    "nickname": null,
+    "product": "prod_test_book",
+    "type": "one_time"
+  }
+}

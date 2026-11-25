@@ -6,15 +6,17 @@ import fromthechaostothecall from "@/assets/images/cover-from-the-chaos-to-the-c
 import type { Book } from "./types";
 
 /**
- * Books verified on the legacy site on 2026-10-10 (SITE-AUDIT.md §4).
- * "From the Chaos to the Call" added per ministry approval (Gate 2).
+ * REFERENCE COPY — not read by the application.
  *
- * Purchase links currently point at the live Squarespace product pages.
- * Replace them when the commerce decision is made (IMPLEMENTATION-PLAN.md §5).
+ * The site's books live in the admin-managed book store
+ * (`MEDIA_STORAGE_DIR/books.json`, see `src/lib/book-store.ts`). This file is
+ * kept only as the record of the original five-title catalog — titles,
+ * subtitles, summaries, descriptions and cover alt text verified on the legacy
+ * site on 2026-10-10 (SITE-AUDIT.md §4) — to copy from when re-entering books
+ * at /admin/books (docs/KNOWN-GAPS.md G-54).
  *
- * ⚠️ "From the Chaos to the Call" cover image not yet available.
- * Using repairingTheBreachCover as a temporary stand-in (coverIsMockup: true).
- * Replace with the actual cover when supplied by the ministry.
+ * Purchase details here are historical: the Squarespace URLs are retired and
+ * books are now sold through Stripe Checkout.
  */
 
 const legacyStore = "https://www.natalieflemons.com";
@@ -127,8 +129,6 @@ export const books: Book[] = [
       "From the Chaos to the Call is Natalie C. Flemons\u2019 autobiography, tracing her personal journey from life\u2019s deepest challenges to the clarity of her divine calling. Available now.",
     ],
     cover: {
-      // ⚠️ No cover image available in src/assets/images/. Request from ministry.
-      // Using a placeholder until the flat cover file is supplied.
       src: fromthechaostothecall,
       alt: "Cover of From the Chaos to the Call by Natalie C. Flemons",
     },

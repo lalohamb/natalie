@@ -13,6 +13,14 @@ import { ADMIN_COOKIE, SESSION_TTL_SECONDS, createSessionToken, safeEqual, verif
 
 export const isAdminConfigured = () => Boolean(process.env.ADMIN_PASSWORD);
 
+/**
+ * When ADMIN_READONLY=true the admin dashboard is read-only: sign-in and all
+ * read views work, but every write action (books, videos, files, calendar,
+ * newsletter delete) is refused. Set this in production when content is
+ * committed to the repository and the filesystem is not writable.
+ */
+export const isReadOnly = () => process.env.ADMIN_READONLY === "true";
+
 export function checkAdminPassword(input: string) {
   const expected = process.env.ADMIN_PASSWORD;
   return Boolean(expected) && safeEqual(input, expected!);
@@ -49,6 +57,8 @@ export async function endAdminSession() {
 // Login throttling — in-memory, per client IP. Good enough for a single
 // server instance; resets on restart.
 // ---------------------------------------------------------------------------
+
+export { clientIp } from "./rate-limit";
 
 const MAX_FAILURES = 5;
 const WINDOW_MS = 15 * 60 * 1000;

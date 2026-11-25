@@ -1,18 +1,13 @@
 import type { Product } from "./types";
 
 /**
- * Ministry store products verified on the legacy site on 2026-10-10
- * (SITE-AUDIT.md §5).
+ * Merchandise shown on /store. Each product links out to the ministry's
+ * Printify storefront, which owns the real catalog, prices, stock and orders;
+ * the titles, prices and variants here are display copies.
  *
- * Purchase links point at the live Squarespace product pages.
- * Replace when the commerce decision is made (IMPLEMENTATION-PLAN.md §5).
- *
- * ⚠️  No product images are available in src/assets/images/.
- *     Request clean per-color product photos from the ministry.
- * ⚠️  Stock levels are not tracked in this application.
- *     Variant availability reflects the audit snapshot (2026-10-10) only.
+ * ⚠️  Hoodie sizes/colours were carried over from the legacy-site audit
+ *     (2026-10-10) and have not been confirmed against Printify (G-41).
  */
-const legacyStore = "https://www.natalieflemons.com";
 
 export const products: Product[] = [
   {
@@ -39,7 +34,6 @@ export const products: Product[] = [
     purchase: {
       kind: "external",
       url: "https://thereformcollective.printify.me/product/34401279",
-      // url: `${legacyStore}/store-1/pray-hoodies`,
       label: "Purchase",
     },
     published: true,

@@ -1,0 +1,7 @@
+{
+  "_source": "documented-shape",
+  "status": 401,
+  "body": {
+    "message": "Unauthenticated."
+  }
+}

@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+/*
+ * Baseline security headers for every response.
+ *
+ * The Content-Security-Policy is deliberately limited to directives that need
+ * no per-request nonce (pages are prerendered, so script nonces aren't
+ * available): it blocks framing by other sites, <base> hijacking and plugins.
+ */
+const securityHeaders = [
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
+];
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
@@ -21,10 +37,14 @@ const nextConfig: NextConfig = {
     },
   },
   productionBrowserSourceMaps: false,
-  // @ts-expect-error — undocumented flag that disables Turbopack source map
-  // generation, working around a Turbopack panic in Next.js 16.4.x.
-  // See: https://github.com/vercel/next.js/issues/XXXXX
-  turbopackSourceMaps: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
+  },
   async redirects() {
     return [
       // Navigation restructure (Gate 1 approvals)
