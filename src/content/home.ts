@@ -11,7 +11,7 @@ export const homeContent = {
     headline: ["Shaping Destinies.", "Advancing the", "Kingdom."],
     supporting: "Leading people from their chaos to their call.",
     primaryCta: { label: "Meet Natalie", href: "/about" },
-    secondaryCta: { label: "Explore the Books", href: "/books" },
+    secondaryCta: { label: "Explore my Books", href: "/books" },
     tertiaryCta: { label: "UPCOMING EVENTS", href: "/events" },
   },
 

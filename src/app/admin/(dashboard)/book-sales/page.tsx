@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { TableFilters, TablePagination } from "../../_components/table-controls";
 
 export const metadata: Metadata = { title: "Book Sales" };
+export const instant = false;
 
 const PAGE_SIZE = 25;
 

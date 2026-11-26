@@ -47,6 +47,7 @@ import {
 } from "@/lib/book-store";
 import { BOOKS_CACHE_TAG } from "@/lib/book-content";
 import { readAbout, updateAbout, ABOUT_CACHE_TAG } from "@/lib/about-store";
+import { updateLegal, LEGAL_CACHE_TAG } from "@/lib/legal-store";
 
 export type FormState = {
   status: "idle" | "error" | "success";
@@ -669,4 +670,58 @@ export async function saveAbout(_prev: FormState, formData: FormData): Promise<F
   updateTag(ABOUT_CACHE_TAG);
   revalidatePath("/about", "layout");
   return { status: "success", message: "About page saved." };
+}
+
+// ---------------------------------------------------------------------------
+// Legal
+// ---------------------------------------------------------------------------
+
+const legalSectionFormSchema = z.object({
+  heading: z.string().min(1),
+  paragraphs: z.string().trim().min(1, "Content is required."),
+});
+
+const legalFormSchema = z.object({
+  doc: z.enum(["privacy", "terms"]),
+  effectiveDate: z.string().trim().max(60),
+  sections: z.array(legalSectionFormSchema),
+});
+
+export async function saveLegal(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  if (isReadOnly()) return { status: "error", message: "The admin is read-only in this environment." };
+
+  const sections: z.infer<typeof legalSectionFormSchema>[] = [];
+  let i = 0;
+  while (formData.has(`section[${i}][heading]`)) {
+    sections.push({
+      heading: String(formData.get(`section[${i}][heading]`) ?? ""),
+      paragraphs: String(formData.get(`section[${i}][paragraphs]`) ?? ""),
+    });
+    i++;
+  }
+
+  const parsed = legalFormSchema.safeParse({
+    doc: formData.get("doc"),
+    effectiveDate: String(formData.get("effectiveDate") ?? ""),
+    sections,
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "Please correct the errors below." };
+  }
+
+  const { doc, effectiveDate, sections: parsedSections } = parsed.data;
+
+  await updateLegal((data) => {
+    data[doc].effectiveDate = effectiveDate;
+    data[doc].sections = parsedSections.map((s) => ({
+      heading: s.heading,
+      paragraphs: s.paragraphs.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean),
+    }));
+  });
+
+  updateTag(LEGAL_CACHE_TAG);
+  revalidatePath(`/${doc === "privacy" ? "privacy" : "terms"}`, "layout");
+  return { status: "success", message: "Saved." };
 }

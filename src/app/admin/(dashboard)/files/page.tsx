@@ -6,6 +6,7 @@ import { AdminPageHeader, formatBytes } from "../../_components/admin-ui";
 import { FileManager } from "./file-manager";
 
 export const metadata: Metadata = { title: "Files" };
+export const instant = false;
 
 export default async function AdminFilesPage() {
   await requireAdmin();

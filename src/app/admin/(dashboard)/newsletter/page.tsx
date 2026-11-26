@@ -6,6 +6,7 @@ import { AdminPageHeader, StatusPill } from "../../_components/admin-ui";
 import { DeleteSubscriberButton } from "./newsletter-controls";
 
 export const metadata: Metadata = { title: "Newsletter" };
+export const instant = false;
 
 const STATUS_TONE: Record<string, "green" | "amber" | "muted"> = {
   active: "green",

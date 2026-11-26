@@ -6,6 +6,7 @@ import { AdminPageHeader, CATEGORY_LABELS, StatusPill, adminButton } from "../..
 import { VideoRowActions } from "./video-row-actions";
 
 export const metadata: Metadata = { title: "Videos" };
+export const instant = false;
 
 export default async function AdminVideosPage() {
   await requireAdmin();

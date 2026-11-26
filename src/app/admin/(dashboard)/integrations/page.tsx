@@ -9,6 +9,7 @@ import { AdminPageHeader } from "../../_components/admin-ui";
  */
 
 export const metadata: Metadata = { title: "Integrations" };
+export const instant = false;
 
 type IntegrationStatus = "connected" | "not-configured" | "coming-soon" | "error";
 

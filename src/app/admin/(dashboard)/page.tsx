@@ -6,6 +6,7 @@ import { listFiles, readVideos } from "@/lib/media-store";
 import { AdminPageHeader, adminButton, formatBytes } from "../_components/admin-ui";
 
 export const metadata: Metadata = { title: "Overview" };
+export const instant = false;
 
 export default async function AdminOverviewPage() {
   await requireAdmin();

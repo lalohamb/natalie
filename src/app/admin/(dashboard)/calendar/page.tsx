@@ -5,6 +5,7 @@ import { getConnection, getPublicCalendar, googleConfig } from "@/lib/google-cal
 import { AdminPageHeader, StatusPill, adminButton } from "../../_components/admin-ui";
 
 export const metadata: Metadata = { title: "Calendar" };
+export const instant = false;
 
 export default async function AdminCalendarPage() {
   await requireAdmin();
