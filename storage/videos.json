@@ -1,17 +1,5 @@
 [
   {
-    "id": "v-d6b17dbb",
-    "title": "Iceland Scenic Relaxation Video in 4K - Family Luxury Travel",
-    "description": "",
-    "category": "ministry-message",
-    "embeddable": true,
-    "youtubeId": "6UBCO5vtH_o",
-    "featured": true,
-    "published": true,
-    "displayOrder": 1,
-    "createdAt": "2026-10-24T16:26:29.703Z"
-  },
-  {
     "id": "v-004",
     "title": "Purge",
     "description": "You cannot repair what you refuse to confront.\r\nThe second phase of the Repair the Breach: 3-Phase Journey to Prophetic Purity Workbook is \"PURGE\"",
@@ -20,7 +8,7 @@
     "embeddable": true,
     "featured": false,
     "published": true,
-    "displayOrder": 2,
+    "displayOrder": 1,
     "createdAt": "2027-01-01T00:00:00"
   },
   {
@@ -32,19 +20,19 @@
     "localSrc": "/Believe.mp4",
     "featured": false,
     "published": true,
-    "displayOrder": 3,
+    "displayOrder": 2,
     "createdAt": "2027-01-01T00:00:00"
   },
   {
     "id": "v-003",
     "title": "Seek",
-    "description": "",
+    "description": "Repair the Breach.",
     "category": "ministry-message",
     "embeddable": true,
     "localSrc": "/FINAL_1_SEEK.mp4",
-    "featured": false,
+    "featured": true,
     "published": true,
-    "displayOrder": 4,
+    "displayOrder": 3,
     "createdAt": "2027-01-01T00:00:00"
   },
   {
@@ -56,7 +44,7 @@
     "localSrc": "/FINAL_3_REPAIR.mp4",
     "featured": false,
     "published": true,
-    "displayOrder": 5,
+    "displayOrder": 4,
     "createdAt": "2027-01-01T00:00:00"
   },
   {
@@ -68,7 +56,7 @@
     "localSrc": "/Pray in the Spirit.mp4",
     "featured": false,
     "published": true,
-    "displayOrder": 6,
+    "displayOrder": 5,
     "createdAt": "2027-01-01T00:00:00"
   },
   {
@@ -80,7 +68,7 @@
     "embeddable": false,
     "featured": false,
     "published": true,
-    "displayOrder": 7,
+    "displayOrder": 6,
     "createdAt": "2027-01-01T00:00:00"
   }
 ]

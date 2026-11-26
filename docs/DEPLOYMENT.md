@@ -9,6 +9,7 @@ mounted into the container at runtime. This means content survives redeploys.
 |---|---|---|
 | `/app/storage/books.json` | `/data/coolify/applications/7xasx33ju8brs7r9vfmhufmj/storage/books.json` | Book catalog |
 | `/app/storage/videos.json` | `…/storage/videos.json` | Video catalog |
+| `/app/storage/about.json` | `…/storage/about.json` | About page portrait + tab content |
 | `/app/storage/files/` | `…/storage/files/` | Uploaded cover images |
 
 The environment variable `MEDIA_STORAGE_DIR=/app/storage` tells the app where
@@ -26,13 +27,23 @@ to read and write. Do not change this unless the mount path changes.
 
 The Docker image bakes the committed `storage/` content into `/app/storage-seed/`.
 On first boot, `docker-entrypoint.sh` checks whether `books.json`, `videos.json`,
-and `files/` exist in the mounted directory. Any that are missing are copied from
+`about.json`, and `files/` exist in the mounted directory. Any that are missing are copied from
 the seed. This means:
 
 - A fresh volume is automatically populated on first deploy.
 - Subsequent deploys never overwrite content the owner has added via the admin.
 - If you need to reset to the committed seed, delete the file from the host
   directory and redeploy.
+
+## Editing the About page
+
+1. Sign in at `/admin`
+2. Go to **About**
+3. Select a portrait from the Files library (upload first at **Files** if needed)
+4. Edit tab labels, content, and drag order using ↑ ↓
+5. Save — written to `/app/storage/about.json`; `/about` cache is busted immediately
+
+If no portrait is selected the page falls back to the default bundled portrait.
 
 ## Adding a new book
 
@@ -87,6 +98,7 @@ After fixing ownership, seed the storage manually from the container Terminal
 ```sh
 cp /app/storage-seed/books.json /app/storage/books.json
 cp /app/storage-seed/videos.json /app/storage/videos.json
+cp /app/storage-seed/about.json /app/storage/about.json
 mkdir -p /app/storage/files
 ```
 

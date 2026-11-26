@@ -32,6 +32,7 @@ type VideoPlayerProps = {
   src: string;
   title: string;
   poster?: string;
+  autoPlay?: boolean;
   className?: string;
 };
 
@@ -42,7 +43,7 @@ type VideoPlayerProps = {
  * Keyboard (when the player has focus): Space/K play-pause, ←/→ seek 5s,
  * ↑/↓ volume, M mute, F fullscreen.
  */
-export function VideoPlayer({ src, title, poster, className }: VideoPlayerProps) {
+export function VideoPlayer({ src, title, poster, autoPlay, className }: VideoPlayerProps) {
   const id = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -190,6 +191,7 @@ export function VideoPlayer({ src, title, poster, className }: VideoPlayerProps)
         poster={poster}
         preload="metadata"
         playsInline
+        autoPlay={autoPlay}
         aria-label={title}
         className="h-full w-full object-contain"
         onClick={togglePlay}

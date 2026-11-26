@@ -70,3 +70,21 @@ export async function deleteSubscriber(id: string): Promise<void> {
   });
   if (!res.ok && res.status !== 404) throw new Error(`MailerLite DELETE /subscribers/${id} error ${res.status}`);
 }
+
+/** Fetches all active subscribers for CSV export (up to 1000). */
+export async function listAllActiveSubscribers(): Promise<MLSubscriber[]> {
+  const all: MLSubscriber[] = [];
+  let page = 1;
+  while (all.length < 1000) {
+    const res = await fetch(`${BASE}/subscribers?limit=100&page=${page}&filter[status]=active&sort=-subscribed_at`, {
+      headers: headers(),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`MailerLite /subscribers error ${res.status}`);
+    const json = (await res.json()) as { data: MLSubscriber[]; meta: { last_page: number } };
+    all.push(...json.data);
+    if (page >= json.meta.last_page) break;
+    page++;
+  }
+  return all;
+}

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getEvents, getSite } from "@/lib/content";
+import { getSite } from "@/lib/content";
 import { getPublishedBooks } from "@/lib/book-content";
 
 const now = new Date();
@@ -27,12 +27,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
   }));
 
-  const eventRoutes: MetadataRoute.Sitemap = getEvents().map((event) => ({
-    url: `${url}/events/${event.slug}`,
-    priority: 0.7,
-    changeFrequency: "weekly" as const,
-    lastModified: new Date(event.updatedAt),
-  }));
-
-  return [...staticRoutes, ...bookRoutes, ...eventRoutes];
+  return [...staticRoutes, ...bookRoutes];
 }

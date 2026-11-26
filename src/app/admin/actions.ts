@@ -46,6 +46,7 @@ import {
   updateBooks,
 } from "@/lib/book-store";
 import { BOOKS_CACHE_TAG } from "@/lib/book-content";
+import { readAbout, updateAbout, ABOUT_CACHE_TAG } from "@/lib/about-store";
 
 export type FormState = {
   status: "idle" | "error" | "success";
@@ -221,6 +222,7 @@ export async function lookupYouTube(url: string): Promise<YouTubeCheck & { video
 /** Expires the public video cache and re-renders the current admin page. */
 function videosChanged() {
   updateTag(VIDEOS_CACHE_TAG);
+  revalidatePath("/", "layout");
   refresh();
 }
 
@@ -273,6 +275,7 @@ export async function saveVideo(id: string | null, _prev: FormState, formData: F
 
   if (!found) return { status: "error", message: "This video no longer exists." };
   updateTag(VIDEOS_CACHE_TAG);
+  revalidatePath("/", "layout");
   redirect("/admin/videos");
 }
 
@@ -600,4 +603,70 @@ export async function getStripeProductsForPicker(
     productId ? listStripeProductPrices(productId) : Promise.resolve([]),
   ]);
   return { products, prices };
+}
+
+// ---------------------------------------------------------------------------
+// About
+// ---------------------------------------------------------------------------
+
+const tabFormSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().trim().min(1, "Label is required.").max(40),
+  paragraphs: z.string().trim().min(1, "Content is required."),
+  displayOrder: z.coerce.number().int(),
+});
+
+const aboutFormSchema = z.object({
+  portraitUrl: z.string().trim().optional(),
+  portraitAlt: z.string().trim().max(300).optional(),
+  tabs: z.array(tabFormSchema),
+});
+
+export async function saveAbout(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  if (isReadOnly()) return { status: "error", message: "The admin is read-only in this environment." };
+
+  // Collect tabs — formData has tab[0][id], tab[0][label], etc.
+  const tabs: z.infer<typeof tabFormSchema>[] = [];
+  let i = 0;
+  while (formData.has(`tab[${i}][id]`)) {
+    tabs.push({
+      id: String(formData.get(`tab[${i}][id]`) ?? ""),
+      label: String(formData.get(`tab[${i}][label]`) ?? ""),
+      paragraphs: String(formData.get(`tab[${i}][paragraphs]`) ?? ""),
+      displayOrder: Number(formData.get(`tab[${i}][order]`) ?? i + 1),
+    });
+    i++;
+  }
+
+  const parsed = aboutFormSchema.safeParse({
+    portraitUrl: String(formData.get("portraitUrl") ?? "") || undefined,
+    portraitAlt: String(formData.get("portraitAlt") ?? "") || undefined,
+    tabs,
+  });
+
+  if (!parsed.success) {
+    const fieldErrors: Partial<Record<string, string>> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".");
+      if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+    }
+    return { status: "error", message: "Please correct the errors below.", fieldErrors };
+  }
+
+  await updateAbout((data) => {
+    data.portraitUrl = parsed.data.portraitUrl;
+    data.portraitAlt = parsed.data.portraitAlt;
+    data.tabs = parsed.data.tabs.map((t) => ({
+      id: t.id,
+      label: t.label,
+      // Each paragraph is separated by a blank line in the textarea.
+      paragraphs: t.paragraphs.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean),
+      displayOrder: t.displayOrder,
+    }));
+  });
+
+  updateTag(ABOUT_CACHE_TAG);
+  revalidatePath("/about", "layout");
+  return { status: "success", message: "About page saved." };
 }

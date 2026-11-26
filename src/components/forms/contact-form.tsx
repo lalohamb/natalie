@@ -35,7 +35,7 @@ export function ContactForm({ defaultSubject = "general" }: ContactFormProps) {
   }
 
   return (
-    <form action={action} noValidate className="flex flex-col gap-6">
+    <form id="contact-form" action={action} noValidate className="flex flex-col gap-6">
       {/* Honeypot */}
       <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label htmlFor={`${id}-hp`}>Leave this field empty</label>

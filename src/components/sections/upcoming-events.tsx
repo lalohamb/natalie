@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
-import { EventCard } from "@/components/sections/event-card";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import type { CalendarEvent } from "@/content/types";
-import { getHomeContent, getUpcomingEvents } from "@/lib/content";
+import { getHomeContent } from "@/lib/content";
 import { getUpcomingCalendarEvents } from "@/lib/google-calendar";
 
 /** "March 15, 2027" or "March 15 – 17, 2027"; timed events add "7:00 PM CDT". */
@@ -46,17 +45,14 @@ function CalendarEventCard({ event, timeZone, index }: { event: CalendarEvent; t
 
 /**
  * Homepage "Upcoming Events". Shows the next events from the public Google
- * Calendar (the same source as /events); if there is no calendar it falls back
- * to the static schedule in `src/content/events.ts`, and if both are empty to
- * an invitation to view the schedule.
+ * Calendar (the same source as /events); if there is no calendar or no upcoming
+ * events it falls back to an invitation panel.
  */
 export async function UpcomingEvents() {
   const { upcomingEvents } = getHomeContent();
   const calendar = await getUpcomingCalendarEvents(3);
   const calendarEvents = calendar?.events ?? [];
-  // Static events are only consulted when the calendar has nothing to show.
-  const events = calendarEvents.length > 0 ? [] : getUpcomingEvents(3);
-  const hasEvents = calendarEvents.length > 0 || events.length > 0;
+  const hasEvents = calendarEvents.length > 0;
 
   return (
     <section aria-labelledby="upcoming-events-heading" className="bg-forest py-12 text-ivory lg:py-14">
@@ -86,14 +82,6 @@ export async function UpcomingEvents() {
                     <CalendarEventCard event={event} timeZone={calendar.timeZone} index={i} />
                   </Reveal>
                 ))}
-              {events.map((event, i) => (
-                <Reveal key={event.id} delay={i * 0.08}>
-                  <EventCard
-                    event={event}
-                    className="border-ivory/20 bg-forest text-ivory [&_h3]:text-ivory [&_p]:text-mist"
-                  />
-                </Reveal>
-              ))}
             </div>
 
             <Reveal className="mt-10 text-center" delay={0.2}>

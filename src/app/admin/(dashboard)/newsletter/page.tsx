@@ -44,20 +44,30 @@ export default async function AdminNewsletterPage({ searchParams }: PageProps<"/
     error = err instanceof Error ? err.message : "Unknown error";
   }
 
+  const groupId = process.env.MAILERLITE_GROUP_ID;
+
   return (
     <>
       <AdminPageHeader
         title="Newsletter"
         description="MailerLite subscriber management."
         actions={
-          <a
-            href="https://dashboard.mailerlite.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-ivory/25 px-4 font-sans text-xs font-semibold tracking-[0.06em] text-ivory uppercase transition-colors hover:bg-ivory/10"
-          >
-            Open MailerLite ↗
-          </a>
+          <div className="flex gap-2">
+            <a
+              href="/api/admin/newsletter"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-ivory/25 px-4 font-sans text-xs font-semibold tracking-[0.06em] text-ivory uppercase transition-colors hover:bg-ivory/10"
+            >
+              Export CSV ↓
+            </a>
+            <a
+              href="https://dashboard.mailerlite.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-ivory/25 px-4 font-sans text-xs font-semibold tracking-[0.06em] text-ivory uppercase transition-colors hover:bg-ivory/10"
+            >
+              Open MailerLite ↗
+            </a>
+          </div>
         }
       />
 
@@ -66,6 +76,56 @@ export default async function AdminNewsletterPage({ searchParams }: PageProps<"/
           MailerLite API error: {error}
         </p>
       )}
+
+      {/* Guidance panel */}
+      <details className="mb-8 rounded border border-ivory/10 bg-ivory/5">
+        <summary className="cursor-pointer px-5 py-4 font-sans text-sm font-semibold text-ivory select-none">
+          How to use MailerLite (free plan) ▾
+        </summary>
+        <div className="border-t border-ivory/10 px-5 py-4 flex flex-col gap-4 font-sans text-sm text-mist">
+          <div>
+            <p className="font-semibold text-ivory mb-1">What this page does</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Shows all subscribers and their status (active, unconfirmed, unsubscribed)</li>
+              <li>Lets you delete individual subscribers</li>
+              <li>Exports active subscribers to CSV for use in other tools</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-ivory mb-1">What you do in MailerLite</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong className="text-ivory">Send campaigns</strong> — go to Campaigns → Create campaign. The free plan allows up to 12,000 emails/month to 1,000 subscribers.</li>
+              <li><strong className="text-ivory">Set up double opt-in</strong> — go to Settings → Double opt-in to require subscribers to confirm their email. Recommended to keep your list clean.</li>
+              <li><strong className="text-ivory">Create a group</strong> — go to Subscribers → Groups → Add group. Copy the group ID into <code className="font-mono text-gold-light">MAILERLITE_GROUP_ID</code> so new sign-ups are added to it automatically.</li>
+              <li><strong className="text-ivory">Design a welcome email</strong> — go to Automations → Create automation → trigger: &quot;Subscriber joins a group&quot;. Send a welcome email automatically when someone signs up.</li>
+              <li><strong className="text-ivory">Unsubscribe handling</strong> — MailerLite handles this automatically. Unsubscribed contacts stay in your list but are never emailed.</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-ivory mb-1">Current configuration</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>API key: <span className="text-green-400">✓ configured</span></li>
+              <li>
+                Group ID:{" "}
+                {groupId
+                  ? <><span className="text-green-400">✓</span> <code className="font-mono text-gold-light">{groupId}</code> — new sign-ups are added to this group</>
+                  : <span className="text-amber-400">○ not set — new sign-ups are added to the account but no group. Set <code className="font-mono">MAILERLITE_GROUP_ID</code> to fix this.</span>
+                }
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-ivory mb-1">Free plan limits</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Up to 1,000 subscribers</li>
+              <li>Up to 12,000 emails per month</li>
+              <li>Campaigns, automations, and landing pages are included</li>
+              <li>MailerLite branding appears in emails on the free plan</li>
+              <li>Upgrade at <a href="https://www.mailerlite.com/pricing" target="_blank" rel="noopener noreferrer" className="text-gold-light underline underline-offset-4 hover:text-ivory">mailerlite.com/pricing</a> to remove branding and unlock advanced features</li>
+            </ul>
+          </div>
+        </div>
+      </details>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -84,7 +144,10 @@ export default async function AdminNewsletterPage({ searchParams }: PageProps<"/
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {groups.map((g) => (
               <div key={g.id} className="flex items-center justify-between rounded border border-ivory/10 bg-ivory/5 px-4 py-3">
-                <span className="font-sans text-sm text-ivory">{g.name}</span>
+                <div>
+                  <span className="font-sans text-sm text-ivory">{g.name}</span>
+                  <p className="font-mono text-[0.65rem] text-mist mt-0.5">{g.id}{groupId === g.id ? " — active sign-up group" : ""}</p>
+                </div>
                 <span className="font-sans text-sm font-semibold text-gold-light">{g.active_count.toLocaleString()} active</span>
               </div>
             ))}

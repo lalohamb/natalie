@@ -7,6 +7,7 @@ import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getBio, getPortraits, getSite } from "@/lib/content";
+import { readAbout } from "@/lib/about-store";
 import { personStructuredData } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
@@ -17,18 +18,18 @@ export const metadata: Metadata = {
   openGraph: { url: "/about" },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
   const bio = getBio();
   const portraits = getPortraits();
   const site = getSite();
+  const about = await readAbout();
 
-  const tabs = [
-    { id: "journey",    label: "Ministry",    paragraphs: bio.sections.ministryJourney },
-    { id: "leadership", label: "Leadership",  paragraphs: bio.sections.leadership },
-    { id: "marketplace",label: "Professional", paragraphs: bio.sections.marketplace },
-    { id: "testimony",  label: "Testimony",   paragraphs: [...bio.sections.personalTestimony, ...bio.sections.closing] },
-    { id: "story",      label: "My Story",    paragraphs: ["Natalie\u2019s autobiography traces her personal journey from life\u2019s deepest challenges to the clarity of her divine calling. The complete narrative is available in her book \u2014 From the Chaos to the Call."] },
-  ] as const;
+  const tabs = about.tabs
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((t) => ({ id: t.id, label: t.label, paragraphs: t.paragraphs as readonly string[] }));
+
+  const portraitSrc = about.portraitUrl ?? portraits.autumn.src;
+  const portraitAlt = about.portraitAlt ?? portraits.autumn.alt;
 
   return (
     <>
@@ -63,13 +64,13 @@ export default function AboutPage() {
           {/* Right — portrait */}
           <figure
             className="relative order-first aspect-[4/3] overflow-hidden lg:order-last lg:col-span-6 lg:aspect-auto lg:self-stretch xl:col-span-7"
-            aria-label={portraits.autumn.alt}
+            aria-label={portraitAlt}
           >
             <div className="grain-overlay absolute inset-0 motion-safe:[animation:portrait-enter_1100ms_var(--ease-editorial)_both]">
               <Image
-                src={portraits.autumn.src}
-                alt={portraits.autumn.alt}
-                placeholder="blur"
+                src={portraitSrc}
+                alt={portraitAlt}
+                {...(typeof portraitSrc === "string" ? {} : { placeholder: "blur" })}
                 fetchPriority="high"
                 loading="eager"
                 quality={90}

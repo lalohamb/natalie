@@ -5,44 +5,43 @@ test.describe("Contact form", () => {
     await page.goto("/contact");
   });
 
-  test("valid submission shows honest unavailable message, never success", async ({ page }) => {
-    await page.locator('input[name="name"]').fill("Test Person");
-    await page.locator('input[name="email"]').fill("test@example.com");
-    await page.locator('select[name="subject"]').selectOption("general");
-    await page.locator('textarea[name="message"]').fill("This is a test message with enough characters.");
+  const form = (page: import("playwright/test").Page) => page.locator("#contact-form");
 
-    await page.locator('button[type="submit"]').click();
+  test("valid submission shows honest unavailable message, never success", async ({ page }) => {
+    const f = form(page);
+    await f.locator('input[name="name"]').fill("Test Person");
+    await f.locator('input[name="email"]').fill("test@example.com");
+    await f.locator('select[name="subject"]').selectOption("general");
+    await f.locator('textarea[name="message"]').fill("This is a test message with enough characters.");
+
+    await f.locator('button[type="submit"]').click();
 
     // Must NOT show a success state (no email provider configured)
     const successBlock = page.locator('[role="status"]');
     await expect(successBlock).not.toBeVisible();
 
     // Must show the honest unavailable message directing to email
-    const errorBlock = page.locator('section[aria-labelledby] [role="alert"]').first();
+    const errorBlock = f.locator('[role="alert"]').first();
     await expect(errorBlock).toContainText(/info@natalieflemons\.com/i);
   });
 
   test("missing required fields show field-level errors", async ({ page }) => {
-    await page.locator('button[type="submit"]').click();
+    const f = form(page);
+    await f.locator('button[type="submit"]').click();
 
-    // Name error
-    const nameError = page.locator("text=/enter your name/i");
-    await expect(nameError).toBeVisible();
-
-    // Email error
-    const emailError = page.locator("text=/valid email/i");
-    await expect(emailError).toBeVisible();
+    await expect(f.locator("text=/enter your name/i")).toBeVisible();
+    await expect(f.locator("text=/valid email/i")).toBeVisible();
   });
 
   test("message too short shows field-level error", async ({ page }) => {
-    await page.locator('input[name="name"]').fill("Test Person");
-    await page.locator('input[name="email"]').fill("test@example.com");
-    await page.locator('select[name="subject"]').selectOption("general");
-    await page.locator('textarea[name="message"]').fill("Too short");
+    const f = form(page);
+    await f.locator('input[name="name"]').fill("Test Person");
+    await f.locator('input[name="email"]').fill("test@example.com");
+    await f.locator('select[name="subject"]').selectOption("general");
+    await f.locator('textarea[name="message"]').fill("Too short");
 
-    await page.locator('button[type="submit"]').click();
+    await f.locator('button[type="submit"]').click();
 
-    const msgError = page.locator("text=/at least 10 characters/i");
-    await expect(msgError).toBeVisible();
+    await expect(f.locator("text=/at least 10 characters/i")).toBeVisible();
   });
 });

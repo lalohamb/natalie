@@ -37,11 +37,13 @@ test("ministry page — Prayer, Prophecy, Purpose remain as supporting content",
   await expect(page.locator("body")).toContainText(/purpose/i);
 });
 
-test("homepage — core values section is present", async ({ page }) => {
+test("homepage — ministry pillars section is present", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.locator("body")).toContainText(/equipping\. restoring\. activating\./i);
-  await expect(page.locator("body")).toContainText(/three core values/i);
+  await expect(page.locator("body")).toContainText(/from the chaos to the call/i);
+  await expect(page.getByRole("heading", { name: /equip/i }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /restore/i }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /activate/i }).first()).toBeVisible();
 });
 
 test("about page — 2026 biography sections are present", async ({ page }) => {

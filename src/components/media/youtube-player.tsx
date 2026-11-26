@@ -10,6 +10,7 @@ import { cn } from "@/lib/cn";
 type YouTubePlayerProps = {
   videoId: string;
   title: string;
+  autoPlay?: boolean;
   className?: string;
 };
 
@@ -18,10 +19,10 @@ type YouTubePlayerProps = {
  * presses play, so no YouTube scripts or cookies load before then; the embed
  * uses youtube-nocookie.com. Joins the page's one-player-at-a-time behaviour.
  */
-export function YouTubePlayer({ videoId, title, className }: YouTubePlayerProps) {
+export function YouTubePlayer({ videoId, title, autoPlay, className }: YouTubePlayerProps) {
   const id = useId();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(autoPlay ?? false);
 
   useEffect(() => {
     const onOtherPlay = (e: Event) => {
