@@ -11,6 +11,7 @@
 | `API-CONTRACTS.md` | All external provider integrations and their verification status. |
 | `KNOWN-GAPS.md` | All unresolved ⚠️ and ❌ items. Resolve before launch. |
 | `TEST-STRATEGY.md` | Test inventory, coverage gaps, recommended phases. |
+| `DEPLOYMENT.md` | Coolify storage setup, volume seeding, book management workflow. |
 
 ## Phase tracking
 
