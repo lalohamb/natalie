@@ -37,7 +37,9 @@ COPY --from=builder /app/storage ./storage-seed
 
 # Entrypoint seeds the persistent volume on first run
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh \
+ && mkdir -p /app/storage/files \
+ && chown -R nextjs:nodejs /app/storage /app/storage-seed
 
 # Standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
