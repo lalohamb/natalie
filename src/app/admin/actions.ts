@@ -531,7 +531,7 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
       book.status = d.status;
       book.priceCents = priceCents;
       book.summary = d.summary;
-      book.description = d.description.split("\n\n").map((p) => p.trim()).filter(Boolean);
+      book.description = d.description.split(/\r?\n\r?\n/).map((p) => p.trim()).filter(Boolean);
       book.coverUrl = d.coverUrl;
       book.coverAlt = d.coverAlt;
       book.forewordBy = d.forewordBy;
@@ -550,7 +550,7 @@ export async function saveBook(slug: string | null, _prev: FormState, formData: 
         status: d.status,
         priceCents,
         summary: d.summary,
-        description: d.description.split("\n\n").map((p) => p.trim()).filter(Boolean),
+        description: d.description.split(/\r?\n\r?\n/).map((p) => p.trim()).filter(Boolean),
         coverUrl: d.coverUrl,
         coverAlt: d.coverAlt,
         forewordBy: d.forewordBy,
