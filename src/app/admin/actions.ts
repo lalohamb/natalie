@@ -48,6 +48,8 @@ import {
 import { BOOKS_CACHE_TAG } from "@/lib/book-content";
 import { readAbout, updateAbout, ABOUT_CACHE_TAG } from "@/lib/about-store";
 import { updateLegal, LEGAL_CACHE_TAG } from "@/lib/legal-store";
+import { readCourses, updateCourses, newCourseSlug, COURSE_STATUSES } from "@/lib/course-store";
+import { COURSES_CACHE_TAG } from "@/lib/course-content";
 
 export type FormState = {
   status: "idle" | "error" | "success";
@@ -724,4 +726,133 @@ export async function saveLegal(_prev: FormState, formData: FormData): Promise<F
   updateTag(LEGAL_CACHE_TAG);
   revalidatePath(`/${doc === "privacy" ? "privacy" : "terms"}`, "layout");
   return { status: "success", message: "Saved." };
+}
+
+// ---------------------------------------------------------------------------
+// Courses
+// ---------------------------------------------------------------------------
+
+function coursesChanged() {
+  updateTag(COURSES_CACHE_TAG);
+  revalidatePath("/courses", "layout");
+  refresh();
+}
+
+const courseFormSchema = z.object({
+  title: z.string().trim().min(1, "Title is required."),
+  subtitle: z.string().trim().optional(),
+  status: z.enum(COURSE_STATUSES),
+  summary: z.string().trim().min(1, "Summary is required."),
+  description: z.string().trim(),
+  coverUrl: z.string().trim().optional(),
+  coverAlt: z.string().trim().optional(),
+  priceCents: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().int().min(0).optional(),
+  ),
+  enrollUrl: z.string().trim().optional(),
+  enrollLabel: z.string().trim().optional(),
+  featured: z.preprocess((v) => v === "on" || v === true, z.boolean()),
+});
+
+export async function saveCourse(id: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  if (isReadOnly()) return { status: "error", message: "Read-only mode." };
+
+  const raw = {
+    title: String(formData.get("title") ?? ""),
+    subtitle: String(formData.get("subtitle") ?? ""),
+    status: String(formData.get("status") ?? "draft"),
+    summary: String(formData.get("summary") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    coverUrl: String(formData.get("coverUrl") ?? ""),
+    coverAlt: String(formData.get("coverAlt") ?? ""),
+    priceCents: formData.get("priceCents"),
+    enrollUrl: String(formData.get("enrollUrl") ?? ""),
+    enrollLabel: String(formData.get("enrollLabel") ?? ""),
+    featured: formData.get("featured"),
+  };
+
+  const parsed = courseFormSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Please correct the errors below.",
+      fieldErrors: Object.fromEntries(
+        Object.entries(parsed.error.flatten().fieldErrors).map(([k, v]) => [k, v?.[0] ?? ""]),
+      ),
+    };
+  }
+
+  const d = parsed.data;
+
+  if (id) {
+    const found = await updateCourses((courses) => {
+      const course = courses.find((c) => c.id === id);
+      if (!course) return false;
+      course.title = d.title;
+      course.subtitle = d.subtitle || undefined;
+      course.status = d.status;
+      course.summary = d.summary;
+      course.description = d.description.split(/\r?\n\r?\n/).map((p) => p.trim()).filter(Boolean);
+      course.coverUrl = d.coverUrl || undefined;
+      course.coverAlt = d.coverAlt || undefined;
+      course.priceCents = d.priceCents;
+      course.enrollUrl = d.enrollUrl || undefined;
+      course.enrollLabel = d.enrollLabel || undefined;
+      course.featured = d.featured;
+      return true;
+    });
+    if (!found) return { status: "error", message: "Course not found." };
+    coursesChanged();
+    return { status: "success", message: "Course saved." };
+  } else {
+    const newId = newCourseSlug(d.title);
+    await updateCourses((courses) => {
+      courses.push({
+        id: newId,
+        slug: newId,
+        title: d.title,
+        subtitle: d.subtitle || undefined,
+        status: d.status,
+        summary: d.summary,
+        description: d.description.split(/\r?\n\r?\n/).map((p) => p.trim()).filter(Boolean),
+        coverUrl: d.coverUrl || undefined,
+        coverAlt: d.coverAlt || undefined,
+        priceCents: d.priceCents,
+        enrollUrl: d.enrollUrl || undefined,
+        enrollLabel: d.enrollLabel || undefined,
+        featured: d.featured,
+        displayOrder: Math.max(0, ...courses.map((c) => c.displayOrder)) + 1,
+        createdAt: new Date().toISOString(),
+      });
+    });
+    coursesChanged();
+    redirect("/admin/courses?added=1");
+  }
+}
+
+export async function deleteCourse(id: string) {
+  await requireAdmin();
+  if (isReadOnly()) return;
+  await updateCourses((courses) => {
+    const i = courses.findIndex((c) => c.id === id);
+    if (i >= 0) courses.splice(i, 1);
+  });
+  coursesChanged();
+}
+
+export async function setCoursesPublished(id: string, status: "published" | "draft" | "coming-soon") {
+  await requireAdmin();
+  if (isReadOnly()) return;
+  await updateCourses((courses) => {
+    const course = courses.find((c) => c.id === id);
+    if (course) course.status = status;
+  });
+  coursesChanged();
+}
+
+export async function getAdminCoursesForPanel() {
+  await requireAdmin();
+  return readCourses();
 }

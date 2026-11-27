@@ -223,6 +223,34 @@ export type CuratedVideo = {
 };
 
 // ---------------------------------------------------------------------------
+// Courses
+// ---------------------------------------------------------------------------
+
+export type CourseStatus = "published" | "draft" | "coming-soon";
+
+export type AdminCourse = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle?: string;
+  status: CourseStatus;
+  description: string[];
+  /** Short teaser shown on the listing page. */
+  summary: string;
+  /** Cover/banner image URL. */
+  coverUrl?: string;
+  coverAlt?: string;
+  priceCents?: number;
+  /** External enrollment URL (e.g. Teachable, Kajabi, Thinkific). */
+  enrollUrl?: string;
+  /** Label for the enroll button. */
+  enrollLabel?: string;
+  featured: boolean;
+  displayOrder: number;
+  createdAt: string;
+};
+
+// ---------------------------------------------------------------------------
 // Store products
 // ---------------------------------------------------------------------------
 
