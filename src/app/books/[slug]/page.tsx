@@ -85,22 +85,19 @@ export default async function BookDetailPage({ params }: Props) {
               {book.subtitle && <p className="mt-3 font-display text-2xl text-stone italic">{book.subtitle}</p>}
               {book.forewordBy && <p className="mt-4 text-sm text-stone">Foreword by {book.forewordBy}</p>}
 
-              <div className="mt-8 border-t border-sand pt-6">
-                {book.priceCents !== undefined && (
-                  <p className="font-display text-2xl text-espresso">
-                    <span className="sr-only">Price: </span>
-                    {formatPrice(book.priceCents)}
-                  </p>
-                )}
-              </div>
-
               <div className="mt-12 flex flex-col gap-5 text-pretty text-stone">
                 {book.description.map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-8 border-t border-sand pt-6 flex flex-wrap items-center gap-4">
+                {book.priceCents !== undefined && (
+                  <p className="font-display text-2xl text-espresso">
+                    <span className="sr-only">Price: </span>
+                    {formatPrice(book.priceCents)}
+                  </p>
+                )}
                 {book.status === "published" && checkout && book.purchase.kind === "stripe-checkout" && (
                   <CheckoutButton slug={book.slug}>{book.purchase.label}</CheckoutButton>
                 )}
