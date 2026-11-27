@@ -23,7 +23,7 @@ export const mainNavigation: NavItem[] = [
   { label: "Books", href: "/books" },
   { label: "The Equipping Academy", href: "/courses" },
   { label: "Events", href: "/events" },
-  { label: "Media", href: "/media" },
+  { label: "Teachings", href: "/media" },
 ];
 
 /** Secondary navigation rendered in the footer (not the main header). */
