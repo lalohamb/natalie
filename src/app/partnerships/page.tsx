@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import Image from "next/image";
 import { BookOpen, Flame, Sprout, Users, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -47,15 +47,23 @@ export default async function PartnershipsPage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section aria-labelledby="partnerships-heading" className="border-b border-sand bg-linen py-16">
-        <Container className="max-w-4xl">
+      <section aria-labelledby="partnerships-heading" className="relative border-b border-sand py-16 min-h-[480px] flex items-center">
+        <Image
+          src="/partnerships-hero-corrected-1920x600.png"
+          alt=""
+          fill
+          className="object-cover object-center"
+          priority
+        />
+        <div className="absolute inset-0 bg-espresso/60" />
+        <Container className="relative max-w-4xl">
           <SectionHeading
             as="h1"
             id="partnerships-heading"
             eyebrow="Partner With the Ministry"
             title="Partner With the Vision"
             lede="Thank you for sowing into Natalie Flemons Ministries. Your partnership helps carry this message forward. You are sowing into good ground — may the Lord bless and prosper you."
-            className="motion-safe:animate-rise"
+            className="motion-safe:animate-rise [&_p]:text-mist [&_h1]:text-mist"
           />
         </Container>
       </section>
@@ -170,17 +178,20 @@ export default async function PartnershipsPage() {
                     <Eyebrow rule={false}>Give by card</Eyebrow>
                     <StripeLogo />
                   </div>
-                  <h3 className="mt-4 font-display text-display-sm font-medium">
-                    Secure online giving
-                  </h3>
+                  <h3 className="mt-4 font-display text-display-sm font-medium">Secure online giving</h3>
                   <p className="mt-5 text-pretty text-stone">
                     Give securely by credit or debit card through Stripe. Your gift goes directly
                     to support the work of Natalie Flemons Ministries.
                   </p>
                 </div>
-                <ButtonLink href={giving.stripeUrl} className="self-start mt-auto">
-                  Give by Card
-                </ButtonLink>
+                <div className="mt-auto flex flex-col gap-4">
+                  <ButtonLink href={giving.stripeUrl} className="self-start">
+                    Give by Card
+                  </ButtonLink>
+                  <p className="text-xs text-stone italic text-center">
+                    Secured by Stripe — your card details are never stored.
+                  </p>
+                </div>
               </div>
             </Reveal>
 
@@ -194,35 +205,26 @@ export default async function PartnershipsPage() {
                     <Eyebrow rule={false}>Give by Cash App</Eyebrow>
                     <CashAppLogo />
                   </div>
-                  <h3 className="mt-4 font-display text-display-sm font-medium">
-                    Cash App
-                  </h3>
+                  <h3 className="mt-4 font-display text-display-sm font-medium">Cash App</h3>
                   <p className="mt-5 text-pretty text-stone">
                     Send your gift directly via Cash App to{" "}
                     <span className="font-semibold text-espresso">{giving.cashAppHandle}</span>.
                   </p>
                 </div>
-                <ButtonLink href={giving.cashAppUrl} variant="secondary" className="self-start mt-auto">
-                  Open Cash App
-                </ButtonLink>
+                <div className="mt-auto flex flex-col gap-4">
+                  <ButtonLink href={giving.cashAppUrl} variant="secondary" className="self-start">
+                    Open Cash App
+                  </ButtonLink>
+                  <p className="text-xs text-stone italic text-center">
+                    Opens Cash App — send to {giving.cashAppHandle}.
+                  </p>
+                </div>
               </div>
             </Reveal>
 
             {/* Zelle */}
             <Reveal delay={0.16}>
-              <Suspense fallback={
-                <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
-                  <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
-                  <span aria-hidden className="absolute right-0 bottom-0 h-8 w-8 border-r border-b border-gold" />
-                  <div className="animate-pulse">
-                    <div className="h-4 w-24 rounded bg-sand" />
-                    <div className="mt-4 h-6 w-16 rounded bg-sand" />
-                    <div className="mt-5 h-16 w-full rounded bg-sand" />
-                  </div>
-                </div>
-              }>
-                <ZelleCard recipient={giving.zelleRecipient} />
-              </Suspense>
+              <ZelleCard recipient={giving.zelleRecipient} />
             </Reveal>
           </div>
           <p className="mt-8 text-center text-sm text-stone italic">

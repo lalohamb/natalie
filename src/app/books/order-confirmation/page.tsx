@@ -60,7 +60,7 @@ export default async function OrderConfirmationPage({ searchParams }: Props) {
           </h1>
           <p className="mt-4 text-stone">
             Your order is confirmed. You will receive a receipt from Stripe at your email address.
-            Natalie will ship your order to the address below.
+            Natalie will ship your order to the address below within 7–10 business days.
           </p>
         </div>
 

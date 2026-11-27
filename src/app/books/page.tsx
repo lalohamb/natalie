@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { BooksPageClient } from "./books-page-client";
 import { getPublishedBooks } from "@/lib/book-content";
 
@@ -16,32 +17,35 @@ export default async function BooksPage() {
   return (
     <>
       {/* ── Page header with old-books background ── */}
-      <section className="relative overflow-hidden border-b border-sand bg-linen">
-        {/* Background: antique books photo fading in from the right */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: `url("/Antique Books in Warm Olive Light.png")`,
-            backgroundSize: "contain",
-            backgroundPosition: "right center",
-            maskImage: "linear-gradient(to right, transparent 45%, black 70%)",
-            WebkitMaskImage: "linear-gradient(to right, transparent 25%, black 70%)",
-            opacity: 0.45,
-          }}
-        />
-        <div className="relative mx-auto max-w-[var(--container-site)] px-[var(--spacing-gutter)] py-14 lg:py-16">
-          <div className="max-w-xl">
-            <p className="flex items-center gap-4 font-sans text-eyebrow font-semibold uppercase text-gold-ink">
-              <span aria-hidden className="rule-gold" />
-              Publications
-            </p>
-            <h1 className="mt-4 font-display text-display-md font-medium text-espresso motion-safe:animate-rise">
-              Books by Natalie C. Flemons
-            </h1>
-            <p className="mt-4 max-w-prose text-lede text-stone">
-              Manuals and guides written to equip believers for purity, perseverance and purpose.
-            </p>
+      <section className="relative border-b border-sand">
+        {/* Full-width image at its natural ratio */}
+        <div className="relative w-full aspect-[2172/724]">
+          <Image
+            src="/Antique Books in Warm Olive Light.png"
+            alt=""
+            aria-hidden
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          {/* Left gradient for text readability */}
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-espresso/80 via-espresso/40 to-transparent" />
+          {/* Text — vertically centered, aligned to content width */}
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full px-[var(--spacing-gutter)]">
+              <div className="max-w-xl">
+                <p className="flex items-center gap-4 font-sans text-eyebrow font-semibold uppercase text-gold-light">
+                  <span aria-hidden className="rule-gold" />
+                  Publications
+                </p>
+                <h1 className="mt-4 font-display text-display-md font-medium text-ivory motion-safe:animate-rise">
+                  Books by Natalie C. Flemons
+                </h1>
+                <p className="mt-4 max-w-prose text-lede text-mist">
+                  Manuals and guides written to equip believers for purity, perseverance and purpose.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

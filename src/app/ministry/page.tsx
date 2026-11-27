@@ -26,8 +26,8 @@ export default function MinistryPage() {
   return (
     <>
       {/* ── Section 1: Ministry Introduction ── */}
-      <section aria-labelledby="ministry-heading" className="relative overflow-hidden bg-espresso text-ivory">
-        <Container className="grid lg:grid-cols-2 lg:items-stretch px-0 lg:px-0">
+      <section aria-labelledby="ministry-heading" className="relative bg-espresso text-ivory">
+        <div className="grid lg:grid-cols-2 lg:items-stretch">
 
           {/* Left — text */}
           <div className="relative z-10 flex flex-col justify-center px-gutter py-16 lg:py-24">
@@ -49,7 +49,7 @@ export default function MinistryPage() {
           </div>
 
           {/* Right — image */}
-          <div className="relative aspect-[4/3] overflow-hidden lg:aspect-auto lg:min-h-[600px]">
+          <figure className="relative aspect-[4/3] overflow-hidden lg:aspect-auto lg:min-h-[600px]" aria-label={`${bio.name} — Founder`}>
             <Image
               src={GUIDANCE_IMG}
               alt="Guidance, Growth, and Purpose"
@@ -58,25 +58,23 @@ export default function MinistryPage() {
               loading="eager"
               quality={85}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover object-center"
+              className="object-cover object-top"
             />
             <div aria-hidden className="absolute inset-y-0 left-0 w-24 hidden bg-gradient-to-r from-espresso to-transparent lg:block" />
-          </div>
-        </Container>
+            <figcaption className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6">
+              <div className="rounded-sm px-1 py-1 bg-espresso/70 backdrop-blur-md">
+                <span className="block font-display text-4xl font-bold text-ivory [text-shadow:0_4px_16px_rgba(0,0,0,0.8)]">{bio.name}</span>
+                <span className="block font-sans text-lg font-extrabold text-gold-light uppercase tracking-[0.22em] mt-1 [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">Founder</span>
+              </div>
+            </figcaption>
+          </figure>
+        </div>
       </section>
 
       {/* ── Section 2: Three Core Values ── */}
-      <section aria-labelledby="pillars-heading" className="relative overflow-hidden py-section">
-        <Image
-          src="/guidance-growth-purpose.png"
-          alt=""
-          aria-hidden
-          fill
-          quality={80}
-          sizes="100vw"
-          className="object-cover object-center opacity-20"
-        />
-        <Container className="relative">
+      <section aria-labelledby="pillars-heading" className="overflow-hidden">
+        {/* Heading spans full width above the panels */}
+        <div className="py-12 px-gutter">
           <Reveal>
             <SectionHeading
               id="pillars-heading"
@@ -84,18 +82,35 @@ export default function MinistryPage() {
               title="Equip · Restore · Activate"
             />
           </Reveal>
+        </div>
 
-          <ol className="mt-16 grid gap-0 border-t border-sand md:grid-cols-3">
-            {identity.pillars.map((pillar, index) => (
+        {/* Three panels — each owns its background */}
+        <ol className="grid md:grid-cols-3">
+          {identity.pillars.map((pillar, index) => {
+            const images = ["/ministry-equip.png", "/ministry-restore.png", "/ministry-activate.png"];
+            return (
               <li
                 key={pillar.id}
-                className="border-b border-sand py-12 md:border-b-0 md:px-10 md:py-16 md:not-first:border-l md:first:pl-0 md:last:pr-0"
+                className="flex flex-col border-b border-sand md:border-b-0 md:not-first:border-l"
               >
-                <Reveal delay={index * 0.1}>
+                {/* Image on top */}
+                <div className="relative w-full overflow-hidden aspect-[557/941]">
+                  <Image
+                    src={images[index]}
+                    alt=""
+                    aria-hidden
+                    fill
+                    quality={80}
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    className="object-cover object-center"
+                  />
+                </div>
+                {/* Text below image */}
+                <Reveal delay={index * 0.1} className="px-10 py-12 flex-1">
                   <p aria-hidden className="font-sans text-eyebrow font-semibold text-gold-ink">
                     {String(index + 1).padStart(2, "0")}
                   </p>
-                  <h2 className="mt-6 font-display text-display-md font-medium uppercase">
+                  <h2 className="mt-6 font-display text-display-md font-medium uppercase text-espresso">
                     {pillar.name}
                   </h2>
                   <p className="mt-3 font-display text-xl italic text-stone">
@@ -107,9 +122,9 @@ export default function MinistryPage() {
                   </p>
                 </Reveal>
               </li>
-            ))}
-          </ol>
-        </Container>
+            );
+          })}
+        </ol>
       </section>
 
       {/* ── Section 3: Ministry in Practice (Prayer, Prophecy, Purpose) ── */}
@@ -157,10 +172,13 @@ export default function MinistryPage() {
               From Joliet to the Nations
             </h2>
           </Reveal>
-          <div className="mt-10 flex flex-col gap-6 text-pretty text-mist">
+          <div className="mt-10 flex flex-col gap-10">
             {bio.sections.ministryJourney.map((paragraph, i) => (
               <Reveal key={i} delay={i * 0.08}>
-                <p className={i === 0 ? "text-lede" : undefined}>{paragraph}</p>
+                <div className="flex gap-6">
+                  <span aria-hidden className="mt-1 shrink-0 w-px bg-gold/40 self-stretch" />
+                  <p className="text-pretty text-mist leading-relaxed text-lg">{paragraph}</p>
+                </div>
               </Reveal>
             ))}
           </div>

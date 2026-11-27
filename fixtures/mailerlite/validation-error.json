@@ -1,11 +1,11 @@
 {
-  "_source": "documented-shape",
+  "_source": "captured 2026-11-27",
   "status": 422,
   "body": {
-    "message": "The given data was invalid.",
+    "message": "The email field must be a valid email address.",
     "errors": {
       "email": [
-        "The email must be a valid email address."
+        "The email field must be a valid email address."
       ]
     }
   }

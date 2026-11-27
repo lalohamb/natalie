@@ -54,11 +54,12 @@ export default function EventsPage() {
   return (
     <>
       {/* ── Header ── */}
-      <div className="border-b border-sand">
-        <div className="relative h-64 w-full overflow-hidden sm:h-100">
+      <section aria-labelledby="events-heading" className="relative border-b border-sand">
+        <div className="relative w-full aspect-[2048/768]">
           <Image
             src="/Open Bible Overlooking Golden Cityscape.png"
-            alt="Open Bible Overlooking Golden Cityscape"
+            alt=""
+            aria-hidden
             fill
             fetchPriority="high"
             loading="eager"
@@ -66,30 +67,34 @@ export default function EventsPage() {
             sizes="100vw"
             className="object-cover object-bottom"
           />
-          {/* Gradient fade to ivory at the bottom */}
-          <div aria-hidden className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-ivory to-transparent" />
-        </div>
-      </div>
-
-      {/* ── Heading (always rendered) + schedule ── */}
-      <section aria-labelledby="events-heading" className="pt-8 pb-section">
-        <Container>
-          <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span aria-hidden className="block h-px w-8 bg-gold" />
-              <SectionHeading
-                as="h1"
-                id="events-heading"
-                eyebrow="Upcoming Schedule"
-                title="Events & Appearances"
-                lede="Conferences, services, workshops, and ministry appearances."
-                className="mt-4 motion-safe:animate-rise"
-              />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-espresso/80 via-espresso/40 to-transparent" />
+          <div className="absolute inset-0 flex items-start pt-16">
+            <div className="w-full pl-26 pr-[var(--spacing-gutter)]">
+              <div className="max-w-xl">
+                <p className="flex items-center gap-4 font-sans text-eyebrow font-semibold uppercase text-gold-light">
+                  <span aria-hidden className="rule-gold" />
+                  Upcoming Schedule
+                </p>
+                <h1 id="events-heading" className="mt-4 font-display text-display-lg font-medium text-ivory motion-safe:animate-rise">
+                  Events &amp; Appearances
+                </h1>
+                <p className="mt-4 max-w-prose text-lede text-mist">
+                  Conferences, services, workshops, and ministry appearances.
+                </p>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Schedule ── */}
+      <section className="pt-8 pb-section">
+        <Container>
+          <div className="mb-8 flex justify-end">
             <ButtonLink
               href="#invite"
               variant="secondary"
-              className="shrink-0 self-start md:self-auto motion-safe:animate-rise [animation-delay:120ms]"
+              className="shrink-0 motion-safe:animate-rise [animation-delay:120ms]"
             >
               Invite Natalie
             </ButtonLink>

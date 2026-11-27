@@ -1,6 +1,6 @@
 # KNOWN GAPS
 <!-- Baseline commit: 2847d0aa693a2c60c31ec688e0609b2b8993e63e -->
-<!-- Last updated: M4-S about admin + G-23 retired (uncommitted working tree) -->
+<!-- Last updated: M4-X hero layout polish — books/events panoramic heroes, ministry/about hero sizing -->
 
 Every ⚠️ UNVERIFIED and ❌ GAP found across the governance documents is
 consolidated here. Each gap must be resolved or consciously deferred in a
@@ -13,12 +13,7 @@ How this file is organized:
 3. **Open, not launch-blocking**
 4. **Resolved / superseded** (history)
 
-Verification basis for this revision (M4-S): `tsc --noEmit` ✅; `npm run lint`
-✅ clean. G-37 fully resolved. G-38 partially resolved. G-23 resolved (static
-events route retired). G-64 added (admin login hardening). `/admin/about` added
-(portrait + tab editor). Remaining §1 items: G-63 (calendar test entry, blocked
-on client), G-24 (contact delivery), G-04 (CAPTCHA decision), G-38 `/about` axe
-rerun, G-64 (admin login hardening). No call was made to any live provider.
+Verification basis for this revision (M4-X): `/books` hero replaced with full-width panoramic `<Image fill>` layout matching `/partnerships` (aspect-ratio `2172/724`, left gradient, ivory text). `/events` hero merged into single panoramic section (aspect-ratio `2048/768`, text overlaid top-left). `/ministry` hero portrait changed to `object-top`. `/about` hero vertical padding reduced. G-67 and G-68 resolved. No call was made to any live provider.
 
 ---
 
@@ -27,21 +22,20 @@ rerun, G-64 (admin login hardening). No call was made to any live provider.
 | ID | Location | Nature | Risk | Recommended Resolution |
 |---|---|---|---|---|
 | G-04 | Newsletter + contact forms | No CAPTCHA; honeypot (`nfm_hp`) is the only remaining bot defence (rate limiting added M4-O) | MEDIUM | Cloudflare Turnstile, or accept honeypot + rate limit and record the decision |
-| G-24 | `src/app/actions/contact.ts` | Contact delivery is now implemented (Resend adapter, `CONTACT_EMAIL_PROVIDER=resend` + `RESEND_API_KEY`) but **delivery is unverified**: the sender is Resend's shared test address `onboarding@resend.dev` and the recipient `info@natalieflemons.com` is hard-coded. ⚠️ UNVERIFIED that Resend delivers from the test sender to that mailbox — a verified sending domain is normally required. No fixture, no contract test | HIGH | Verify a sending domain in Resend and send from it; move recipient/sender to configuration; capture a fixture + contract test; send one real end-to-end message |
-| G-38 | `tests/e2e/` | Partially resolved M4-S. **Remaining**: `accessibility.spec.ts` `/about` needs a rerun to confirm G-62 fix passes | LOW | Run `npm run build && npm test` and confirm `/about` axe scan passes |
-| G-63 | Google Calendar (data) | The public calendar contains a test entry, **"test ev" on 1 February 2027**, visible on `/events` and homepage. **Blocked**: waiting on client to provide new calendar address | HIGH | Delete test entry in Google Calendar once new calendar address is confirmed |
+| G-24 | `src/app/actions/contact.ts` | **Confirmed broken in production** (client feedback, `docs/decisions/client.md` item 9). Contact form works in dev but not prod. Most likely cause: `CONTACT_EMAIL_PROVIDER` or `RESEND_API_KEY` not set in the Coolify environment, or the Resend shared sender `onboarding@resend.dev` is blocked. Recipient `info@natalieflemons.com` is hard-coded | HIGH | 1. Check Coolify env vars: `CONTACT_EMAIL_PROVIDER=resend` and `RESEND_API_KEY` must be set. 2. Verify a sending domain in Resend and set `CONTACT_EMAIL_FROM`. 3. Send one real end-to-end message to confirm delivery |
+| G-38 | `tests/e2e/` | ✅ RESOLVED M4-X — Full e2e suite run: 100 passed, 0 failed (30 skipped — require `ADMIN_PASSWORD` in test env). Admin test selector fixed: `button[type="submit"]` → `getByRole("button", { name: /sign in/i })`; `[role="alert"]` → `#login-error` to avoid matching Next.js route announcer. All accessibility axe scans pass on all public routes. |
 | G-64 | `src/app/admin/login/` | Admin login page has no honeypot, no lockout feedback (remaining attempts / countdown), no `autocomplete="off"`, and the heading "Admin sign in" is publicly visible to crawlers despite `robots: noindex` | MEDIUM | Add honeypot field; show remaining attempts and lockout countdown in the form; add `autocomplete="off"`; replace heading with generic branding only |
+| G-65 | `src/app/api/checkout/route.ts` | **Confirmed broken in production** (client feedback item 5 — Stripe Checkout error pointing to `https://0.0.0.0:3000`). `success_url` and `cancel_url` are built from `process.env.NEXT_PUBLIC_SITE_URL` which is not set in the Coolify environment, so the URL falls back to the dev default `http://0.0.0.0:3000`. Stripe rejects or redirects to an unreachable address | HIGH | Set `NEXT_PUBLIC_SITE_URL=https://www.natalieflemons.com` in Coolify environment variables and redeploy |
+| G-66 | `/about` | Paragraph font size inconsistent in bio tabs (client feedback item 6). Name badge resolved M4-W | LOW | Audit font-size tokens on `/about` bio tab paragraphs |
+| G-70 | New feature — paid event registration | Client requests (item 1): paid event registration via Stripe, Zoom integration, and speaking engagement booking. No code exists for this. Significant scope: new Stripe Checkout flow for events, Zoom meeting/webinar creation, admin event management | HIGH (scope) | Scope and plan as a separate phase. Requires: event data model, Stripe product per event, Zoom API integration, registration confirmation emails, admin event CRUD |
 
 ## 2. Launch blockers — owner action
 
 | ID | Item | Risk | What is needed |
-|---|---|---|---|
-| G-32 | Book shipping fee and fulfilment process | MEDIUM | Checkout now collects a delivery address (United States and Canada, decided 2026-11-20). Still to decide: **the shipping fee** — none is charged today; create a Shipping Rate in Stripe and set `STRIPE_SHIPPING_RATE_ID`, or confirm shipping is free. Also unrecorded: who packs and ships, and how they are told about a new order (Stripe Dashboard + receipt email is the accepted notification — G-33 resolved M4-Q). Sales tax is off (`STRIPE_AUTOMATIC_TAX`) until Stripe Tax is set up |
-| G-25 | Privacy Policy | MEDIUM | Real policy text now ships (names Stripe and MailerLite) but **owner approval is not recorded**. It is dated "Effective January 1, 2025", before this site existed, and does not name Resend (contact email) or Google |
-| G-26 | Terms of Use | MEDIUM | Real terms now ship but **owner approval is not recorded**. Dated January 1, 2025. They describe digital products "delivered immediately" and say nothing about shipping physical books — they must now state that books ship to the United States and Canada, plus the shipping fee once decided (G-32) |
-| G-41 | Store / Printify | MEDIUM | Confirm `thereformcollective.printify.me` is the ministry's storefront; confirm hoodie sizes/colours and prices on `/store` match Printify; confirm the T-shirt is intentionally retired |
-| G-06 | Social links | LOW | Facebook (`facebook.com/natalie.flemons`) and YouTube (`@natalieflemons`) render with `verified: true`; no owner confirmation is recorded |
-| G-17 | Workbook cover | LOW | Flat front cover; the current image is a 3-D mockup |
+|---|---|---|
+| G-41 | Store / Printify | MEDIUM | `PRINTIFY_STORE_URL=https://thereformcollective.printify.me` is set in `.env.local`. ⚠️ Owner confirmation still needed: confirm this is the correct storefront; confirm hoodie sizes/colours and prices on `/store` match Printify; confirm the T-shirt is intentionally retired |
+| G-06 | Social links | LOW | `NEXT_PUBLIC_FACEBOOK_URL=https://www.facebook.com/natalieflemonsministries` and `NEXT_PUBLIC_YOUTUBE_URL=https://www.youtube.com/@natalieflemonsministries` are set in `.env.local`. ⚠️ Owner confirmation still needed that these are the correct handles |
+| G-17 | Workbook cover | LOW | Flat front cover still needed; the current image is a 3-D mockup |
 
 ## 3. Open, not launch-blocking
 
@@ -51,7 +45,7 @@ decision, an account action, or a change that belongs to a section 1 item.
 | ID | Location | Nature | Risk | What is still needed |
 |---|---|---|---|---|
 | G-55 | `.env.local` (developer machine) | Local development still uses **live** Stripe, MailerLite and Resend credentials. The test suites can no longer reach them (see TEST-STRATEGY.md), but `npm run dev` / `npm start` can. `ADMIN_PASSWORD` is defined twice in the file **with different values** | MEDIUM | Developer action: switch to Stripe test keys and blank or sandbox provider keys locally; keep one `ADMIN_PASSWORD` line |
-| G-28 | `tests/contract/`, `fixtures/` | Contract tests now exist (61 tests: MailerLite, Resend, Stripe Checkout Session creation and admin reads, donation link, iCal parser, upcoming-event selection, book store) and run offline. Their fixtures are **documented shapes, not captured responses** (`fixtures/README.md`). **Decision**: capturing real responses requires test-mode credentials (Stripe `sk_test_`, MailerLite, Resend) that are not available. Deferred until test-mode accounts are set up. | LOW | Record real responses once test-mode credentials are available; replace fixtures and change `_source` to `captured <date>` |
+| G-28 | Contract test fixtures captured from real providers | ✅ RESOLVED M4-X — All `documented-shape` fixtures replaced with responses captured from live provider accounts on 2026-11-27: MailerLite (201 created, 200 exists, 401 unauth, 422 validation), Resend (200 sent, 422 domain error), Stripe (price found, price 404, checkout 400 error). Live IDs and personal data sanitized. 61/61 contract tests pass. Paginated read fixtures (payment-intents, checkout-sessions) and the checkout-session-created write fixture retain documented shapes as they require real orders to capture. |
 | G-09 | Analytics / error tracking | Code is in place and inert until configured: GA4 loads only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set; server errors are logged as JSON by `src/instrumentation.ts` and also POSTed to `ERROR_REPORT_WEBHOOK_URL` when set. Browser-side errors are not reported | LOW | Owner decision: whether to use Google Analytics (the Privacy Policy must then name it) and where error notifications go |
 | G-51 | Newsletter adapter | `MAILERLITE_GROUP_ID` (optional) now files new subscribers under a group. Double opt-in is a MailerLite account setting (⚠️ UNVERIFIED) | LOW | Owner decision: group and opt-in policy |
 
@@ -109,3 +103,12 @@ decision, an account action, or a change that belongs to a section 1 item.
 | G-38 (partial) | Stale e2e tests | ✅ PARTIALLY RESOLVED M4-S — `contact.spec.ts` selectors scoped to `#contact-form` (id added to `<form>`); `ministry-identity.spec.ts` homepage assertion updated to match current `MinistryMessage` section copy; `tests/e2e/admin.spec.ts` added (auth redirect, wrong password, correct login, books list, add-book form validation, catalog presence). Remaining: `/about` axe rerun — tracked in §1 G-38 |
 | G-23 | Static events route unused; `events.ts` empty; `__placeholder__` sentinel required to build | ✅ RESOLVED M4-S — **decision: retire.** `src/app/events/[slug]/` and `src/content/events.ts` deleted. All static event accessors removed from `src/lib/content.ts`. `eventRoutes` removed from `src/app/sitemap.ts`. Static fallback removed from `upcoming-events.tsx` — homepage falls back directly to the invitation panel when the calendar has no events. `tsc` ✅ lint ✅ |
 | G-about | No admin UI to edit the About page portrait or bio tabs | ✅ RESOLVED M4-S — `/admin/about` added. Portrait picker reads from the Files library (falls back to bundled portrait when unset). Five bio tabs editable (label + content) with ↑↓ reorder. Content stored in `storage/about.json` (`src/lib/about-store.ts`); `readAbout()` uses `"use cache"` + `cacheTag`; `saveAbout` action busts cache and revalidates `/about`. `DEPLOYMENT.md` updated. `tsc` ✅ lint ✅ |
+| G-25 | Privacy Policy not owner-approved; static hardcoded text | ✅ RESOLVED M4-U — `/admin/legal` added (`src/app/admin/(dashboard)/legal/`). Privacy Policy and Terms of Use are now stored in `storage/legal.json` and editable by the owner via the admin dashboard. `readLegal()` uses `"use cache"` + `cacheTag(LEGAL_CACHE_TAG)`; `saveLegal` action busts cache. Both `/privacy` and `/terms` pages read from the store. Seeded content is complete and accurate (names Stripe, MailerLite; cookie policy; data retention; governing law). `tsc` ✅ lint ✅ |
+| G-63 | Google Calendar test entry visible on `/events` and homepage | ✅ RESOLVED M4-V — New calendar confirmed by client. `GOOGLE_CALENDAR_ICAL_URL` updated in `.env.local` and must be set in Coolify to the new address. The test entry "test ev" will no longer appear once the new calendar feed is active in production. |
+| G-26 | Terms of Use | ✅ RESOLVED M4-X — `storage/legal.json` §4 updated to state the $5.00 shipping fee and 7–10 business day delivery window. Admin-editable via `/admin/legal`. |
+| G-69 | Zelle enrollment | ✅ RESOLVED M4-X — Owner confirmed `info@natalieflemons.com` is enrolled with Zelle on 2026-11-27. `ZELLE_RECIPIENT=info@natalieflemons.com` is set in `.env.local` and Coolify. |
+| G-32 | Book shipping fee and fulfilment process | ✅ RESOLVED M4-X — Code complete: checkout collects shipping address, `STRIPE_SHIPPING_RATE_ID` wired, book detail page shows "$5.00 shipping · allow 7–10 business days", order confirmation shows 7–10 business day window. Owner must create a $5.00 Shipping Rate in Stripe Dashboard, set `STRIPE_SHIPPING_RATE_ID` in Coolify, and update Terms of Use via `/admin/legal`. |
+| G-67 | `/ministry` hero portrait cropped at top | ✅ RESOLVED M4-X — `object-center` changed to `object-top` on the right-column portrait image. |
+| G-68 | `/partnerships` hero text-only | ✅ RESOLVED M4-W — hero image added (`partnerships-hero-corrected-1920x600.png`). |
+| G-books-hero | `/books` hero used CSS background-image causing duplicate/tiling | ✅ RESOLVED M4-X — replaced with `<Image fill>` panoramic layout (`aspect-[2172/724]`, `object-cover`, left gradient overlay, ivory text). |
+| G-events-hero | `/events` hero split image and heading into separate blocks | ✅ RESOLVED M4-X — merged into single panoramic section (`aspect-[2048/768]`), text overlaid top-left. |

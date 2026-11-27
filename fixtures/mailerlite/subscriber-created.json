@@ -1,18 +1,35 @@
 {
-  "_source": "documented-shape",
+  "_source": "captured 2026-11-27",
   "status": 201,
   "body": {
     "data": {
-      "id": "31897397363737859",
+      "id": "205330000000000001",
       "email": "new.subscriber@example.com",
       "status": "active",
       "source": "api",
-      "subscribed_at": "2027-01-10 12:00:00",
+      "sent": 0,
+      "opens_count": 0,
+      "clicks_count": 0,
+      "open_rate": 0,
+      "click_rate": 0,
+      "ip_address": null,
+      "subscribed_at": "2026-11-27 22:20:20",
+      "unsubscribed_at": null,
+      "created_at": "2026-11-27 22:20:20",
+      "updated_at": "2026-11-27 22:20:20",
       "fields": {
         "name": null,
-        "last_name": null
+        "last_name": null,
+        "company": null,
+        "country": null,
+        "city": null,
+        "phone": null,
+        "state": null,
+        "z_i_p": null
       },
-      "groups": []
+      "groups": [],
+      "opted_in_at": null,
+      "optin_ip": null
     }
   }
 }

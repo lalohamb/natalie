@@ -1,10 +1,11 @@
 {
-  "_source": "documented-shape",
+  "_source": "captured 2026-11-27",
   "status": 400,
   "body": {
     "error": {
       "code": "resource_missing",
-      "message": "No such price: 'price_gone'",
+      "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
+      "message": "No such price: 'price_missing_xxx'",
       "param": "line_items[0][price]",
       "type": "invalid_request_error"
     }

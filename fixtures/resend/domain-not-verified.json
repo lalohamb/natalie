@@ -1,9 +1,9 @@
 {
-  "_source": "documented-shape",
-  "status": 403,
+  "_source": "captured 2026-11-27",
+  "status": 422,
   "body": {
-    "statusCode": 403,
+    "message": "Invalid `to` field. Please use our testing email address instead of domains like `example.com`. See our documentation for more information.",
     "name": "validation_error",
-    "message": "You can only send testing emails to your own email address."
+    "statusCode": 422
   }
 }

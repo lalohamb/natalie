@@ -10,6 +10,7 @@ mounted into the container at runtime. This means content survives redeploys.
 | `/app/storage/books.json` | `/data/coolify/applications/7xasx33ju8brs7r9vfmhufmj/storage/books.json` | Book catalog |
 | `/app/storage/videos.json` | `…/storage/videos.json` | Video catalog |
 | `/app/storage/about.json` | `…/storage/about.json` | About page portrait + tab content |
+| `/app/storage/legal.json` | `…/storage/legal.json` | Privacy Policy and Terms of Use |
 | `/app/storage/files/` | `…/storage/files/` | Uploaded cover images |
 
 The environment variable `MEDIA_STORAGE_DIR=/app/storage` tells the app where
@@ -27,8 +28,8 @@ to read and write. Do not change this unless the mount path changes.
 
 The Docker image bakes the committed `storage/` content into `/app/storage-seed/`.
 On first boot, `docker-entrypoint.sh` checks whether `books.json`, `videos.json`,
-`about.json`, and `files/` exist in the mounted directory. Any that are missing are copied from
-the seed. This means:
+`about.json`, `legal.json`, and `files/` exist in the mounted directory. Any that
+are missing are copied from the seed. This means:
 
 - A fresh volume is automatically populated on first deploy.
 - Subsequent deploys never overwrite content the owner has added via the admin.
@@ -44,6 +45,17 @@ the seed. This means:
 5. Save — written to `/app/storage/about.json`; `/about` cache is busted immediately
 
 If no portrait is selected the page falls back to the default bundled portrait.
+
+## Editing the Privacy Policy and Terms of Use
+
+1. Sign in at `/admin`
+2. Go to **Legal**
+3. Edit the effective date, section headings, and paragraphs for either document
+4. Save — written to `/app/storage/legal.json`; `/privacy` and `/terms` cache is busted immediately
+
+Once the $5.00 shipping fee is confirmed in Stripe (`STRIPE_SHIPPING_RATE_ID` set),
+update §4 of the Terms of Use via `/admin/legal` to state the fee and the
+7–10 business day delivery window.
 
 ## Adding a new book
 
@@ -76,8 +88,11 @@ covers uploaded via the admin will use `/media-files/` paths.
 |---|---|---|
 | `MEDIA_STORAGE_DIR` | `/app/storage` | Where books.json, videos.json and uploads live |
 | `ADMIN_READONLY` | _(unset)_ | Unset allows writes; set to `true` to block all admin writes |
+| `NEXT_PUBLIC_SITE_URL` | `https://www.natalieflemons.com` | Used to build Stripe `success_url` / `cancel_url` — must be set in Coolify |
+| `GOOGLE_CALENDAR_ICAL_URL` | `https://calendar.google.com/calendar/ical/…/public/basic.ics` | Public iCal feed for `/events` and homepage upcoming events — set to the ministry's confirmed calendar address |
 | `STRIPE_SECRET_KEY` | `sk_live_…` | Live mode Stripe key |
-| `STRIPE_AUTOMATIC_TAX` | `true` | Stripe Tax enabled at checkout |
+| `STRIPE_AUTOMATIC_TAX` | _(unset)_ | Seller pays tax; leave unset |
+| `STRIPE_SHIPPING_RATE_ID` | `shr_…` | $5.00 shipping rate — create in Stripe Dashboard and set here |
 
 ## Permissions
 
@@ -99,6 +114,7 @@ After fixing ownership, seed the storage manually from the container Terminal
 cp /app/storage-seed/books.json /app/storage/books.json
 cp /app/storage-seed/videos.json /app/storage/videos.json
 cp /app/storage-seed/about.json /app/storage/about.json
+cp /app/storage-seed/legal.json /app/storage/legal.json
 mkdir -p /app/storage/files
 ```
 

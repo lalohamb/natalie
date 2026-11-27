@@ -31,8 +31,8 @@
 
 See `REPORT-INDEX.md` for the full list. M4 (integrations, commerce, admin)
 has no phase report; its state is recorded in the governance documents above
-as of the M4-N book store change (2026-11-20, HEAD `247c069` plus the uncommitted
-working tree). Start with `KNOWN-GAPS.md` §1 for what blocks launch.
+as of the M4-X hero layout polish (2026-11-20+, HEAD `247c069` plus working
+tree). Start with `KNOWN-GAPS.md` §1 for what blocks launch.
 
 ## Authority hierarchy
 

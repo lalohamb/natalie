@@ -87,7 +87,10 @@ Live verified: ✅ default link HTTP 200 per `docs/reports/SITE-AUDIT.md` §7
 Cash App: outbound link `https://cash.app/$NatalieFlemons` — ✅ resolves per
 SITE-AUDIT.md §7 (2026-10-10).
 Zelle: displayed recipient `info@natalieflemons.com` (`giving.zelleEmail`);
-no link, no API. ⚠️ UNVERIFIED that this address is enrolled with Zelle.
+no link, no API. The partnerships page renders a static QR code image
+(`/public/QR-PNC.png`) and a copy button. `ZELLE_RECIPIENT` env var overrides
+the default. ⚠️ UNVERIFIED that `info@natalieflemons.com` is enrolled with Zelle
+(G-69 — client to confirm).
 
 ---
 
@@ -219,10 +222,10 @@ Normalization: `"sent"` on any 2xx; `"not-configured"` when the provider is
 unset; `"error"` (logged) on a missing key, an unknown provider or any other
 status. The response body is not read.
 
-Live verified: **NO**. ⚠️ UNVERIFIED that mail from Resend's shared test
-sender reaches info@natalieflemons.com; a verified sending domain is expected
-to be required (G-24). Contract test on documented-shape fixtures:
-`tests/contract/contact-email.spec.ts` (G-28).
+Live verified: **NO**. ⚠️ **Confirmed broken in production** (client feedback
+`docs/decisions/client.md` item 9 — form works in dev, not prod). Most likely
+cause: `CONTACT_EMAIL_PROVIDER` or `RESEND_API_KEY` missing from Coolify env,
+or Resend shared sender blocked. See G-24.
 
 ---
 

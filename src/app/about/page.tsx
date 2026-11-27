@@ -40,7 +40,7 @@ export default async function AboutPage() {
         <div className="grid lg:grid-cols-12 lg:items-stretch">
 
           {/* Left — text + tabs */}
-          <div className="relative z-10 flex flex-col justify-center px-gutter py-12 lg:col-span-6 lg:py-16 xl:col-span-5">
+          <div className="relative z-10 flex flex-col justify-center px-gutter py-4 lg:col-span-6 lg:py-1 xl:col-span-5">
             <div aria-hidden className="absolute inset-0 bg-linen/95 lg:bg-transparent" />
             <div className="relative flex flex-col gap-6">
               <Eyebrow className="motion-safe:animate-rise">About Natalie</Eyebrow>
@@ -85,10 +85,10 @@ export default async function AboutPage() {
             />
             <div aria-hidden className="absolute right-4 bottom-4 h-16 w-16 border-r border-b border-gold/60 sm:right-6 sm:bottom-6 sm:h-20 sm:w-20" />
             <figcaption className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6">
-              <span className="block font-display text-lg text-ivory drop-shadow-sm">{bio.name}</span>
-              <span className="block font-sans text-eyebrow font-semibold text-gold-light uppercase tracking-[0.22em]">
-                Founder
-              </span>
+              <div className="rounded-sm px-1 py-1 bg-espresso/70 backdrop-blur-md">
+                <span className="block font-display text-4xl font-bold text-ivory [text-shadow:0_4px_16px_rgba(0,0,0,0.8)]">{bio.name}</span>
+                <span className="block font-sans text-lg font-extrabold text-gold-light uppercase tracking-[0.22em] mt-1 [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">Founder</span>
+              </div>
             </figcaption>
           </figure>
         </div>

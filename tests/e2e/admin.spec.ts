@@ -5,7 +5,7 @@ const PASSWORD = process.env.ADMIN_PASSWORD ?? "test-password";
 async function login(page: Page) {
   await page.goto("/admin/login");
   await page.locator('input[name="password"]').fill(PASSWORD);
-  await page.locator('button[type="submit"]').click();
+  await page.getByRole("button", { name: /sign in/i }).click();
   await page.waitForURL("**/admin");
 }
 
@@ -27,8 +27,8 @@ test.describe("Admin auth", () => {
   test("wrong password shows error, stays on login", async ({ page }) => {
     await page.goto("/admin/login");
     await page.locator('input[name="password"]').fill("wrong-password");
-    await page.locator('button[type="submit"]').click();
-    await expect(page.locator('[role="alert"]')).toContainText(/incorrect password/i);
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page.locator("#login-error")).toContainText(/incorrect password/i);
     await expect(page).toHaveURL(/\/admin\/login/);
   });
 

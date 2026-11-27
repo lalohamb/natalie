@@ -65,16 +65,16 @@ export function AboutTabs({ tabs }: AboutTabsProps) {
         id={`tabpanel-${current.id}`}
         role="tabpanel"
         aria-label={current.label}
-        // Focusable so keyboard users can scroll the panel when its text overflows.
         tabIndex={0}
         className="mt-5 overflow-y-auto text-pretty text-stone focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
         style={panelHeight ? { height: panelHeight } : undefined}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {current.paragraphs.map((p, i) => (
-            <p key={i} className={i === 0 ? "text-base leading-relaxed" : "text-sm leading-relaxed"}>
-              {p}
-            </p>
+            <div key={i} className="flex gap-4">
+              <span aria-hidden className="mt-1 shrink-0 w-px bg-gold/40 self-stretch" />
+              <p className="text-sm leading-relaxed text-espresso">{p}</p>
+            </div>
           ))}
         </div>
       </div>
@@ -86,11 +86,12 @@ export function AboutTabs({ tabs }: AboutTabsProps) {
         className="pointer-events-none invisible absolute"
       >
         {tabs.map((tab) => (
-          <div key={tab.id} data-measure className="flex flex-col gap-4 text-base leading-relaxed" style={{ width: "593px" }}>
+          <div key={tab.id} data-measure className="flex flex-col gap-6" style={{ width: "593px" }}>
             {tab.paragraphs.map((p, i) => (
-              <p key={i} className={i === 0 ? "text-base leading-relaxed" : "text-sm leading-relaxed"}>
-                {p}
-              </p>
+              <div key={i} className="flex gap-4">
+                <span className="mt-1 shrink-0 w-px self-stretch" />
+                <p className="text-sm leading-relaxed">{p}</p>
+              </div>
             ))}
           </div>
         ))}

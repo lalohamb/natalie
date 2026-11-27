@@ -1,4 +1,4 @@
-import QRCode from "qrcode";
+import Image from "next/image";
 import { ZelleCopyButton } from "./zelle-copy-button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -13,13 +13,7 @@ function ZelleLogo() {
   );
 }
 
-export async function ZelleCard({ recipient }: { recipient: string }) {
-  const qrDataUrl = await QRCode.toDataURL(recipient, {
-    width: 160,
-    margin: 1,
-    color: { dark: "#2c1a0e", light: "#faf6ef" },
-  });
-
+export function ZelleCard({ recipient }: { recipient: string }) {
   return (
     <div className="relative flex h-full flex-col gap-6 border border-sand p-8 sm:p-10">
       <span aria-hidden className="absolute top-0 left-0 h-8 w-8 border-t border-l border-gold" />
@@ -39,13 +33,12 @@ export async function ZelleCard({ recipient }: { recipient: string }) {
       <div className="mt-auto flex flex-col gap-4">
         {/* QR code */}
         <div className="flex justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={qrDataUrl}
+          <Image
+            src="/QR-PNC.png"
             alt={`Zelle QR code for ${recipient}`}
-            width={160}
-            height={160}
-            className="rounded border border-sand"
+            width={844}
+            height={606}
+            className="w-full max-w-xs rounded"
           />
         </div>
 

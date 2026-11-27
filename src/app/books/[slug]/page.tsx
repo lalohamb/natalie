@@ -113,7 +113,7 @@ export default async function BookDetailPage({ params }: Props) {
                 )}
               </div>
               {book.status === "published" && checkout && (
-                <p className="mt-4 font-sans text-sm text-stone">Ships to {shippingDestinations()}.</p>
+                <p className="mt-4 font-sans text-sm text-stone">Ships to {shippingDestinations()}. $5.00 shipping · allow 7–10 business days.</p>
               )}
 
               <div className="mt-12 flex flex-col gap-5 text-pretty text-stone">
