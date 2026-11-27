@@ -12,6 +12,7 @@
 | `KNOWN-GAPS.md` | All unresolved ⚠️ and ❌ items. Resolve before launch. |
 | `TEST-STRATEGY.md` | Test inventory, coverage gaps, recommended phases. |
 | `DEPLOYMENT.md` | Coolify storage setup, volume seeding, book management workflow. |
+| `LMS-PLAN.md` | Full LMS implementation plan — student accounts, subscriptions, lessons, quizzes, assignments. |
 
 ## Phase tracking
 
