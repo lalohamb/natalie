@@ -113,7 +113,7 @@ export default async function BookDetailPage({ params }: Props) {
 
               <div className="mt-12 flex flex-col gap-5 text-pretty text-stone">
                 {book.description.map((para, i) => (
-                  <p key={i} className={i === 0 ? "text-lede" : undefined}>{para}</p>
+                  <p key={i}>{para}</p>
                 ))}
               </div>
 
