@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "This book is not available for purchase." }, { status: 404 });
   }
 
-  const origin = request.nextUrl.origin;
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin).replace(/\/$/, "");
   const bookUrl = `${origin}/books/${book.slug}`;
   const back = (state: "unavailable" | "busy") => NextResponse.redirect(`${origin}/books/order-confirmation?checkout=${state}`, 303);
 
