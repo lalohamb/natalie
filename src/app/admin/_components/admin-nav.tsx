@@ -12,7 +12,7 @@ const items = [
   { href: "/admin/videos", label: "Videos" },
   { href: "/admin/files", label: "Files" },
   { href: "/admin/books", label: "Books" },
-  { href: "/admin/courses", label: "Courses" },
+  { href: "/admin/courses", label: "Teachings" },
   { href: "/admin/calendar", label: "Calendar" },
   { href: "/admin/newsletter", label: "Newsletter" },
   { href: "/admin/donations", label: "Donations" },

@@ -1,20 +1,4 @@
 {
   "version": 1,
-  "courses": [
-    {
-      "id": "repent-3dd1",
-      "slug": "repent-3dd1",
-      "title": "Repent",
-      "subtitle": "Repent",
-      "status": "published",
-      "summary": "Repent",
-      "description": [
-        "Repent"
-      ],
-      "priceCents": 700,
-      "featured": false,
-      "displayOrder": 1,
-      "createdAt": "2026-11-27T23:34:46.500Z"
-    }
-  ]
+  "courses": []
 }

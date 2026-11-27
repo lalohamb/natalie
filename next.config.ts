@@ -50,6 +50,8 @@ const nextConfig: NextConfig = {
     return [
       // Navigation restructure (Gate 1 approvals)
       { source: "/booking", destination: "/events", permanent: true },
+      { source: "/courses", destination: "/teachings", permanent: true },
+      { source: "/courses/:slug", destination: "/teachings/:slug", permanent: true },
 
       // Legacy Squarespace book URLs → new book detail pages
       { source: "/repairingthebreach", destination: "/books/repairing-the-breach", permanent: true },

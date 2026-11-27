@@ -21,7 +21,7 @@ export const mainNavigation: NavItem[] = [
   { label: "About", href: "/about" },
   { label: "Ministry", href: "/ministry" },
   { label: "Books", href: "/books" },
-  { label: "The Equipping Academy", href: "/courses" },
+  { label: "Teachings", href: "/teachings" },
   { label: "Events", href: "/events" },
   { label: "Media", href: "/media" },
 ];
