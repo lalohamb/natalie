@@ -10,8 +10,8 @@ import { formatPrice } from "@/lib/format";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "The Equipping Academy",
-  description: "Develop Your Gifts. Strengthen Your Faith. Fulfill Your Kingdom Assignment. Online courses by Natalie C. Flemons aligned with the ministry’s three core values: Equip · Restore · Activate.",
+  title: "Courses",
+  description: "Online courses by Natalie C. Flemons — practical, Spirit-led training to equip and activate believers.",
   alternates: { canonical: "/courses" },
   openGraph: { url: "/courses" },
 };
@@ -26,16 +26,13 @@ export default async function CoursesPage() {
         <Container>
           <p className="flex items-center gap-4 font-sans text-eyebrow font-semibold uppercase text-gold-ink">
             <span aria-hidden className="rule-gold" />
-            Equip · Restore · Activate
+            Online Training
           </p>
           <h1 className="mt-4 font-display text-display-md font-medium text-balance">
-            The Equipping Academy
+            Courses by Natalie C. Flemons
           </h1>
           <p className="mt-4 max-w-prose text-lede text-stone">
-            Develop Your Gifts. Strengthen Your Faith. Fulfill Your Kingdom Assignment.
-          </p>
-          <p className="mt-3 max-w-prose font-sans text-sm text-stone">
-            This aligns naturally with the ministry’s three core values: Equip · Restore · Activate.
+            Practical, Spirit-led training to equip, restore, and activate believers for their God-given purpose.
           </p>
         </Container>
       </section>
@@ -45,7 +42,7 @@ export default async function CoursesPage() {
         <Container>
           {courses.length === 0 ? (
             <div className="py-24 text-center">
-              <p className="font-sans text-stone">Academy courses coming soon. Check back shortly.</p>
+              <p className="font-sans text-stone">Courses coming soon. Check back shortly.</p>
             </div>
           ) : (
             <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
