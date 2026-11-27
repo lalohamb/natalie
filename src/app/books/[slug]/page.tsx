@@ -13,6 +13,8 @@ import { formatPrice } from "@/lib/format";
 import { checkoutFulfilment } from "@/lib/stripe";
 import { bookStructuredData } from "@/lib/structured-data";
 
+export const instant = false;
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
