@@ -91,24 +91,26 @@ export default async function BookDetailPage({ params }: Props) {
                 ))}
               </div>
 
-              <div className="mt-8 border-t border-sand pt-6 flex flex-wrap items-center gap-4">
+              <div className="mt-8 border-t border-sand pt-6">
                 {book.priceCents !== undefined && (
                   <p className="font-display text-2xl text-espresso">
                     <span className="sr-only">Price: </span>
                     {formatPrice(book.priceCents)}
                   </p>
                 )}
-                {book.status === "published" && checkout && book.purchase.kind === "stripe-checkout" && (
-                  <CheckoutButton slug={book.slug}>{book.purchase.label}</CheckoutButton>
-                )}
-                {book.status === "published" && purchaseHref && (
-                  <ButtonLink href={purchaseHref}>
-                    {book.purchase.kind !== "none" ? book.purchase.label : "Purchase"}
-                  </ButtonLink>
-                )}
-                {book.status === "forthcoming" && (
-                  <p className="self-center font-sans text-sm text-stone">Coming soon</p>
-                )}
+                <div className="mt-4 flex flex-wrap gap-4">
+                  {book.status === "published" && checkout && book.purchase.kind === "stripe-checkout" && (
+                    <CheckoutButton slug={book.slug}>{book.purchase.label}</CheckoutButton>
+                  )}
+                  {book.status === "published" && purchaseHref && (
+                    <ButtonLink href={purchaseHref}>
+                      {book.purchase.kind !== "none" ? book.purchase.label : "Purchase"}
+                    </ButtonLink>
+                  )}
+                  {book.status === "forthcoming" && (
+                    <p className="self-center font-sans text-sm text-stone">Coming soon</p>
+                  )}
+                </div>
               </div>
               {book.status === "published" && checkout && (
                 <p className="mt-4 font-sans text-sm text-stone">Ships to {shippingDestinations()}. $5.00 shipping · allow 7–10 business days.</p>
