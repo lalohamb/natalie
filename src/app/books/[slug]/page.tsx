@@ -94,6 +94,12 @@ export default async function BookDetailPage({ params }: Props) {
                 )}
               </div>
 
+              <div className="mt-12 flex flex-col gap-5 text-pretty text-stone">
+                {book.description.map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+              </div>
+
               <div className="mt-8 flex flex-wrap gap-4">
                 {book.status === "published" && checkout && book.purchase.kind === "stripe-checkout" && (
                   <CheckoutButton slug={book.slug}>{book.purchase.label}</CheckoutButton>
@@ -110,12 +116,6 @@ export default async function BookDetailPage({ params }: Props) {
               {book.status === "published" && checkout && (
                 <p className="mt-4 font-sans text-sm text-stone">Ships to {shippingDestinations()}. $5.00 shipping · allow 7–10 business days.</p>
               )}
-
-              <div className="mt-12 flex flex-col gap-5 text-pretty text-stone">
-                {book.description.map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
-              </div>
 
               {book.note && (
                 <p className="mt-8 border-l-2 border-gold pl-5 text-sm text-stone italic">{book.note}</p>
