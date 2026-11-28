@@ -17,7 +17,7 @@ Anything from the STORE is separate cost.
 3.Taxes - seller pays
 
 3a. Natalie- Equip…Restore…Activate
-Practical tips, best practices
+Practical tips, best practices.
 
 5. Courses
 STRIPE CHECKOUT - returns error points to https :// 0.0.0.0:3000
